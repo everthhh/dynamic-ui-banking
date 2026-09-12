@@ -296,6 +296,21 @@ def sembrar_core(conn: sqlite3.Connection, rng: np.random.Generator) -> None:
                  (FECHA_VALUACION - timedelta(days=30 * pagadas)).isoformat()),
             )
 
+        # Presupuestos: solo para el cliente del guion (CLI-0001), a propósito
+        # sin tocar los demás — así el demo muestra tanto el caso "ya configuró
+        # presupuestos" como el caso "todavía no", que es el más común.
+        if cid == "CLI-0001":
+            hoy_iso = FECHA_VALUACION.isoformat()
+            for cat_idx, (categoria, monto_presupuesto) in enumerate(
+                (("super", 3000.0), ("restaurantes", 1200.0), ("entretenimiento", 500.0))
+            ):
+                conn.execute(
+                    "INSERT INTO budgets (budget_id, client_id, categoria, monto_mensual,"
+                    " creado_en, actualizado_en) VALUES (?,?,?,?,?,?)",
+                    (f"BUD-{idx:04d}-{cat_idx}", cid, categoria, monto_presupuesto,
+                     hoy_iso, hoy_iso),
+                )
+
 
 # ---------------------------------------------------------------------------
 # inversiones

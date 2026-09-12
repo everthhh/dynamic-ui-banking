@@ -61,7 +61,7 @@ dynamic-ui-banking/
 ├─ a2ui/            catalog.json (fuente única de verdad) + validador + contrato
 ├─ agent/           loop propio sobre el SDK nativo de Anthropic + cliente MCP
 ├─ gateway/         FastAPI + SSE, sesiones, bitácora y ciclo de vida del MCP
-├─ web/             renderer A2UI, registry y componentes inv.* (charts con Recharts)
+├─ web/             renderer A2UI, registry y componentes inv.*/bank.* (charts con Recharts)
 ├─ scripts/         generadores de artefactos y smoke del ciclo completo
 └─ docs/            arquitectura, trade-offs y guion de la demo
 ```
@@ -81,8 +81,9 @@ vivo eso importa.
 
 ### 2. El catálogo es la fuente única de verdad
 
-`a2ui/catalog.json` define 18 componentes (8 primitivos, 10 de dominio) y las 8
-acciones válidas. De ahí se generan, y nunca se escriben a mano:
+`a2ui/catalog.json` define 22 componentes (8 primitivos, 14 de dominio — 10 de
+`inv.*` y 4 de `bank.*`) y las 15 acciones válidas. De ahí se generan, y nunca
+se escriben a mano:
 
 | Artefacto | Generado por | Consumido por |
 |---|---|---|
@@ -211,6 +212,36 @@ hace que el agente monte el perfilador en lugar de proponer a ciegas, y
 
 ---
 
+## Segundo dominio: banca personal
+
+Inversiones se cerró y se ensayó primero, a propósito — es el criterio de
+corte del proyecto (ver `docs/trade-offs.md`). Banca personal es el segundo,
+mismo catálogo, mismo agente, prefijo `bank.*` en vez de `inv.*`:
+
+- **Base de datos** (`bank/schema.sql`): `accounts.alias`, `cards.alias` y
+  `cards.estado` (activa/bloqueada); tabla `budgets` (un presupuesto por
+  cliente y categoría); tabla `card_events`, auditoría de cada bloqueo, cambio
+  de límite o alias — igual que `surface_log` audita el blueprint.
+- **Servicios**: lectura ampliada en `services/accounts.py`
+  (`search_transactions` con filtros combinables, `get_budgets`,
+  `get_spending_alerts`); las mutaciones —que no mueven dinero, así que no
+  llevan el candado de dos pasos de `place_order`— viven en
+  `services/banking.py`: `block_card`/`unblock_card` (idempotentes),
+  `set_card_limit` (no baja del saldo usado ni pasa de 3× el ingreso
+  declarado), `set_card_alias`, `set_account_alias`, `set_budget`.
+- **Seguridad**: toda mutación verifica que la cuenta/tarjeta sea del cliente
+  en sesión (`_exigir_cuenta_del_cliente` / `_exigir_tarjeta_del_cliente`) y
+  el mensaje de error nunca confirma ni niega que algo ajeno exista — no dice
+  "esa tarjeta es de otro cliente", dice "no existe o no te pertenece". Los
+  alias se recortan y tienen tope de 40 caracteres.
+- **Componentes** (`bank.*`): `AccountsOverview` (cuentas y tarjetas, alias
+  editable en línea), `CardManager` (bloqueo de un toque, slider de límite,
+  alias), `SpendingBudgets` (presupuesto vs. gasto real con Recharts +
+  slider por categoría), `TransactionSearch` (resultados filtrados con chips
+  de categoría — el filtro lo decide el agente, el cliente solo lo pide).
+
+---
+
 ## La simulación del sistema de componentes
 
 `web/src/fixtures/demo.json` es el guion completo —los seis turnos, los mismos
@@ -228,15 +259,17 @@ si el catálogo cambia, el guion se rompe y nos enteramos.
 ## Verificación
 
 ```
-215 tests
-  a2ui/tests/test_contract.py    catálogo bien formado, artefactos alineados,
-                                 casos inválidos (incl. spec A2UI real: action
-                                 anidado, deleteSurface) y que cada error sea accionable
+263 tests
+  a2ui/tests/test_contract.py    catálogo bien formado (22 componentes, 15 acciones),
+                                 artefactos alineados, casos inválidos (incl. spec A2UI
+                                 real: action anidado, deleteSurface) y accionables
   tests/test_finance.py          monotonía del score, tope por horizonte, pesos que
                                  suman 1, percentiles que no se cruzan, diversificación
                                  que baja la volatilidad, comisiones que se cobran
   tests/test_services.py         cuadre de cifras, errores con sugerencia, los dos
                                  pasos de la orden, idempotencia, token nunca expuesto
+  tests/test_banking.py          ownership de cuenta/tarjeta, límites con techo y piso,
+                                 bloqueo idempotente, alias saneado, presupuestos
   tests/test_agent_loop.py       encadenado de tools (vía MCP falso), validación con
                                  reintento, fallback, bitácora, límites
   tests/test_mcp_server.py       el servidor MCP real por stdio: list_tools,

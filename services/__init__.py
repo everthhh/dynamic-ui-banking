@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from services import accounts, instruments, orders, portfolio
+from services import accounts, banking, instruments, orders, portfolio
 from services.errors import ServiceError
 
 REGISTRO: dict[str, Callable[..., Any]] = {
@@ -25,6 +25,10 @@ REGISTRO: dict[str, Callable[..., Any]] = {
     "get_transactions": accounts.get_transactions,
     "get_spending_summary": accounts.get_spending_summary,
     "get_credit_overview": accounts.get_credit_overview,
+    # lectura: banca personal (busqueda, presupuestos y alertas)
+    "search_transactions": accounts.search_transactions,
+    "get_budgets": accounts.get_budgets,
+    "get_spending_alerts": accounts.get_spending_alerts,
     # lectura: inversiones
     "list_instruments": instruments.list_instruments,
     "get_instrument_factsheet": instruments.get_instrument_factsheet,
@@ -34,14 +38,26 @@ REGISTRO: dict[str, Callable[..., Any]] = {
     "propose_allocation": portfolio.propose_allocation,
     "simulate_portfolio": portfolio.simulate_portfolio,
     "compare_allocations": portfolio.compare_allocations,
-    # efecto real
+    # efecto: banca personal (no mueven dinero, pero cambian estado)
+    "block_card": banking.block_card,
+    "unblock_card": banking.unblock_card,
+    "set_card_limit": banking.set_card_limit,
+    "set_card_alias": banking.set_card_alias,
+    "set_account_alias": banking.set_account_alias,
+    "set_budget": banking.set_budget,
+    # efecto real: inversiones
     "place_order": orders.place_order,
     "get_orders": orders.get_orders,
 }
 
-# Tools que modifican estado. El agente necesita confirmacion del usuario
-# antes de llamarlas, y el gateway las registra en la bitacora aparte.
-CON_EFECTO: frozenset[str] = frozenset({"place_order"})
+# Tools que modifican estado. El agente las puede llamar directo (no llevan el
+# candado de dos pasos de `place_order`, que es exclusivo de mover dinero),
+# pero el front las marca distinto en la traza y quedan en `card_events`.
+CON_EFECTO: frozenset[str] = frozenset({
+    "place_order",
+    "block_card", "unblock_card", "set_card_limit", "set_card_alias",
+    "set_account_alias", "set_budget",
+})
 
 __all__ = ["REGISTRO", "CON_EFECTO", "ServiceError",
-           "accounts", "instruments", "orders", "portfolio"]
+           "accounts", "banking", "instruments", "orders", "portfolio"]

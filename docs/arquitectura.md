@@ -147,17 +147,33 @@ Dos guardias independientes:
 
 ## Escalar a otros dominios
 
-1. Un servidor de servicios por dominio (`inv`, `credit`, `spend`, `insurance`).
-2. Un catálogo por dominio, mismo formato, prefijo distinto; el `catalogId` dice
-   cuál cargar.
-3. Un router de intención al frente: una llamada barata clasifica el dominio y
-   carga solo ese catálogo y esas tools.
-4. Componentes transversales: `inv.ProjectionChart` y `inv.ComparePanel` sirven
-   igual para amortización de crédito o cobertura de seguro.
+Banca personal (`bank.*`) es el segundo dominio, y confirmó que el patrón
+escala sin fricción: **no** hizo falta un servidor MCP nuevo ni un catálogo
+aparte. Un dominio nuevo es:
+
+1. Tablas nuevas en `bank/schema.sql` + servicios en `services/<dominio>.py`
+   (lectura) y, si hace falta mutar algo, un módulo de efecto aparte —
+   `services/banking.py` es al `bank.*` lo que `services/orders.py` es al
+   `inv.*`.
+2. Entradas nuevas en `agent/tools.py::TOOLS_DATOS` — el mismo `mcp_server/`
+   las recoge solo, porque construye `list_tools()` desde ahí.
+3. Componentes nuevos en `a2ui/catalog.json` bajo un prefijo propio
+   (`bank.*`), en el MISMO archivo y el mismo `catalogId` que `inv.*` — un
+   catálogo por dominio aparte no se necesitó, y separar por `catalogId`
+   sigue siendo la opción si un dominio se vuelve tan grande que conviene
+   cargarlo aparte.
+4. Componentes React + entrada en `registry.ts`. `test_contract.py` y
+   `registry.check.ts` fallan solos si falta alguno de los tres.
+
+Componentes transversales ya se repiten: `inv.ProjectionChart` sirve igual
+para proyección de inversión que para amortización de crédito; el patrón
+slider-suelta-confirma de `inv.AmountSlider` es el mismo que usan
+`bank.CardManager` y `bank.SpendingBudgets`.
 
 El esquema ya trae el core bancario completo (tarjetas, créditos, categorización
-de gasto) precisamente para que abrir el segundo dominio no exija rehacer la
+de gasto) precisamente para que abrir un dominio nuevo no exija rehacer la
 base.
 
-**Criterio de corte:** un segundo dominio solo se abre cuando el primero está
-completo y ensayado.
+**Criterio de corte, sin cambios:** un dominio nuevo solo se abre cuando el
+anterior está completo y ensayado. Faltan Crédito (recalificación,
+amortización, refinanciamiento), Pagos, Seguros y Educación financiera.
