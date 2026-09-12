@@ -230,10 +230,14 @@ CREATE TABLE orders (
     motivo_rechazo       TEXT,
     creada_en            TEXT    NOT NULL,
     ejecutada_en         TEXT,
-    idempotency_key      TEXT    NOT NULL UNIQUE,   -- evita duplicados por reintento del modelo
-    confirmation_token   TEXT    NOT NULL,          -- confirmacion en dos pasos
-    CHECK (estado IN ('pendiente','ejecutada','rechazada','cancelada')),
-    CHECK (monto > 0)
+    idempotency_key      TEXT    NOT NULL,          -- evita duplicados por reintento del modelo
+                                                    -- unicidad es por (client_id, idempotency_key),
+                                                    -- no global: ver UNIQUE mas abajo
+    confirmation_token_hash TEXT NOT NULL,          -- sha256 del token; el token crudo nunca se
+                                                    -- guarda, solo se entrega una vez al crear
+    CHECK (estado IN ('pendiente','ejecutando','ejecutada','rechazada','cancelada')),
+    CHECK (monto > 0),
+    UNIQUE (client_id, idempotency_key)
 );
 CREATE INDEX idx_orders_client ON orders(client_id, creada_en DESC);
 
