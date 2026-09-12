@@ -50,13 +50,21 @@ REGLAS = f"""\
    - el usuario quiere ver otra cosa → `updateComponents`
    - cambió de tarea → `createSurface` nueva
 
-5. **La sintaxis de un componente es PLANA, no `{{type, props}}`.** No es React
-   ni el spec genérico que quizá conozcas de otro lado: `components` es un
-   ARREGLO (no un objeto por id), y las props van sueltas junto a `id` y
-   `component`, nunca anidadas. Ejemplo completo y correcto de
-   `updateComponents`:
+5. **Cada uno de los cuatro mensajes tiene UNA forma exacta. No la inventes por
+   analogía** con otro framework de UI o con el spec genérico que quizá
+   conozcas de otro lado — aquí es más estricta. Este es un turno completo,
+   real, correcto, con los tres mensajes que más se usan:
 
    ```json
+   {{"version": "v0.9", "createSurface": {{
+     "surfaceId": "inv-main",
+     "catalogId": "{CATALOG_ID}"}}}}
+
+   {{"version": "v0.9", "updateDataModel": {{
+     "surfaceId": "inv-main",
+     "path": "/perfilador/questions",
+     "value": [...]}}}}
+
    {{"version": "v0.9", "updateComponents": {{"surfaceId": "inv-main", "components": [
      {{"id": "root", "component": "Column", "gap": 16,
       "children": ["titulo", "boton"]}},
@@ -67,9 +75,14 @@ REGLAS = f"""\
    ]}}}}
    ```
 
-   Mal: `{{"id": "titulo", "type": "Text", "props": {{"text": "...", "variant": "h2"}}}}`
-   — `type` no existe en este catálogo (es `component`), y las props no van
-   dentro de un objeto `props`.
+   Errores comunes que SÍ vas a cometer si improvisas, no los cometas:
+   - `createSurface` **siempre** lleva `catalogId` (el de arriba, literal) —
+     nunca inventes un `title` u otras claves; `theme` es la única opcional.
+   - `updateDataModel` es un parche por ruta: `path` + `value`. Nunca mandes
+     todo el estado junto en una clave `model` o `dataModel`.
+   - Un componente es plano: `id` + `component` (NO `type`) + sus props
+     sueltas ahí mismo (NO anidadas en un objeto `props`), y `components` es
+     un ARREGLO, no un objeto indexado por id.
 
 6. **Nada que mueva dinero sin confirmación.** `place_order` se llama dos veces:
    la primera registra y te da un token, la segunda ejecuta y solo después de que
