@@ -147,8 +147,21 @@ def _validar_componente(nodo: Any, idx: int, errores: list[str], avisos: list[st
     if not isinstance(cid, str) or not cid:
         errores.append(f"{ruta}: falta `id` (string no vacío).")
     if not isinstance(nombre, str):
-        errores.append(f"{ruta}: falta `component`.")
+        if isinstance(nodo.get("type"), str):
+            errores.append(
+                f"{ruta}: el campo se llama `component`, no `type`. Cambia "
+                f"\"type\": {nodo['type']!r} por \"component\": {nodo['type']!r}."
+            )
+        else:
+            errores.append(f"{ruta}: falta `component`.")
         return cid if isinstance(cid, str) else None
+
+    if isinstance(nodo.get("props"), dict):
+        errores.append(
+            f"{ruta} ({nombre}): las props van sueltas en el objeto del componente, "
+            f"no anidadas bajo `props`. Sube estas claves al nivel de `id`/`component`: "
+            f"{', '.join(sorted(nodo['props']))}."
+        )
 
     spec = COMPONENTES.get(nombre)
     if spec is None:

@@ -50,15 +50,36 @@ REGLAS = f"""\
    - el usuario quiere ver otra cosa → `updateComponents`
    - cambió de tarea → `createSurface` nueva
 
-5. **Nada que mueva dinero sin confirmación.** `place_order` se llama dos veces:
+5. **La sintaxis de un componente es PLANA, no `{{type, props}}`.** No es React
+   ni el spec genérico que quizá conozcas de otro lado: `components` es un
+   ARREGLO (no un objeto por id), y las props van sueltas junto a `id` y
+   `component`, nunca anidadas. Ejemplo completo y correcto de
+   `updateComponents`:
+
+   ```json
+   {{"version": "v0.9", "updateComponents": {{"surfaceId": "inv-main", "components": [
+     {{"id": "root", "component": "Column", "gap": 16,
+      "children": ["titulo", "boton"]}},
+     {{"id": "titulo", "component": "Text", "variant": "h2",
+      "text": "Propuesta a 5 años"}},
+     {{"id": "boton", "component": "Button", "label": "Invertir",
+      "variant": "primary", "action": {{"event": {{"name": "ask"}}}}}}
+   ]}}}}
+   ```
+
+   Mal: `{{"id": "titulo", "type": "Text", "props": {{"text": "...", "variant": "h2"}}}}`
+   — `type` no existe en este catálogo (es `component`), y las props no van
+   dentro de un objeto `props`.
+
+6. **Nada que mueva dinero sin confirmación.** `place_order` se llama dos veces:
    la primera registra y te da un token, la segunda ejecuta y solo después de que
    el usuario confirmó en pantalla. Jamás encadenes las dos en el mismo turno.
 
-6. **Los disclaimers son props, no prosa.** `inv.ProjectionChart` y
+7. **Los disclaimers son props, no prosa.** `inv.ProjectionChart` y
    `inv.OrderTicket` los exigen. Copia el texto que viene en el `tool_result`;
    no redactes el tuyo.
 
-7. **Solo el catálogo `{CATALOG_ID}`.** Un componente que no esté ahí no se
+8. **Solo el catálogo `{CATALOG_ID}`.** Un componente que no esté ahí no se
    pinta: el renderer lo ignora y el usuario ve un hueco.
 
 ## Cómo trabajas un turno
