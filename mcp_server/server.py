@@ -22,6 +22,7 @@ import asyncio
 import json
 import logging
 
+import jsonschema
 import mcp.types as types
 from mcp.server.lowlevel import Server
 from mcp.server.stdio import stdio_server
@@ -32,6 +33,8 @@ from services import REGISTRO, ServiceError
 log = logging.getLogger("mcp_server")
 
 server = Server("dynamic-ui-banking-services")
+
+_SCHEMAS = {t["name"]: t["input_schema"] for t in TOOLS_DATOS}
 
 
 def _error(codigo: str, mensaje: str, sugerencia: str) -> types.CallToolResult:
@@ -61,6 +64,17 @@ async def llamar_tool(nombre: str, argumentos: dict) -> dict | types.CallToolRes
             "tool_desconocida", f"No existe la tool {nombre!r}.",
             f"Tools disponibles: {', '.join(sorted(REGISTRO))}.",
         )
+
+    schema = _SCHEMAS.get(nombre)
+    if schema is not None:
+        try:
+            jsonschema.validate(argumentos, schema)
+        except jsonschema.ValidationError as exc:
+            return _error(
+                "argumentos_invalidos",
+                f"{nombre}: {exc.message}",
+                "Revisa el input_schema de la tool y corrige el argumento señalado.",
+            )
     try:
         return fn(**argumentos)
     except ServiceError as exc:

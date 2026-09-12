@@ -315,19 +315,35 @@ def test_la_bitacora_guarda_el_blueprint():
 
 # --------------------------------------------------------------- contrato general
 def test_las_tools_con_efecto_estan_declaradas():
-    assert CON_EFECTO == {"place_order"}
+    assert CON_EFECTO == {
+        "place_order",
+        "block_card", "unblock_card", "set_card_limit", "set_card_alias",
+        "set_account_alias", "set_budget",
+    }
     assert CON_EFECTO <= set(REGISTRO)
 
 
 @pytest.mark.parametrize("nombre", sorted(REGISTRO))
 def test_todo_servicio_devuelve_algo_serializable(nombre):
     """Si un servicio devuelve algo que json no puede escribir, el turno se cae."""
+    from services import accounts as accounts_mod
+
+    cuentas_0002 = accounts_mod.get_accounts("CLI-0002")
+    account_id = cuentas_0002["cuentas"][0]["account_id"]
+    card_debito = next(t["card_id"] for t in cuentas_0002["tarjetas"] if t["tipo"] == "debito")
+    tarjeta_credito = next(t for t in cuentas_0002["tarjetas"] if t["tipo"] == "credito")
+    card_credito = tarjeta_credito["card_id"]
+    limite_valido = tarjeta_credito["saldo_utilizado"] + 1_000
+
     argumentos = {
         "get_client_snapshot": {"client_id": "CLI-0002"},
         "get_accounts": {"client_id": "CLI-0002"},
         "get_transactions": {"client_id": "CLI-0002", "limite": 5},
         "get_spending_summary": {"client_id": "CLI-0002"},
         "get_credit_overview": {"client_id": "CLI-0002"},
+        "search_transactions": {"client_id": "CLI-0002", "categoria": "super", "limite": 5},
+        "get_budgets": {"client_id": "CLI-0002"},
+        "get_spending_alerts": {"client_id": "CLI-0002"},
         "list_instruments": {"limite": 3},
         "get_instrument_factsheet": {"instrument_id": "CETES-28", "meses_historia": 12},
         "get_risk_questions": {},
@@ -343,6 +359,13 @@ def test_todo_servicio_devuelve_algo_serializable(nombre):
         "place_order": {"client_id": "CLI-0006", "asignacion": asignacion_simple(),
                         "monto": 5_000, "idempotency_key": f"t-serial-{nombre}"},
         "get_orders": {"client_id": "CLI-0002"},
+        "block_card": {"client_id": "CLI-0002", "card_id": card_debito},
+        "unblock_card": {"client_id": "CLI-0002", "card_id": card_debito},
+        "set_card_limit": {"client_id": "CLI-0002", "card_id": card_credito,
+                           "nuevo_limite": limite_valido},
+        "set_card_alias": {"client_id": "CLI-0002", "card_id": card_debito, "alias": "Diario"},
+        "set_account_alias": {"client_id": "CLI-0002", "account_id": account_id, "alias": None},
+        "set_budget": {"client_id": "CLI-0002", "categoria": "super", "monto_mensual": 1500},
         "get_issuer_profile": {"ticker": "WALMEX"},
         "get_funding_sources": {"client_id": "CLI-0002"},
         "check_suitability": {"asignacion": {"CETES-364": 1.0},

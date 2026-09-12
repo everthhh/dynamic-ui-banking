@@ -60,11 +60,12 @@ def test_acciones_referenciadas_existen():
 
 
 def test_componentes_de_dominio_llevan_prefijo():
+    """Cada dominio tiene su prefijo ('inv.', 'bank.', ...); los primitivos no llevan ninguno."""
     for nombre, spec in COMPONENTES.items():
         if spec["tipo"] == "dominio":
-            assert nombre.startswith("inv."), nombre
+            assert "." in nombre, nombre
         else:
-            assert not nombre.startswith("inv."), nombre
+            assert "." not in nombre, nombre
 
 
 # --------------------------------------------------- artefactos derivados alineados
@@ -122,6 +123,21 @@ def test_acepta_la_forma_de_la_tool():
 
 def test_deleteSurface_valido():
     res = validate_a2ui([{"version": "v0.9", "deleteSurface": {"surfaceId": "inv-main"}}])
+    assert res.ok, res.errores
+
+
+def test_blueprint_banca_personal_pasa():
+    mensajes = [
+        {"version": "v0.9", "createSurface": {"surfaceId": "bank-main", "catalogId": CATALOG_ID}},
+        {"version": "v0.9", "updateComponents": {"surfaceId": "bank-main", "components": [
+            {"id": "root", "component": "Column", "children": ["cuentas", "presupuestos"]},
+            {"id": "cuentas", "component": "bank.AccountsOverview",
+             "cuentas": {"path": "/cuentas"}, "tarjetas": {"path": "/tarjetas"}},
+            {"id": "presupuestos", "component": "bank.SpendingBudgets",
+             "alertas": {"path": "/alertas"}},
+        ]}},
+    ]
+    res = validate_a2ui(mensajes)
     assert res.ok, res.errores
 
 

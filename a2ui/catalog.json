@@ -62,6 +62,44 @@
       "descripcion": "Botón que manda una pregunta en texto de vuelta al agente.",
       "contexto": ["prompt"],
       "emitida_por": ["Button"]
+    },
+    "manage_card": {
+      "descripcion": "El usuario tocó una tarjeta en el panorama de cuentas y quiere administrarla.",
+      "contexto": ["card_id"],
+      "emitida_por": ["bank.AccountsOverview"]
+    },
+    "set_account_alias": {
+      "descripcion": "El usuario le puso o quitó apodo a una cuenta.",
+      "contexto": ["account_id", "alias"],
+      "emitida_por": ["bank.AccountsOverview"]
+    },
+    "toggle_card_block": {
+      "descripcion": "El usuario bloqueó o desbloqueó una tarjeta. Efecto inmediato, sin confirmación en dos pasos.",
+      "contexto": ["card_id"],
+      "emitida_por": ["bank.CardManager"],
+      "efecto": true
+    },
+    "update_card_limit": {
+      "descripcion": "El usuario movió el slider de límite de una tarjeta de crédito y lo soltó.",
+      "contexto": ["card_id", "nuevo_limite"],
+      "emitida_por": ["bank.CardManager"],
+      "efecto": true
+    },
+    "set_card_alias": {
+      "descripcion": "El usuario le puso o quitó apodo a una tarjeta.",
+      "contexto": ["card_id", "alias"],
+      "emitida_por": ["bank.CardManager"]
+    },
+    "set_budget": {
+      "descripcion": "El usuario definió o cambió el presupuesto mensual de una categoría.",
+      "contexto": ["categoria", "monto_mensual"],
+      "emitida_por": ["bank.SpendingBudgets"],
+      "efecto": true
+    },
+    "refine_search": {
+      "descripcion": "El usuario ajustó un filtro rápido sobre resultados de búsqueda de movimientos.",
+      "contexto": ["filtro"],
+      "emitida_por": ["bank.TransactionSearch"]
     }
   },
   "components": {
@@ -261,6 +299,47 @@
         "categorias": { "tipo": "array", "requerido": true, "bindable": true, "descripcion": "`por_categoria` de get_spending_summary." },
         "capacidadAhorro": { "tipo": "number", "requerido": true, "bindable": true },
         "ingresoMensual": { "tipo": "number", "requerido": true, "bindable": true }
+      }
+    },
+
+    "bank.AccountsOverview": {
+      "tipo": "dominio",
+      "cuando": "Panorama de cuentas y tarjetas: saldos, alias, estado de cada tarjeta. Sustituye cualquier lista de cuentas en texto. Tocar una tarjeta pide administrarla.",
+      "children": false,
+      "emite": ["manage_card", "set_account_alias"],
+      "props": {
+        "cuentas": { "tipo": "array", "requerido": true, "bindable": true, "descripcion": "`cuentas` de get_accounts: [{account_id, tipo, alias, moneda, saldo_disponible}]." },
+        "tarjetas": { "tipo": "array", "requerido": true, "bindable": true, "descripcion": "`tarjetas` de get_accounts: [{card_id, tipo, alias, last4, estado, limite_credito, saldo_utilizado}]." }
+      }
+    },
+    "bank.CardManager": {
+      "tipo": "dominio",
+      "cuando": "Administrar UNA tarjeta: bloquear/desbloquear, ajustar límite (solo crédito) y ponerle alias. Se monta después de `manage_card` desde `bank.AccountsOverview`.",
+      "children": false,
+      "emite": ["toggle_card_block", "update_card_limit", "set_card_alias"],
+      "props": {
+        "card": { "tipo": "object", "requerido": true, "bindable": true, "descripcion": "Una tarjeta de `tarjetas` (get_accounts), o el resultado de block_card/unblock_card/set_card_limit/set_card_alias." },
+        "ingresoMensual": { "tipo": "number", "requerido": true, "bindable": true, "descripcion": "Para el tope del slider de límite: no deja pasar de 3x esto." }
+      }
+    },
+    "bank.SpendingBudgets": {
+      "tipo": "dominio",
+      "cuando": "Presupuestos por categoría contra el gasto real, con aviso de excedidos. Para 'control de gasto' o '¿voy bien con mi presupuesto?'. Si `alertas` viene vacío, es que el cliente no ha configurado ninguno: ofrece ponerle uno, no inventes cifras.",
+      "children": false,
+      "emite": ["set_budget"],
+      "props": {
+        "alertas": { "tipo": "array", "requerido": true, "bindable": true, "descripcion": "`alertas` de get_spending_alerts: [{categoria, presupuesto, gastado, restante, porcentaje, excedido}]." }
+      }
+    },
+    "bank.TransactionSearch": {
+      "tipo": "dominio",
+      "cuando": "Resultados de una búsqueda de movimientos con filtros aplicados. Nunca enlistes movimientos filtrados en texto; para 'mis últimos movimientos' sin filtro considera si de plano no hace falta filtrar.",
+      "children": false,
+      "emite": ["refine_search"],
+      "props": {
+        "movimientos": { "tipo": "array", "requerido": true, "bindable": true, "descripcion": "`movimientos` de search_transactions o get_transactions." },
+        "filtros": { "tipo": "object", "bindable": true, "descripcion": "`filtros` de search_transactions, para mostrar qué se está filtrando." },
+        "resumen": { "tipo": "object", "bindable": true, "descripcion": "{total_cargos, total_abonos, total} de search_transactions." }
       }
     }
   }

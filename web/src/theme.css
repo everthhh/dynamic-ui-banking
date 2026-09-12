@@ -472,6 +472,107 @@ button, input, select { font: inherit; color: inherit; }
 .traza-tool--mueve-dinero- code { color: var(--rojo); font-weight: 700; }
 .traza-createSurface code, .traza-updateComponents code { color: #175cd3; }
 
+/* --------------------------------------------------- banca personal: cuentas */
+.ao { display: flex; flex-direction: column; gap: 20px; }
+.ao-bloque { display: flex; flex-direction: column; gap: 8px; }
+.ao-titulo { margin: 0; font-size: 13px; color: var(--apagado); text-transform: uppercase; letter-spacing: .04em; }
+.ao-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.ao-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  background: var(--superficie);
+  flex-wrap: wrap;
+}
+.ao-item-clickable { cursor: pointer; transition: border-color .15s; }
+.ao-item-clickable:hover { border-color: var(--rojo); }
+.ao-item-info { display: flex; flex-direction: column; gap: 2px; flex: 1 1 auto; min-width: 0; }
+.ao-item-tipo { font-size: 13.5px; font-weight: 600; }
+.ao-item-sub { font-size: 12px; color: var(--apagado); }
+.ao-item-saldo { font-variant-numeric: tabular-nums; }
+.ao-item-uso { flex-basis: 100%; }
+.ao-estado {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgb(6 118 71 / 12%);
+  color: var(--positivo);
+  white-space: nowrap;
+}
+.ao-estado.bloqueada { background: rgb(180 35 24 / 12%); color: var(--negativo); }
+.ao-alias-editar {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+.ao-alias-editar span { color: var(--apagado); font-size: 11px; }
+.ao-alias-input {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  border: 1px solid var(--rojo);
+  border-radius: 6px;
+  padding: 2px 6px;
+  width: 160px;
+}
+
+/* -------------------------------------------------- banca personal: tarjeta */
+.cm { display: flex; flex-direction: column; gap: 14px; }
+.cm-cabeza { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.cm-cabeza > div { display: flex; flex-direction: column; gap: 4px; }
+.cm-sub { font-size: 12.5px; color: var(--apagado); }
+.cm-slider { margin-top: 4px; }
+.cm-nota { margin: 0; font-size: 12px; color: var(--apagado); }
+
+/* --------------------------------------------- banca personal: presupuestos */
+.sb2 { display: flex; flex-direction: column; gap: 18px; }
+.sb2-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+.sb2-fila {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+}
+.sb2-fila.excedida { border-color: rgb(180 35 24 / 35%); background: rgb(180 35 24 / 4%); }
+.sb2-fila-cabeza { display: flex; align-items: center; justify-content: space-between; }
+.sb2-cat { font-size: 13.5px; font-weight: 600; }
+.sb2-barra {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--fondo);
+  overflow: hidden;
+}
+.sb2-barra span { display: block; height: 100%; background: var(--rojo); border-radius: 999px; }
+.sb2-cifras { display: flex; justify-content: space-between; font-size: 12px; color: var(--apagado); }
+.sb2-slider { margin-top: 2px; }
+
+/* ------------------------------------------------ banca personal: busqueda */
+.ts { display: flex; flex-direction: column; gap: 14px; }
+.ts-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.ts-chip {
+  border: 1px solid var(--linea);
+  background: var(--superficie);
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 12.5px;
+  cursor: pointer;
+  color: var(--tinta-2);
+}
+.ts-chip.activo { background: var(--rojo); border-color: var(--rojo); color: #fff; }
+.ts-resumen { display: flex; gap: 16px; font-size: 12.5px; color: var(--apagado); align-items: center; }
+
 /* ------------------------------------------------------------- responsivo */
 @media (max-width: 900px) {
   .app-header { padding: 10px 14px; }
@@ -487,4 +588,6 @@ button, input, select { font: inherit; color: inherit; }
   .cmp-titulo, .cmp-celda { text-align: left; }
   .ot-legs li { grid-template-columns: 1fr auto; }
   .sb-barras li { grid-template-columns: 110px 1fr 48px; }
+  .cm-cabeza { flex-direction: column; }
+  .ts-resumen { flex-wrap: wrap; }
 }

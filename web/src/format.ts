@@ -92,6 +92,27 @@ export const ETIQUETA_LIQUIDEZ: Record<string, string> = {
   al_vencimiento: "Al vencimiento",
 };
 
+export const ETIQUETA_CATEGORIA: Record<string, string> = {
+  super: "Súper",
+  restaurantes: "Restaurantes",
+  transporte: "Transporte",
+  servicios: "Servicios del hogar",
+  renta: "Renta",
+  salud: "Salud",
+  entretenimiento: "Entretenimiento",
+  educacion: "Educación",
+  nomina: "Nómina",
+  traspaso: "Traspaso",
+  inversion: "Inversión",
+};
+
+export const ETIQUETA_TIPO_CUENTA: Record<string, string> = {
+  cheques: "Cuenta de cheques",
+  ahorro: "Cuenta de ahorro",
+  nomina: "Cuenta de nómina",
+  inversion: "Cuenta de inversión",
+};
+
 export const ETIQUETA_CLASE: Record<string, string> = {
   deuda_gub: "Deuda gubernamental",
   deuda_corp: "Deuda corporativa",

@@ -86,6 +86,144 @@ TOOLS_DATOS: list[dict[str, Any]] = [
         },
     },
     {
+        "name": "search_transactions",
+        "description": (
+            "Busca movimientos con filtros combinables: fechas, categoría, texto libre de "
+            "comercio/descripción, rango de monto, tipo (cargo/abono) o una cuenta puntual. "
+            "Úsala para preguntas específicas ('¿cuánto gasté en restaurantes en agosto?', "
+            "'movimientos de más de 2000 pesos'). Para 'mis últimos movimientos' sin filtro, "
+            "usa mejor `get_transactions`, que es más simple."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "fecha_desde": {"type": "string", "description": "ISO 'YYYY-MM-DD'."},
+                "fecha_hasta": {"type": "string", "description": "ISO 'YYYY-MM-DD'."},
+                "categoria": {"type": "string"},
+                "comercio": {"type": "string",
+                             "description": "Coincide con comercio o descripción, parcial."},
+                "tipo": {"type": "string", "enum": ["cargo", "abono"]},
+                "monto_min": {"type": "number", "minimum": 0},
+                "monto_max": {"type": "number", "minimum": 0},
+                "account_id": {"type": "string"},
+                "limite": {"type": "integer", "minimum": 1, "maximum": 300, "default": 100},
+            },
+            "required": ["client_id"],
+        },
+    },
+    {
+        "name": "get_budgets",
+        "description": "Presupuestos por categoría que el cliente ya configuró, si los tiene.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"client_id": {"type": "string"}},
+            "required": ["client_id"],
+        },
+    },
+    {
+        "name": "get_spending_alerts",
+        "description": (
+            "Compara el gasto de los últimos 30 días contra los presupuestos vigentes. "
+            "Úsala para responder '¿voy bien con mi presupuesto?' o al mostrar "
+            "`bank.SpendingBudgets`. Si el cliente no tiene presupuestos, la lista viene vacía: "
+            "no inventes límites, ofrece ayudarle a poner uno con `set_budget`."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"client_id": {"type": "string"}},
+            "required": ["client_id"],
+        },
+    },
+    {
+        "name": "set_budget",
+        "description": (
+            "Crea o actualiza el presupuesto mensual de una categoría de gasto. El monto no "
+            "puede pasar del ingreso mensual del cliente; si lo hace, la tool rechaza y dice "
+            "el máximo. No pidas confirmación en dos pasos: es una preferencia, no dinero real."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "categoria": {
+                    "type": "string",
+                    "enum": ["super", "restaurantes", "transporte", "servicios",
+                             "renta", "salud", "entretenimiento", "educacion"],
+                },
+                "monto_mensual": {"type": "number", "exclusiveMinimum": 0},
+            },
+            "required": ["client_id", "categoria", "monto_mensual"],
+        },
+    },
+    {
+        "name": "block_card",
+        "description": (
+            "Bloquea una tarjeta de inmediato. Es la acción de urgencia (tarjeta perdida, cargo "
+            "sospechoso): NO requiere confirmación en dos pasos, un solo llamado la ejecuta. "
+            "Idempotente: bloquear una tarjeta ya bloqueada no es error."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"client_id": {"type": "string"}, "card_id": {"type": "string"}},
+            "required": ["client_id", "card_id"],
+        },
+    },
+    {
+        "name": "unblock_card",
+        "description": "Reactiva una tarjeta bloqueada. Idempotente igual que `block_card`.",
+        "input_schema": {
+            "type": "object",
+            "properties": {"client_id": {"type": "string"}, "card_id": {"type": "string"}},
+            "required": ["client_id", "card_id"],
+        },
+    },
+    {
+        "name": "set_card_limit",
+        "description": (
+            "Cambia el límite de una tarjeta de crédito. Rechaza un límite menor al saldo ya "
+            "usado, y un límite mayor a 3 veces el ingreso mensual declarado del cliente — en "
+            "ambos casos el error dice el valor válido más cercano."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "card_id": {"type": "string"},
+                "nuevo_limite": {"type": "number", "exclusiveMinimum": 0},
+            },
+            "required": ["client_id", "card_id", "nuevo_limite"],
+        },
+    },
+    {
+        "name": "set_card_alias",
+        "description": "Pone o quita el apodo de una tarjeta (ej. 'Platino viajes'). "
+                       "Manda `alias: null` para quitarlo.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "card_id": {"type": "string"},
+                "alias": {"type": ["string", "null"], "maxLength": 40},
+            },
+            "required": ["client_id", "card_id", "alias"],
+        },
+    },
+    {
+        "name": "set_account_alias",
+        "description": "Pone o quita el apodo de una cuenta (ej. 'Mi cuenta del súper'). "
+                       "Manda `alias: null` para quitarlo.",
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "account_id": {"type": "string"},
+                "alias": {"type": ["string", "null"], "maxLength": 40},
+            },
+            "required": ["client_id", "account_id", "alias"],
+        },
+    },
+    {
         "name": "list_instruments",
         "description": (
             "Catálogo de los 24 instrumentos contratables: deuda, pagarés, fondos y "

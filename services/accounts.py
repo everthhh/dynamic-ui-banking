@@ -12,6 +12,13 @@ from services.errors import NotFound, ServiceError
 CATEGORIAS_ESENCIALES = {"renta", "super", "servicios", "salud", "transporte", "educacion"}
 # Movimientos de dinero propio: no son consumo y no deben contar como gasto.
 CATEGORIAS_NO_GASTO = {"traspaso", "inversion"}
+# Las 8 categorias de gasto que existen en la base (ver bank/seed.py
+# CATEGORIAS_CARGO). Es la lista contra la que se valida `set_budget`: un
+# presupuesto en una categoria que no existe no tiene con qué compararse.
+CATEGORIAS_GASTO = frozenset({
+    "super", "restaurantes", "transporte", "servicios",
+    "renta", "salud", "entretenimiento", "educacion",
+})
 
 
 def _fecha_valuacion(conn) -> date:
@@ -27,6 +34,24 @@ def _exigir_cliente(conn, client_id: str) -> dict[str, Any]:
         raise NotFound(
             f"No existe el cliente {client_id!r}.",
             sugerencia=f"Clientes disponibles: {', '.join(validos)}.",
+        )
+    return row
+
+
+def _exigir_cuenta_del_cliente(conn, client_id: str, account_id: str) -> dict[str, Any]:
+    """Ownership check: una cuenta solo se toca si es del cliente en sesión.
+
+    El mensaje NO dice qué cuentas sí existen (a diferencia de
+    `_exigir_cliente`, donde enumerar client_ids es información pública del
+    demo): una cuenta o tarjeta ajena no debe ni confirmarse que existe.
+    """
+    row = db.query_one(
+        conn, "SELECT * FROM accounts WHERE account_id = ? AND client_id = ?",
+        (account_id, client_id))
+    if row is None:
+        raise NotFound(
+            f"La cuenta {account_id!r} no existe o no pertenece a {client_id}.",
+            sugerencia="Usa `get_accounts` para ver las cuentas de este cliente.",
         )
     return row
 
@@ -259,6 +284,151 @@ def get_spending_summary(client_id: str, meses: int = 6) -> dict[str, Any]:
         "tasa_ahorro": round(capacidad / prom_ingreso, 4) if prom_ingreso else 0.0,
         "por_categoria": sorted(gasto.values(), key=lambda g: -g["total"]),
     }
+
+
+def search_transactions(
+    client_id: str,
+    fecha_desde: str | None = None,
+    fecha_hasta: str | None = None,
+    categoria: str | None = None,
+    comercio: str | None = None,
+    tipo: str | None = None,
+    monto_min: float | None = None,
+    monto_max: float | None = None,
+    account_id: str | None = None,
+    limite: int = 100,
+) -> dict[str, Any]:
+    """Búsqueda de movimientos con filtros combinables.
+
+    A diferencia de `get_transactions` (los últimos N, para el caso común),
+    esta es para "¿cuánto gasté en restaurantes en agosto?" o "movimientos
+    de más de 2000 pesos en Amazon". Todos los filtros son opcionales y se
+    combinan con AND.
+    """
+    if not 1 <= limite <= 300:
+        raise ServiceError("`limite` debe estar entre 1 y 300.")
+    if tipo is not None and tipo not in ("cargo", "abono"):
+        raise ServiceError("`tipo` debe ser 'cargo' o 'abono'.")
+    for etiqueta, valor in (("fecha_desde", fecha_desde), ("fecha_hasta", fecha_hasta)):
+        if valor is not None:
+            try:
+                date.fromisoformat(valor[:10])
+            except ValueError:
+                raise ServiceError(
+                    f"`{etiqueta}` debe ser una fecha ISO ('YYYY-MM-DD'), llegó {valor!r}."
+                ) from None
+    if monto_min is not None and monto_min < 0:
+        raise ServiceError("`monto_min` no puede ser negativo.")
+    if monto_max is not None and monto_max < 0:
+        raise ServiceError("`monto_max` no puede ser negativo.")
+    if monto_min is not None and monto_max is not None and monto_min > monto_max:
+        raise ServiceError("`monto_min` no puede ser mayor que `monto_max`.")
+    if comercio is not None and len(comercio) > 80:
+        raise ServiceError("`comercio` es demasiado largo (máximo 80 caracteres).")
+
+    with db.session(readonly=True) as conn:
+        _exigir_cliente(conn, client_id)
+        if account_id is not None:
+            _exigir_cuenta_del_cliente(conn, client_id, account_id)
+
+        sql = (
+            "SELECT t.* FROM transactions t JOIN accounts a USING (account_id)"
+            " WHERE a.client_id = ?"
+        )
+        params: list[Any] = [client_id]
+        if account_id is not None:
+            sql += " AND t.account_id = ?"
+            params.append(account_id)
+        if fecha_desde is not None:
+            sql += " AND t.fecha >= ?"
+            params.append(fecha_desde)
+        if fecha_hasta is not None:
+            sql += " AND t.fecha <= ?"
+            params.append(fecha_hasta + "T23:59:59")
+        if categoria is not None:
+            sql += " AND t.categoria = ?"
+            params.append(categoria)
+        if tipo is not None:
+            sql += " AND t.tipo = ?"
+            params.append(tipo)
+        if comercio is not None:
+            sql += " AND (t.comercio LIKE ? OR t.descripcion LIKE ?)"
+            comodin = f"%{comercio}%"
+            params.extend([comodin, comodin])
+        if monto_min is not None:
+            sql += " AND t.monto >= ?"
+            params.append(monto_min)
+        if monto_max is not None:
+            sql += " AND t.monto <= ?"
+            params.append(monto_max)
+        sql += " ORDER BY t.fecha DESC LIMIT ?"
+        params.append(limite)
+        filas = db.query(conn, sql, tuple(params))
+
+    cargos = sum(f["monto"] for f in filas if f["tipo"] == "cargo")
+    abonos = sum(f["monto"] for f in filas if f["tipo"] == "abono")
+    return {
+        "client_id": client_id,
+        "filtros": {
+            "fecha_desde": fecha_desde, "fecha_hasta": fecha_hasta,
+            "categoria": categoria, "comercio": comercio, "tipo": tipo,
+            "monto_min": monto_min, "monto_max": monto_max, "account_id": account_id,
+        },
+        "movimientos": filas,
+        "total": len(filas),
+        "total_cargos": round(cargos, 2),
+        "total_abonos": round(abonos, 2),
+    }
+
+
+def get_budgets(client_id: str) -> dict[str, Any]:
+    """Presupuestos por categoría que el cliente ya configuró."""
+    with db.session(readonly=True) as conn:
+        _exigir_cliente(conn, client_id)
+        filas = db.query(
+            conn, "SELECT categoria, monto_mensual, actualizado_en FROM budgets"
+                  " WHERE client_id = ? ORDER BY categoria", (client_id,))
+    return {"client_id": client_id, "presupuestos": filas}
+
+
+def get_spending_alerts(client_id: str) -> dict[str, Any]:
+    """Compara el gasto de los últimos 30 días contra los presupuestos vigentes.
+
+    Solo evalúa categorías con presupuesto configurado: sin un límite que el
+    usuario haya puesto, no hay "exceso" que señalar, solo gasto.
+    """
+    with db.session(readonly=True) as conn:
+        _exigir_cliente(conn, client_id)
+        presupuestos = db.query(
+            conn, "SELECT categoria, monto_mensual FROM budgets WHERE client_id = ?",
+            (client_id,))
+        if not presupuestos:
+            return {"client_id": client_id, "alertas": [], "nota": "Sin presupuestos configurados."}
+
+        desde = (_fecha_valuacion(conn) - timedelta(days=30)).isoformat()
+        gasto_filas = db.query(
+            conn,
+            "SELECT t.categoria, SUM(t.monto) total FROM transactions t"
+            " JOIN accounts a USING (account_id)"
+            " WHERE a.client_id = ? AND t.tipo = 'cargo' AND t.fecha >= ?"
+            " GROUP BY t.categoria", (client_id, desde))
+    gasto_por_categoria = {f["categoria"]: f["total"] for f in gasto_filas}
+
+    alertas = []
+    for p in presupuestos:
+        gastado = round(gasto_por_categoria.get(p["categoria"], 0.0), 2)
+        presupuesto = p["monto_mensual"]
+        porcentaje = round(gastado / presupuesto, 4) if presupuesto else 0.0
+        alertas.append({
+            "categoria": p["categoria"],
+            "presupuesto": presupuesto,
+            "gastado": gastado,
+            "restante": round(presupuesto - gastado, 2),
+            "porcentaje": porcentaje,
+            "excedido": gastado > presupuesto,
+        })
+    alertas.sort(key=lambda a: -a["porcentaje"])
+    return {"client_id": client_id, "ventana_dias": 30, "alertas": alertas}
 
 
 def get_credit_overview(client_id: str) -> dict[str, Any]:

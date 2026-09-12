@@ -34,6 +34,7 @@ CREATE TABLE accounts (
     account_id           TEXT PRIMARY KEY,          -- 'ACC-0001'
     client_id            TEXT    NOT NULL REFERENCES clients(client_id),
     tipo                 TEXT    NOT NULL,          -- cheques | ahorro | nomina | inversion
+    alias                TEXT,                      -- apodo del cliente, ej. 'Mi cuenta del super'
     clabe_mock           TEXT    NOT NULL,
     moneda               TEXT    NOT NULL DEFAULT 'MXN',
     saldo_disponible     REAL    NOT NULL DEFAULT 0,
@@ -67,15 +68,49 @@ CREATE TABLE cards (
     client_id            TEXT    NOT NULL REFERENCES clients(client_id),
     account_id           TEXT             REFERENCES accounts(account_id),
     tipo                 TEXT    NOT NULL,          -- debito | credito
+    alias                TEXT,                      -- ej. 'Platino viajes'
     last4                TEXT    NOT NULL,
+    estado               TEXT    NOT NULL DEFAULT 'activa',   -- activa | bloqueada
     limite_credito       REAL,
     saldo_utilizado      REAL    NOT NULL DEFAULT 0,
     tasa_anual           REAL,                      -- CAT aproximado; NULL en debito
     dia_corte            INTEGER,
     dia_pago             INTEGER,
-    CHECK (tipo IN ('debito','credito'))
+    CHECK (tipo IN ('debito','credito')),
+    CHECK (estado IN ('activa','bloqueada'))
 );
 CREATE INDEX idx_cards_client ON cards(client_id);
+
+-- Auditoria de acciones sobre una tarjeta (bloqueo, limite, alias). Cada
+-- mutacion de banca personal deja rastro, igual que `surface_log` para el
+-- blueprint: es lo que permite reconstruir "quien cambio que y cuando" sin
+-- confiar en la memoria de la sesion.
+CREATE TABLE card_events (
+    event_id             TEXT PRIMARY KEY,
+    card_id              TEXT    NOT NULL REFERENCES cards(card_id),
+    client_id            TEXT    NOT NULL REFERENCES clients(client_id),
+    tipo                 TEXT    NOT NULL,          -- bloqueo | desbloqueo | limite | alias
+    detalle_json         TEXT    NOT NULL,
+    creado_en            TEXT    NOT NULL,
+    CHECK (tipo IN ('bloqueo','desbloqueo','limite','alias'))
+);
+CREATE INDEX idx_card_events_card ON card_events(card_id, creado_en DESC);
+
+-- ---------------------------------------------------------- core: presupuestos
+-- Uno por categoria y cliente: el usuario define cuanto quiere gastar al mes
+-- en 'super', 'transporte', etc. `get_spending_alerts` compara esto contra
+-- el gasto real del mes.
+CREATE TABLE budgets (
+    budget_id            TEXT PRIMARY KEY,
+    client_id            TEXT    NOT NULL REFERENCES clients(client_id),
+    categoria            TEXT    NOT NULL,
+    monto_mensual        REAL    NOT NULL,
+    creado_en            TEXT    NOT NULL,
+    actualizado_en       TEXT    NOT NULL,
+    UNIQUE (client_id, categoria),
+    CHECK (monto_mensual > 0)
+);
+CREATE INDEX idx_budgets_client ON budgets(client_id);
 
 -- ------------------------------------------------------------- core: credito
 CREATE TABLE loans (
@@ -230,10 +265,14 @@ CREATE TABLE orders (
     motivo_rechazo       TEXT,
     creada_en            TEXT    NOT NULL,
     ejecutada_en         TEXT,
-    idempotency_key      TEXT    NOT NULL UNIQUE,   -- evita duplicados por reintento del modelo
-    confirmation_token   TEXT    NOT NULL,          -- confirmacion en dos pasos
-    CHECK (estado IN ('pendiente','ejecutada','rechazada','cancelada')),
-    CHECK (monto > 0)
+    idempotency_key      TEXT    NOT NULL,          -- evita duplicados por reintento del modelo
+                                                    -- unicidad es por (client_id, idempotency_key),
+                                                    -- no global: ver UNIQUE mas abajo
+    confirmation_token_hash TEXT NOT NULL,          -- sha256 del token; el token crudo nunca se
+                                                    -- guarda, solo se entrega una vez al crear
+    CHECK (estado IN ('pendiente','ejecutando','ejecutada','rechazada','cancelada')),
+    CHECK (monto > 0),
+    UNIQUE (client_id, idempotency_key)
 );
 CREATE INDEX idx_orders_client ON orders(client_id, creada_en DESC);
 

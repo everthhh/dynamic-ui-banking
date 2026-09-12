@@ -17,6 +17,7 @@ hace que el agente genere el perfilador en lugar de proponer de entrada.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sqlite3
 import uuid
@@ -308,6 +309,21 @@ def sembrar_core(conn: sqlite3.Connection, rng: np.random.Generator) -> None:
                  (FECHA_VALUACION - timedelta(days=30 * pagadas)).isoformat()),
             )
 
+        # Presupuestos: solo para el cliente del guion (CLI-0001), a propósito
+        # sin tocar los demás — así el demo muestra tanto el caso "ya configuró
+        # presupuestos" como el caso "todavía no", que es el más común.
+        if cid == "CLI-0001":
+            hoy_iso = FECHA_VALUACION.isoformat()
+            for cat_idx, (categoria, monto_presupuesto) in enumerate(
+                (("super", 3000.0), ("restaurantes", 1200.0), ("entretenimiento", 500.0))
+            ):
+                conn.execute(
+                    "INSERT INTO budgets (budget_id, client_id, categoria, monto_mensual,"
+                    " creado_en, actualizado_en) VALUES (?,?,?,?,?,?)",
+                    (f"BUD-{idx:04d}-{cat_idx}", cid, categoria, monto_presupuesto,
+                     hoy_iso, hoy_iso),
+                )
+
 
 # ---------------------------------------------------------------------------
 # inversiones
@@ -368,13 +384,14 @@ def sembrar_inversiones(
             datetime.min.time(),
         )
         monto_orden = round(capital * float(rng.uniform(0.2, 0.6)), 2)
+        token_semilla = f"tok-{cid}-seed"
         conn.execute(
             "INSERT INTO orders (order_id, folio, client_id, account_id, estado, monto,"
-            " creada_en, ejecutada_en, idempotency_key, confirmation_token)"
+            " creada_en, ejecutada_en, idempotency_key, confirmation_token_hash)"
             " VALUES (?,?,?,?,?,?,?,?,?,?)",
             (oid, f"BN-{creada.year}-{100000 + idx * 37:06d}", cid, inv, "ejecutada",
              monto_orden, creada.isoformat(), (creada + timedelta(minutes=3)).isoformat(),
-             f"seed-{cid}-1", f"tok-{cid}-seed"),
+             f"seed-{cid}-1", hashlib.sha256(token_semilla.encode("utf-8")).hexdigest()),
         )
         inst = candidatos[int(elegidos[0])]
         precio = series[inst.instrument_id][-1][1]

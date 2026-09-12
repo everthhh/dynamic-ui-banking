@@ -23,6 +23,13 @@ Reglas del catálogo:
 | `place_order` | El usuario confirmó la orden. Requiere confirmación en dos pasos. **(mueve dinero)** | `order`, `confirmation_token` |
 | `cancel_order` | El usuario abortó el ticket. | `order_id` |
 | `ask` | Botón que manda una pregunta en texto de vuelta al agente. | `prompt` |
+| `manage_card` | El usuario tocó una tarjeta en el panorama de cuentas y quiere administrarla. | `card_id` |
+| `set_account_alias` | El usuario le puso o quitó apodo a una cuenta. | `account_id`, `alias` |
+| `toggle_card_block` | El usuario bloqueó o desbloqueó una tarjeta. Efecto inmediato, sin confirmación en dos pasos. **(mueve dinero)** | `card_id` |
+| `update_card_limit` | El usuario movió el slider de límite de una tarjeta de crédito y lo soltó. **(mueve dinero)** | `card_id`, `nuevo_limite` |
+| `set_card_alias` | El usuario le puso o quitó apodo a una tarjeta. | `card_id`, `alias` |
+| `set_budget` | El usuario definió o cambió el presupuesto mensual de una categoría. **(mueve dinero)** | `categoria`, `monto_mensual` |
+| `refine_search` | El usuario ajustó un filtro rápido sobre resultados de búsqueda de movimientos. | `filtro` |
 
 ### Componentes de dominio
 
@@ -127,6 +134,38 @@ Reglas del catálogo:
 | `categorias` | array | sí | sí | `por_categoria` de get_spending_summary. |
 | `capacidadAhorro` | number | sí | sí |  |
 | `ingresoMensual` | number | sí | sí |  |
+
+#### `bank.AccountsOverview`
+*Cuándo:* Panorama de cuentas y tarjetas: saldos, alias, estado de cada tarjeta. Sustituye cualquier lista de cuentas en texto. Tocar una tarjeta pide administrarla.
+
+| prop | tipo | obl. | enlazable | nota |
+|---|---|---|---|---|
+| `cuentas` | array | sí | sí | `cuentas` de get_accounts: [{account_id, tipo, alias, moneda, saldo_disponible}]. |
+| `tarjetas` | array | sí | sí | `tarjetas` de get_accounts: [{card_id, tipo, alias, last4, estado, limite_credito, saldo_utilizado}]. |
+
+#### `bank.CardManager`
+*Cuándo:* Administrar UNA tarjeta: bloquear/desbloquear, ajustar límite (solo crédito) y ponerle alias. Se monta después de `manage_card` desde `bank.AccountsOverview`.
+
+| prop | tipo | obl. | enlazable | nota |
+|---|---|---|---|---|
+| `card` | object | sí | sí | Una tarjeta de `tarjetas` (get_accounts), o el resultado de block_card/unblock_card/set_card_limit/set_card_alias. |
+| `ingresoMensual` | number | sí | sí | Para el tope del slider de límite: no deja pasar de 3x esto. |
+
+#### `bank.SpendingBudgets`
+*Cuándo:* Presupuestos por categoría contra el gasto real, con aviso de excedidos. Para 'control de gasto' o '¿voy bien con mi presupuesto?'. Si `alertas` viene vacío, es que el cliente no ha configurado ninguno: ofrece ponerle uno, no inventes cifras.
+
+| prop | tipo | obl. | enlazable | nota |
+|---|---|---|---|---|
+| `alertas` | array | sí | sí | `alertas` de get_spending_alerts: [{categoria, presupuesto, gastado, restante, porcentaje, excedido}]. |
+
+#### `bank.TransactionSearch`
+*Cuándo:* Resultados de una búsqueda de movimientos con filtros aplicados. Nunca enlistes movimientos filtrados en texto; para 'mis últimos movimientos' sin filtro considera si de plano no hace falta filtrar.
+
+| prop | tipo | obl. | enlazable | nota |
+|---|---|---|---|---|
+| `movimientos` | array | sí | sí | `movimientos` de search_transactions o get_transactions. |
+| `filtros` | object | — | sí | `filtros` de search_transactions, para mostrar qué se está filtrando. |
+| `resumen` | object | — | sí | {total_cargos, total_abonos, total} de search_transactions. |
 
 
 ### Primitivos

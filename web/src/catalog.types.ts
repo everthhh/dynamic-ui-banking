@@ -13,7 +13,14 @@ export type ActionName =
   | "select_instrument"
   | "place_order"
   | "cancel_order"
-  | "ask";
+  | "ask"
+  | "manage_card"
+  | "set_account_alias"
+  | "toggle_card_block"
+  | "update_card_limit"
+  | "set_card_alias"
+  | "set_budget"
+  | "refine_search";
 
 // Spec A2UI v0.9 (common_types.json#/$defs/Action): el prop `action` de un
 // componente dispara un evento de servidor. `functionCall` no aplica: este
@@ -197,6 +204,38 @@ export type PropsInvSpendingBreakdown = {
   ingresoMensual: number | Binding;
 };
 
+/** Panorama de cuentas y tarjetas: saldos, alias, estado de cada tarjeta. Sustituye cualquier lista de cuentas en texto. Tocar una tarjeta pide administrarla. */
+export type PropsBankAccountsOverview = {
+  id: string;
+  component: "bank.AccountsOverview";
+  cuentas: unknown[] | Binding;
+  tarjetas: unknown[] | Binding;
+};
+
+/** Administrar UNA tarjeta: bloquear/desbloquear, ajustar límite (solo crédito) y ponerle alias. Se monta después de `manage_card` desde `bank.AccountsOverview`. */
+export type PropsBankCardManager = {
+  id: string;
+  component: "bank.CardManager";
+  card: Record<string, unknown> | Binding;
+  ingresoMensual: number | Binding;
+};
+
+/** Presupuestos por categoría contra el gasto real, con aviso de excedidos. Para 'control de gasto' o '¿voy bien con mi presupuesto?'. Si `alertas` viene vacío, es que el cliente no ha configurado ninguno: ofrece ponerle uno, no inventes cifras. */
+export type PropsBankSpendingBudgets = {
+  id: string;
+  component: "bank.SpendingBudgets";
+  alertas: unknown[] | Binding;
+};
+
+/** Resultados de una búsqueda de movimientos con filtros aplicados. Nunca enlistes movimientos filtrados en texto; para 'mis últimos movimientos' sin filtro considera si de plano no hace falta filtrar. */
+export type PropsBankTransactionSearch = {
+  id: string;
+  component: "bank.TransactionSearch";
+  movimientos: unknown[] | Binding;
+  filtros?: Record<string, unknown> | Binding;
+  resumen?: Record<string, unknown> | Binding;
+};
+
 export type AnyComponent =
   | PropsColumn
   | PropsRow
@@ -215,10 +254,14 @@ export type AnyComponent =
   | PropsInvOrderTicket
   | PropsInvFactSheet
   | PropsInvPositionsTable
-  | PropsInvSpendingBreakdown;
+  | PropsInvSpendingBreakdown
+  | PropsBankAccountsOverview
+  | PropsBankCardManager
+  | PropsBankSpendingBudgets
+  | PropsBankTransactionSearch;
 
 export const COMPONENT_NAMES = [
-  "Column", "Row", "Card", "Text", "Divider", "Button", "Badge", "Stat", "inv.RiskProfiler", "inv.AllocationDonut", "inv.ProjectionChart", "inv.InstrumentTable", "inv.ComparePanel", "inv.AmountSlider", "inv.OrderTicket", "inv.FactSheet", "inv.PositionsTable", "inv.SpendingBreakdown"
+  "Column", "Row", "Card", "Text", "Divider", "Button", "Badge", "Stat", "inv.RiskProfiler", "inv.AllocationDonut", "inv.ProjectionChart", "inv.InstrumentTable", "inv.ComparePanel", "inv.AmountSlider", "inv.OrderTicket", "inv.FactSheet", "inv.PositionsTable", "inv.SpendingBreakdown", "bank.AccountsOverview", "bank.CardManager", "bank.SpendingBudgets", "bank.TransactionSearch"
 ] as const;
 
 export type ComponentName = (typeof COMPONENT_NAMES)[number];

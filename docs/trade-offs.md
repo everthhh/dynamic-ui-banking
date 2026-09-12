@@ -37,6 +37,9 @@ Lo que se decidió, contra qué, y qué costó.
 | **Impuestos dentro de la proyección** | Proyección bruta | El número bruto es el que el cliente nunca va a recibir. La retención de intereses se cobra sobre el **capital**, así que se paga aunque el instrumento pierda: en un pagaré al 5.15% se lleva casi un quinto del rendimiento | El modelo fiscal es una simplificación (sin compensación de pérdidas, sin regímenes especiales); está declarado en `bank/finance/fiscal.py` |
 | **Tres probabilidades de perder, no una** | Solo `prob_perdida_nominal` | «Probabilidad de perder» sin decir contra qué es medio dato. Nominal, real (contra inflación) y contra el origen del dinero dan respuestas muy distintas, y con crédito solo la tercera es honesta | Más columnas que explicar en la UI |
 | **Claude Sonnet** | Opus para todo | La latencia es parte de la experiencia: una UI que tarda ocho segundos en aparecer no se siente generativa | Se compensa con few-shots y prompt caching |
+| **Mutaciones de banca personal sin candado de dos pasos** (`block_card`, `set_card_limit`, `set_account_alias`, `set_budget`) | El mismo patrón de `place_order` (token + segunda llamada) | Ninguna mueve dinero real; bloquear una tarjeta es la acción de urgencia y debe costar un toque, no dos. El límite y el presupuesto sí llevan techo/piso de negocio explícito en el servidor | Confiar en la validación server-side (ownership + rangos) en vez de una confirmación en pantalla |
+| **`card_events`: tabla de auditoría propia** | Confiar en los logs del proceso | Cada bloqueo, cambio de límite o alias queda en la base, no solo en un log que se pierde al reiniciar — es lo que permite reconstruir "quién cambió qué" sin la sesión activa | Una tabla e inserts extra en cada mutación |
+| **Mensajes de ownership genéricos** ("no existe o no te pertenece") | Decir explícitamente "esa tarjeta es de otro cliente" | Un mensaje específico confirma que el id existe, solo que es ajeno — información que un cliente no debería poder extraer probando ids | El modelo recibe una pista un poco menos rica para autocorregirse, pero el error ya es inequívoco sobre qué hacer (pedir `get_accounts` de nuevo) |
 
 ## Lo que se decidió NO hacer
 
@@ -52,11 +55,11 @@ cuanto cierra el JSON requiere un parser tolerante y complica la validación —
 ganancia percibida es de décimas, porque el cuello de botella es el
 encadenado de tools, no el render.
 
-**Un segundo dominio.** El esquema ya soporta crédito y gasto, y hay dos
-componentes listos (`inv.SpendingBreakdown`, `get_credit_overview`), pero el
-criterio de corte se respeta: el primero se termina y se ensaya antes de abrir
-el segundo. Media demo de inversiones más media de crédito es peor que una
-completa.
+**Los 4 dominios que faltan** (Crédito más allá de `get_credit_overview`,
+Pagos, Seguros, Educación financiera). El criterio de corte del proyecto se
+respeta a propósito: Inversiones se cerró y se ensayó, luego Banca personal
+(el segundo), y cada dominio nuevo espera a que el anterior esté completo.
+Media demo de cuatro dominios es peor que dos completos.
 
 ## Lo que el modelo financiero sigue sin capturar
 
