@@ -147,8 +147,21 @@ def _validar_componente(nodo: Any, idx: int, errores: list[str], avisos: list[st
     if not isinstance(cid, str) or not cid:
         errores.append(f"{ruta}: falta `id` (string no vacío).")
     if not isinstance(nombre, str):
-        errores.append(f"{ruta}: falta `component`.")
+        if isinstance(nodo.get("type"), str):
+            errores.append(
+                f"{ruta}: el campo se llama `component`, no `type`. Cambia "
+                f"\"type\": {nodo['type']!r} por \"component\": {nodo['type']!r}."
+            )
+        else:
+            errores.append(f"{ruta}: falta `component`.")
         return cid if isinstance(cid, str) else None
+
+    if isinstance(nodo.get("props"), dict):
+        errores.append(
+            f"{ruta} ({nombre}): las props van sueltas en el objeto del componente, "
+            f"no anidadas bajo `props`. Sube estas claves al nivel de `id`/`component`: "
+            f"{', '.join(sorted(nodo['props']))}."
+        )
 
     spec = COMPONENTES.get(nombre)
     if spec is None:
@@ -309,6 +322,12 @@ def _validar_mensaje(msg: Any, idx: int, res: ValidationResult) -> None:
         tema = cuerpo.get("theme")
         if tema is not None and not isinstance(tema, dict):
             res.errores.append(f"{ruta}.createSurface: `theme` debe ser un objeto.")
+        sobrantes_cs = set(cuerpo) - {"surfaceId", "catalogId", "theme"}
+        if sobrantes_cs:
+            res.errores.append(
+                f"{ruta}.createSurface: claves no permitidas: {', '.join(sorted(sobrantes_cs))}. "
+                "Solo `surfaceId`, `catalogId` y `theme`."
+            )
 
     elif clave == "updateComponents":
         comps = cuerpo.get("components")
@@ -360,12 +379,31 @@ def _validar_mensaje(msg: Any, idx: int, res: ValidationResult) -> None:
                 f"llegó {path!r}."
             )
         if "value" not in cuerpo:
-            res.errores.append(f"{ruta}.updateDataModel: falta `value`.")
+            if "model" in cuerpo or "dataModel" in cuerpo:
+                clave_usada = "model" if "model" in cuerpo else "dataModel"
+                res.errores.append(
+                    f"{ruta}.updateDataModel: no existe `{clave_usada}`. Usa `path` "
+                    "(la ruta que cambia, ej. '/perfilador') y `value` (el valor nuevo "
+                    f"en esa ruta) en vez de mandar todo el modelo junto en `{clave_usada}`."
+                )
+            else:
+                res.errores.append(f"{ruta}.updateDataModel: falta `value`.")
+        sobrantes_udm = set(cuerpo) - {"surfaceId", "path", "value"}
+        if sobrantes_udm:
+            res.errores.append(
+                f"{ruta}.updateDataModel: claves no permitidas: {', '.join(sorted(sobrantes_udm))}. "
+                "Solo `surfaceId`, `path` y `value`."
+            )
 
     elif clave == "deleteSurface":
         # Solo necesita `surfaceId`, ya validado arriba. Nada más que revisar:
         # es una señal de "quita esta superficie", no un árbol de componentes.
-        pass
+        sobrantes_ds = set(cuerpo) - {"surfaceId"}
+        if sobrantes_ds:
+            res.errores.append(
+                f"{ruta}.deleteSurface: claves no permitidas: {', '.join(sorted(sobrantes_ds))}. "
+                "Solo `surfaceId`."
+            )
 
 
 def validate_a2ui(mensajes: Any) -> ValidationResult:

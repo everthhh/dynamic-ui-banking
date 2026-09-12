@@ -286,6 +286,8 @@ class AgenteUIGenerativa:
 
         if not res.ok:
             log.info("blueprint invalido (intento %s): %s", reintentos + 1, res.errores)
+            log.info("blueprint invalido (intento %s) — payload crudo: %s", reintentos + 1,
+                      json.dumps(mensajes, ensure_ascii=False, default=str)[:6000])
             return (
                 {"content": res.para_el_modelo()},
                 [Evento("render_rechazado", {"intento": reintentos + 1,

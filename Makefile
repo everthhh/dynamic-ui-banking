@@ -35,7 +35,7 @@ build:
 	cd web && npm run build
 
 api:
-	uvicorn gateway.main:app --reload --port 8000
+	$(PY) -m uvicorn gateway.main:app --reload --port 8000
 
 web:
 	cd web && npm run dev
