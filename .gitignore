@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+.env.local
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# artefactos generados (se regeneran con `make seed`)
+data/*.sqlite
+data/*.sqlite-journal
+data/*.parquet
+
+node_modules/
+web/dist/
+web/.vite/
+*.log
+.DS_Store

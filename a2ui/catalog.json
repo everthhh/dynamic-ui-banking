@@ -1,0 +1,267 @@
+{
+  "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json",
+  "a2uiVersion": "v0.9",
+  "catalogVersion": "1.0.0",
+  "nombre": "Catálogo de dominio · inversiones y core bancario",
+  "descripcion": "Componentes gordos de dominio financiero. El modelo compone con estos, no con Row/Column sueltos, para gastar menos tokens y no inventar layouts.",
+  "theme": {
+    "primaryColor": "#EB0029",
+    "surface": "#FFFFFF",
+    "text": "#1A1A1A",
+    "muted": "#6B7280",
+    "positive": "#067647",
+    "negative": "#B42318",
+    "radius": 12,
+    "fontFamily": "Inter, system-ui, sans-serif"
+  },
+  "reglas": [
+    "Un mensaje A2UI contiene exactamente una acción: createSurface, updateComponents, updateDataModel o action.",
+    "Todo componente debe existir en este catálogo. El renderer ignora cualquier otro.",
+    "Los datos numéricos se enlazan por ruta ({\"path\": \"/sim/escenarios\"}), nunca se escriben inline.",
+    "Recalcular datos -> updateDataModel. Cambiar la intención -> updateComponents. Cambiar la tarea -> nueva superficie.",
+    "Solo los ids declarados en `acciones` son válidos en la prop `action` de cualquier componente."
+  ],
+  "acciones": {
+    "profile_done": {
+      "descripcion": "El usuario terminó de contestar el perfilador.",
+      "contexto": ["answers"],
+      "emitida_por": ["inv.RiskProfiler"]
+    },
+    "simulate": {
+      "descripcion": "Recalcular la proyección con nuevos parámetros.",
+      "contexto": ["amount", "horizon", "monthly"],
+      "emitida_por": ["inv.AmountSlider", "inv.ProjectionChart"]
+    },
+    "compare": {
+      "descripcion": "El usuario pidió comparar la propuesta contra otra alternativa.",
+      "contexto": ["baseline", "alternative"],
+      "emitida_por": ["Button", "inv.ComparePanel"]
+    },
+    "select_allocation": {
+      "descripcion": "El usuario eligió una de las dos columnas del comparativo.",
+      "contexto": ["lado"],
+      "emitida_por": ["inv.ComparePanel"]
+    },
+    "select_instrument": {
+      "descripcion": "El usuario tocó un instrumento de la tabla y quiere el detalle.",
+      "contexto": ["instrument_id"],
+      "emitida_por": ["inv.InstrumentTable", "inv.AllocationDonut"]
+    },
+    "place_order": {
+      "descripcion": "El usuario confirmó la orden. Requiere confirmación en dos pasos.",
+      "contexto": ["order", "confirmation_token"],
+      "emitida_por": ["inv.OrderTicket"],
+      "efecto": true
+    },
+    "cancel_order": {
+      "descripcion": "El usuario abortó el ticket.",
+      "contexto": ["order_id"],
+      "emitida_por": ["inv.OrderTicket"]
+    },
+    "ask": {
+      "descripcion": "Botón que manda una pregunta en texto de vuelta al agente.",
+      "contexto": ["prompt"],
+      "emitida_por": ["Button"]
+    }
+  },
+  "components": {
+    "Column": {
+      "tipo": "primitivo",
+      "cuando": "Apilar cosas verticalmente. Es la raíz habitual de una superficie.",
+      "children": true,
+      "props": {
+        "gap": { "tipo": "number", "default": 16, "descripcion": "Separación en px." },
+        "align": { "tipo": "enum", "valores": ["start", "center", "end", "stretch"], "default": "stretch" }
+      }
+    },
+    "Row": {
+      "tipo": "primitivo",
+      "cuando": "Poner cosas lado a lado. Colapsa a columna en pantalla angosta.",
+      "children": true,
+      "props": {
+        "gap": { "tipo": "number", "default": 12 },
+        "align": { "tipo": "enum", "valores": ["start", "center", "end", "baseline"], "default": "center" },
+        "wrap": { "tipo": "boolean", "default": true }
+      }
+    },
+    "Card": {
+      "tipo": "primitivo",
+      "cuando": "Agrupar un bloque con título. No la uses para envolver un solo Text.",
+      "children": true,
+      "props": {
+        "title": { "tipo": "string", "bindable": true },
+        "subtitle": { "tipo": "string", "bindable": true },
+        "tone": { "tipo": "enum", "valores": ["neutral", "info", "warning", "danger"], "default": "neutral" }
+      }
+    },
+    "Text": {
+      "tipo": "primitivo",
+      "cuando": "Texto. Un párrafo corto, un encabezado, una aclaración.",
+      "children": false,
+      "props": {
+        "text": { "tipo": "string", "requerido": true, "bindable": true },
+        "variant": { "tipo": "enum", "valores": ["h1", "h2", "h3", "body", "caption"], "default": "body" },
+        "tone": { "tipo": "enum", "valores": ["default", "muted", "positive", "negative"], "default": "default" }
+      }
+    },
+    "Divider": {
+      "tipo": "primitivo",
+      "cuando": "Separar dos bloques cuando el espacio no alcanza.",
+      "children": false,
+      "props": {}
+    },
+    "Button": {
+      "tipo": "primitivo",
+      "cuando": "Una acción que el usuario puede tomar. Siempre lleva `action`.",
+      "children": false,
+      "props": {
+        "label": { "tipo": "string", "requerido": true },
+        "action": { "tipo": "action", "requerido": true },
+        "variant": { "tipo": "enum", "valores": ["primary", "secondary", "ghost"], "default": "secondary" },
+        "disabled": { "tipo": "boolean", "default": false, "bindable": true }
+      }
+    },
+    "Badge": {
+      "tipo": "primitivo",
+      "cuando": "Etiqueta corta de estado: 'Moderado', 'Ejecutada', 'Simulado'.",
+      "children": false,
+      "props": {
+        "label": { "tipo": "string", "requerido": true, "bindable": true },
+        "tone": { "tipo": "enum", "valores": ["neutral", "info", "positive", "warning", "danger"], "default": "neutral" }
+      }
+    },
+    "Stat": {
+      "tipo": "primitivo",
+      "cuando": "Una cifra sola con su etiqueta. Tres o cuatro en un Row leen mejor que un párrafo.",
+      "children": false,
+      "props": {
+        "label": { "tipo": "string", "requerido": true },
+        "value": { "tipo": "number", "requerido": true, "bindable": true },
+        "format": { "tipo": "enum", "valores": ["moneda", "porcentaje", "numero", "texto"], "default": "numero" },
+        "delta": { "tipo": "number", "bindable": true },
+        "hint": { "tipo": "string" }
+      }
+    },
+
+    "inv.RiskProfiler": {
+      "tipo": "dominio",
+      "cuando": "Falta contexto para poder proponer: el cliente no tiene perfil vigente. Preguntar con este componente, NO con texto.",
+      "children": false,
+      "emite": ["profile_done"],
+      "props": {
+        "questions": { "tipo": "array", "requerido": true, "bindable": true, "descripcion": "Viene tal cual de get_risk_questions / score_risk_profile. [{id, text, options[{value,label}]}]" },
+        "value": { "tipo": "object", "bindable": true, "descripcion": "Respuestas parciales, {id: value}." },
+        "action": { "tipo": "action", "requerido": true, "descripcion": "Se dispara al contestar la última. Debe ser profile_done." },
+        "intro": { "tipo": "string", "descripcion": "Una línea de por qué se pregunta." }
+      }
+    },
+    "inv.AllocationDonut": {
+      "tipo": "dominio",
+      "cuando": "Mostrar o ajustar una propuesta de asignación. Sustituye cualquier lista de porcentajes en texto.",
+      "children": false,
+      "emite": ["select_instrument"],
+      "props": {
+        "slices": { "tipo": "array", "requerido": true, "bindable": true, "descripcion": "`slices` de propose_allocation: [{instrument_id, instrumento, etiqueta, peso, monto, porque}]" },
+        "total": { "tipo": "number", "requerido": true, "bindable": true, "descripcion": "Monto total en MXN." },
+        "editable": { "tipo": "boolean", "default": false, "descripcion": "Si true, el usuario puede arrastrar los pesos." },
+        "action": { "tipo": "action", "descripcion": "Al tocar un gajo." },
+        "subtitulo": { "tipo": "string", "bindable": true }
+      }
+    },
+    "inv.ProjectionChart": {
+      "tipo": "dominio",
+      "cuando": "Responder '¿cuánto voy a tener?'. Siempre con los tres escenarios, nunca con un número solo.",
+      "children": false,
+      "emite": ["simulate"],
+      "props": {
+        "scenarios": { "tipo": "object", "requerido": true, "bindable": true, "descripcion": "`escenarios` de simulate_portfolio: {p10:[{mes,anios,valor}], p50:[...], p90:[...]}" },
+        "horizonYears": { "tipo": "number", "requerido": true, "bindable": true },
+        "aportado": { "tipo": "number", "bindable": true, "descripcion": "Línea de referencia: total aportado." },
+        "disclaimer": { "tipo": "string", "requerido": true, "descripcion": "Obligatoria. Úsala tal cual viene del tool_result; no la redactes tú." },
+        "resaltar": { "tipo": "enum", "valores": ["p10", "p50", "p90"], "default": "p50" }
+      }
+    },
+    "inv.InstrumentTable": {
+      "tipo": "dominio",
+      "cuando": "Explorar el catálogo. Nunca enlistes instrumentos en texto.",
+      "children": false,
+      "emite": ["select_instrument"],
+      "props": {
+        "rows": { "tipo": "array", "requerido": true, "bindable": true, "descripcion": "`instrumentos` de list_instruments." },
+        "columns": { "tipo": "array", "requerido": true, "descripcion": "Ids de columna a mostrar, en orden. Válidas: nombre, clase, rend_esperado_anual, rend_neto_anual, volatilidad_anual, comision_anual, riesgo_1a5, liquidez, plazo_dias, monto_minimo." },
+        "selectable": { "tipo": "boolean", "default": true },
+        "action": { "tipo": "action" }
+      }
+    },
+    "inv.ComparePanel": {
+      "tipo": "dominio",
+      "cuando": "El usuario pregunta '¿qué conviene más?' o '¿y si...?'. Dos columnas, mismas métricas.",
+      "children": false,
+      "emite": ["select_allocation"],
+      "props": {
+        "left": { "tipo": "object", "requerido": true, "bindable": true, "descripcion": "`izquierda` de compare_allocations." },
+        "right": { "tipo": "object", "requerido": true, "bindable": true, "descripcion": "`derecha` de compare_allocations." },
+        "metrics": { "tipo": "array", "requerido": true, "bindable": true, "descripcion": "`filas` de compare_allocations." },
+        "action": { "tipo": "action", "descripcion": "Al elegir un lado." },
+        "disclaimer": { "tipo": "string", "requerido": true }
+      }
+    },
+    "inv.AmountSlider": {
+      "tipo": "dominio",
+      "cuando": "Dejar que el usuario simule variaciones. Mover el slider NO remonta componentes: dispara updateDataModel.",
+      "children": false,
+      "emite": ["simulate"],
+      "props": {
+        "label": { "tipo": "string", "requerido": true },
+        "value": { "tipo": "number", "requerido": true, "bindable": true, "descripcion": "Enlaza a una ruta del data model para binding bidireccional." },
+        "min": { "tipo": "number", "requerido": true },
+        "max": { "tipo": "number", "requerido": true },
+        "step": { "tipo": "number", "default": 100 },
+        "format": { "tipo": "enum", "valores": ["moneda", "porcentaje", "numero", "anios"], "default": "moneda" },
+        "action": { "tipo": "action", "requerido": true, "descripcion": "Se dispara al soltar, no en cada pixel." }
+      }
+    },
+    "inv.OrderTicket": {
+      "tipo": "dominio",
+      "cuando": "Ejecutar. Es el único componente que mueve dinero y exige confirmación en dos pasos.",
+      "children": false,
+      "emite": ["place_order", "cancel_order"],
+      "props": {
+        "order": { "tipo": "object", "requerido": true, "bindable": true, "descripcion": "Respuesta de place_order en estado pendiente: {folio, monto, legs, saldo_antes, saldo_despues_estimado}." },
+        "action": { "tipo": "action", "requerido": true, "descripcion": "Debe ser place_order." },
+        "requiresConfirmation": { "tipo": "boolean", "requerido": true, "default": true, "descripcion": "Siempre true. El renderer rechaza el ticket si viene en false." },
+        "disclaimer": { "tipo": "string", "requerido": true }
+      }
+    },
+    "inv.FactSheet": {
+      "tipo": "dominio",
+      "cuando": "El usuario pidió el detalle de un instrumento concreto.",
+      "children": false,
+      "props": {
+        "instrument": { "tipo": "object", "requerido": true, "bindable": true, "descripcion": "Respuesta de get_instrument_factsheet." },
+        "mostrarHistoria": { "tipo": "boolean", "default": true }
+      }
+    },
+    "inv.PositionsTable": {
+      "tipo": "dominio",
+      "cuando": "Después de ejecutar, o cuando el usuario pregunta '¿cómo voy?'. Es el estado de cuenta.",
+      "children": false,
+      "emite": ["select_instrument"],
+      "props": {
+        "positions": { "tipo": "array", "requerido": true, "bindable": true, "descripcion": "`posiciones` de get_client_snapshot." },
+        "resumen": { "tipo": "object", "bindable": true, "descripcion": "`inversion` de get_client_snapshot: {costo_total, valor_mercado, rendimiento}." },
+        "action": { "tipo": "action" }
+      }
+    },
+    "inv.SpendingBreakdown": {
+      "tipo": "dominio",
+      "cuando": "Justificar de dónde sale la capacidad de ahorro, o responder sobre gasto.",
+      "children": false,
+      "props": {
+        "categorias": { "tipo": "array", "requerido": true, "bindable": true, "descripcion": "`por_categoria` de get_spending_summary." },
+        "capacidadAhorro": { "tipo": "number", "requerido": true, "bindable": true },
+        "ingresoMensual": { "tipo": "number", "requerido": true, "bindable": true }
+      }
+    }
+  }
+}

@@ -1,0 +1,19 @@
+# LLM: SDK nativo de Anthropic. Nada de LangChain / LlamaIndex / frameworks de agentes.
+anthropic>=0.40.0
+
+# Gateway
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+sse-starlette>=2.1.0
+
+# Contratos y validacion
+pydantic>=2.9.0
+
+# Datos sinteticos
+numpy>=2.0.0
+pandas>=2.2.0
+pyarrow>=17.0.0
+
+# Dev
+pytest>=8.3.0
+httpx>=0.27.0
