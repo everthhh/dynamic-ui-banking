@@ -251,7 +251,9 @@
          },
          "intro": "Con esto sé cuánto riesgo tiene sentido para ti. Ninguna respuesta es la correcta.",
          "action": {
-          "name": "profile_done"
+          "event": {
+           "name": "profile_done"
+          }
          }
         }
        ]
@@ -1542,7 +1544,9 @@
          },
          "subtitulo": "Siete bloques; cada uno tiene una razón de estar.",
          "action": {
-          "name": "select_instrument"
+          "event": {
+           "name": "select_instrument"
+          }
          }
         },
         {
@@ -1581,7 +1585,9 @@
          "step": 5000,
          "format": "moneda",
          "action": {
-          "name": "simulate"
+          "event": {
+           "name": "simulate"
+          }
          }
         },
         {
@@ -1596,7 +1602,9 @@
          "step": 1,
          "format": "anios",
          "action": {
-          "name": "simulate"
+          "event": {
+           "name": "simulate"
+          }
          }
         },
         {
@@ -1611,7 +1619,9 @@
          "step": 500,
          "format": "moneda",
          "action": {
-          "name": "simulate"
+          "event": {
+           "name": "simulate"
+          }
          }
         },
         {
@@ -1628,7 +1638,9 @@
          "variant": "secondary",
          "label": "¿Y si fuera más conservador?",
          "action": {
-          "name": "compare"
+          "event": {
+           "name": "compare"
+          }
          }
         },
         {
@@ -1637,9 +1649,11 @@
          "variant": "primary",
          "label": "Quiero invertir así",
          "action": {
-          "name": "ask",
-          "context": {
-           "prompt": "Arma la orden con esta propuesta"
+          "event": {
+           "name": "ask",
+           "context": {
+            "prompt": "Arma la orden con esta propuesta"
+           }
           }
          }
         }
@@ -3619,19 +3633,19 @@
         "derecha": {
          "etiqueta": "Conservador",
          "asignacion": {
-          "CETES-364": 0.45000000000000007,
-          "FND-GUB-CP": 0.25000000000000006,
-          "BONOSM-10A": 0.20000000000000004,
-          "FND-CORP-AAA": 0.10000000000000002
+          "CETES-364": 0.45,
+          "FND-GUB-CP": 0.25,
+          "BONOSM-10A": 0.2,
+          "FND-CORP-AAA": 0.1
          },
          "metricas": {
-          "valor_final_p50": 296945.55,
-          "valor_final_p10": 279286.3,
-          "valor_final_p90": 316285.75,
-          "ganancia_p50": 66945.55,
-          "tir_anual_p50": 0.076983,
-          "volatilidad_anual": 0.029274,
-          "max_drawdown": 0.002,
+          "valor_final_p50": 296869.31,
+          "valor_final_p10": 279198.07,
+          "valor_final_p90": 316122.81,
+          "ganancia_p50": 66869.31,
+          "tir_anual_p50": 0.076905,
+          "volatilidad_anual": 0.029218,
+          "max_drawdown": 0.00194,
           "prob_perdida_nominal": 0.0,
           "total_aportado": 230000.0
          },
@@ -3645,302 +3659,302 @@
            {
             "mes": 1,
             "anios": 0.0833,
-            "valor": 82130.69
+            "valor": 82116.59
            },
            {
             "mes": 2,
             "anios": 0.1667,
-            "valor": 84743.72
+            "valor": 84748.15
            },
            {
             "mes": 3,
             "anios": 0.25,
-            "valor": 87459.38
+            "valor": 87448.07
            },
            {
             "mes": 4,
             "anios": 0.3333,
-            "valor": 90278.28
+            "valor": 90236.03
            },
            {
             "mes": 5,
             "anios": 0.4167,
-            "valor": 93094.96
+            "valor": 93020.32
            },
            {
             "mes": 6,
             "anios": 0.5,
-            "valor": 95906.34
+            "valor": 95885.28
            },
            {
             "mes": 7,
             "anios": 0.5833,
-            "valor": 98802.56
+            "valor": 98773.02
            },
            {
             "mes": 8,
             "anios": 0.6667,
-            "valor": 101713.62
+            "valor": 101629.16
            },
            {
             "mes": 9,
             "anios": 0.75,
-            "valor": 104589.58
+            "valor": 104582.19
            },
            {
             "mes": 10,
             "anios": 0.8333,
-            "valor": 107490.75
+            "valor": 107527.83
            },
            {
             "mes": 11,
             "anios": 0.9167,
-            "valor": 110481.53
+            "valor": 110542.03
            },
            {
             "mes": 12,
             "anios": 1.0,
-            "valor": 113518.31
+            "valor": 113471.74
            },
            {
             "mes": 13,
             "anios": 1.0833,
-            "valor": 116510.97
+            "valor": 116496.64
            },
            {
             "mes": 14,
             "anios": 1.1667,
-            "valor": 119535.64
+            "valor": 119550.69
            },
            {
             "mes": 15,
             "anios": 1.25,
-            "valor": 122570.32
+            "valor": 122654.95
            },
            {
             "mes": 16,
             "anios": 1.3333,
-            "valor": 125545.56
+            "valor": 125585.36
            },
            {
             "mes": 17,
             "anios": 1.4167,
-            "valor": 128634.82
+            "valor": 128706.26
            },
            {
             "mes": 18,
             "anios": 1.5,
-            "valor": 131792.31
+            "valor": 131676.57
            },
            {
             "mes": 19,
             "anios": 1.5833,
-            "valor": 134871.74
+            "valor": 134792.98
            },
            {
             "mes": 20,
             "anios": 1.6667,
-            "valor": 138185.77
+            "valor": 137862.31
            },
            {
             "mes": 21,
             "anios": 1.75,
-            "valor": 141317.87
+            "valor": 141081.34
            },
            {
             "mes": 22,
             "anios": 1.8333,
-            "valor": 144341.75
+            "valor": 144267.34
            },
            {
             "mes": 23,
             "anios": 1.9167,
-            "valor": 147530.28
+            "valor": 147408.83
            },
            {
             "mes": 24,
             "anios": 2.0,
-            "valor": 150772.77
+            "valor": 150584.25
            },
            {
             "mes": 25,
             "anios": 2.0833,
-            "valor": 154031.58
+            "valor": 153876.62
            },
            {
             "mes": 26,
             "anios": 2.1667,
-            "valor": 157201.21
+            "valor": 157175.35
            },
            {
             "mes": 27,
             "anios": 2.25,
-            "valor": 160466.16
+            "valor": 160484.19
            },
            {
             "mes": 28,
             "anios": 2.3333,
-            "valor": 163804.96
+            "valor": 163719.26
            },
            {
             "mes": 29,
             "anios": 2.4167,
-            "valor": 167033.11
+            "valor": 166999.25
            },
            {
             "mes": 30,
             "anios": 2.5,
-            "valor": 170287.79
+            "valor": 170418.78
            },
            {
             "mes": 31,
             "anios": 2.5833,
-            "valor": 173608.28
+            "valor": 173748.64
            },
            {
             "mes": 32,
             "anios": 2.6667,
-            "valor": 176952.82
+            "valor": 177141.67
            },
            {
             "mes": 33,
             "anios": 2.75,
-            "valor": 180459.89
+            "valor": 180590.75
            },
            {
             "mes": 34,
             "anios": 2.8333,
-            "valor": 183835.29
+            "valor": 184018.02
            },
            {
             "mes": 35,
             "anios": 2.9167,
-            "valor": 187310.87
+            "valor": 187419.46
            },
            {
             "mes": 36,
             "anios": 3.0,
-            "valor": 190701.17
+            "valor": 190863.46
            },
            {
             "mes": 37,
             "anios": 3.0833,
-            "valor": 194129.98
+            "valor": 194330.59
            },
            {
             "mes": 38,
             "anios": 3.1667,
-            "valor": 197627.46
+            "valor": 197887.94
            },
            {
             "mes": 39,
             "anios": 3.25,
-            "valor": 201160.96
+            "valor": 201232.41
            },
            {
             "mes": 40,
             "anios": 3.3333,
-            "valor": 204751.76
+            "valor": 204786.18
            },
            {
             "mes": 41,
             "anios": 3.4167,
-            "valor": 208194.15
+            "valor": 208443.78
            },
            {
             "mes": 42,
             "anios": 3.5,
-            "valor": 211769.14
+            "valor": 211998.55
            },
            {
             "mes": 43,
             "anios": 3.5833,
-            "valor": 215306.54
+            "valor": 215569.67
            },
            {
             "mes": 44,
             "anios": 3.6667,
-            "valor": 218782.91
+            "valor": 219053.23
            },
            {
             "mes": 45,
             "anios": 3.75,
-            "valor": 222591.5
+            "valor": 222734.35
            },
            {
             "mes": 46,
             "anios": 3.8333,
-            "valor": 226070.46
+            "valor": 226198.04
            },
            {
             "mes": 47,
             "anios": 3.9167,
-            "valor": 229947.81
+            "valor": 229988.55
            },
            {
             "mes": 48,
             "anios": 4.0,
-            "valor": 233499.41
+            "valor": 233521.26
            },
            {
             "mes": 49,
             "anios": 4.0833,
-            "valor": 237481.58
+            "valor": 237258.94
            },
            {
             "mes": 50,
             "anios": 4.1667,
-            "valor": 241120.01
+            "valor": 240995.56
            },
            {
             "mes": 51,
             "anios": 4.25,
-            "valor": 245095.63
+            "valor": 244896.95
            },
            {
             "mes": 52,
             "anios": 4.3333,
-            "valor": 248850.0
+            "valor": 248389.04
            },
            {
             "mes": 53,
             "anios": 4.4167,
-            "valor": 252212.05
+            "valor": 252181.55
            },
            {
             "mes": 54,
             "anios": 4.5,
-            "valor": 255955.26
+            "valor": 255867.32
            },
            {
             "mes": 55,
             "anios": 4.5833,
-            "valor": 259838.64
+            "valor": 259695.17
            },
            {
             "mes": 56,
             "anios": 4.6667,
-            "valor": 263619.59
+            "valor": 263469.19
            },
            {
             "mes": 57,
             "anios": 4.75,
-            "valor": 267652.09
+            "valor": 267494.51
            },
            {
             "mes": 58,
             "anios": 4.8333,
-            "valor": 271595.73
+            "valor": 271211.35
            },
            {
             "mes": 59,
             "anios": 4.9167,
-            "valor": 275508.1
+            "valor": 275237.47
            },
            {
             "mes": 60,
             "anios": 5.0,
-            "valor": 279286.3
+            "valor": 279198.07
            }
           ],
           "p50": [
@@ -3952,302 +3966,302 @@
            {
             "mes": 1,
             "anios": 0.0833,
-            "valor": 82994.77
+            "valor": 82984.19
            },
            {
             "mes": 2,
             "anios": 0.1667,
-            "valor": 85998.32
+            "valor": 86010.98
            },
            {
             "mes": 3,
             "anios": 0.25,
-            "valor": 89060.7
+            "valor": 89026.6
            },
            {
             "mes": 4,
             "anios": 0.3333,
-            "valor": 92099.7
+            "valor": 92093.93
            },
            {
             "mes": 5,
             "anios": 0.4167,
-            "valor": 95192.64
+            "valor": 95150.62
            },
            {
             "mes": 6,
             "anios": 0.5,
-            "valor": 98265.87
+            "valor": 98284.85
            },
            {
             "mes": 7,
             "anios": 0.5833,
-            "valor": 101420.54
+            "valor": 101409.85
            },
            {
             "mes": 8,
             "anios": 0.6667,
-            "valor": 104505.96
+            "valor": 104511.6
            },
            {
             "mes": 9,
             "anios": 0.75,
-            "valor": 107675.45
+            "valor": 107626.89
            },
            {
             "mes": 10,
             "anios": 0.8333,
-            "valor": 110832.79
+            "valor": 110777.53
            },
            {
             "mes": 11,
             "anios": 0.9167,
-            "valor": 114031.0
+            "valor": 113951.8
            },
            {
             "mes": 12,
             "anios": 1.0,
-            "valor": 117244.0
+            "valor": 117194.23
            },
            {
             "mes": 13,
             "anios": 1.0833,
-            "valor": 120422.13
+            "valor": 120386.42
            },
            {
             "mes": 14,
             "anios": 1.1667,
-            "valor": 123719.63
+            "valor": 123690.24
            },
            {
             "mes": 15,
             "anios": 1.25,
-            "valor": 126968.44
+            "valor": 126965.27
            },
            {
             "mes": 16,
             "anios": 1.3333,
-            "valor": 130305.42
+            "valor": 130249.2
            },
            {
             "mes": 17,
             "anios": 1.4167,
-            "valor": 133579.08
+            "valor": 133621.41
            },
            {
             "mes": 18,
             "anios": 1.5,
-            "valor": 136964.26
+            "valor": 136967.77
            },
            {
             "mes": 19,
             "anios": 1.5833,
-            "valor": 140250.37
+            "valor": 140288.62
            },
            {
             "mes": 20,
             "anios": 1.6667,
-            "valor": 143669.41
+            "valor": 143726.02
            },
            {
             "mes": 21,
             "anios": 1.75,
-            "valor": 147016.56
+            "valor": 147107.28
            },
            {
             "mes": 22,
             "anios": 1.8333,
-            "valor": 150329.93
+            "valor": 150506.89
            },
            {
             "mes": 23,
             "anios": 1.9167,
-            "valor": 153810.09
+            "valor": 153883.69
            },
            {
             "mes": 24,
             "anios": 2.0,
-            "valor": 157301.66
+            "valor": 157428.92
            },
            {
             "mes": 25,
             "anios": 2.0833,
-            "valor": 160756.75
+            "valor": 160875.99
            },
            {
             "mes": 26,
             "anios": 2.1667,
-            "valor": 164270.69
+            "valor": 164323.41
            },
            {
             "mes": 27,
             "anios": 2.25,
-            "valor": 167730.58
+            "valor": 167877.45
            },
            {
             "mes": 28,
             "anios": 2.3333,
-            "valor": 171368.34
+            "valor": 171409.71
            },
            {
             "mes": 29,
             "anios": 2.4167,
-            "valor": 174864.65
+            "valor": 174890.12
            },
            {
             "mes": 30,
             "anios": 2.5,
-            "valor": 178365.15
+            "valor": 178510.96
            },
            {
             "mes": 31,
             "anios": 2.5833,
-            "valor": 182020.37
+            "valor": 182177.95
            },
            {
             "mes": 32,
             "anios": 2.6667,
-            "valor": 185743.08
+            "valor": 185708.98
            },
            {
             "mes": 33,
             "anios": 2.75,
-            "valor": 189503.6
+            "valor": 189424.13
            },
            {
             "mes": 34,
             "anios": 2.8333,
-            "valor": 193211.1
+            "valor": 193055.66
            },
            {
             "mes": 35,
             "anios": 2.9167,
-            "valor": 196879.73
+            "valor": 196764.32
            },
            {
             "mes": 36,
             "anios": 3.0,
-            "valor": 200598.21
+            "valor": 200460.86
            },
            {
             "mes": 37,
             "anios": 3.0833,
-            "valor": 204314.51
+            "valor": 204257.08
            },
            {
             "mes": 38,
             "anios": 3.1667,
-            "valor": 208043.75
+            "valor": 208061.1
            },
            {
             "mes": 39,
             "anios": 3.25,
-            "valor": 211794.87
+            "valor": 211731.69
            },
            {
             "mes": 40,
             "anios": 3.3333,
-            "valor": 215611.65
+            "valor": 215620.61
            },
            {
             "mes": 41,
             "anios": 3.4167,
-            "valor": 219284.93
+            "valor": 219394.2
            },
            {
             "mes": 42,
             "anios": 3.5,
-            "valor": 223195.09
+            "valor": 223270.7
            },
            {
             "mes": 43,
             "anios": 3.5833,
-            "valor": 227164.22
+            "valor": 227287.67
            },
            {
             "mes": 44,
             "anios": 3.6667,
-            "valor": 231067.45
+            "valor": 231297.88
            },
            {
             "mes": 45,
             "anios": 3.75,
-            "valor": 235059.68
+            "valor": 235214.37
            },
            {
             "mes": 46,
             "anios": 3.8333,
-            "valor": 239099.89
+            "valor": 239072.39
            },
            {
             "mes": 47,
             "anios": 3.9167,
-            "valor": 243051.29
+            "valor": 243195.89
            },
            {
             "mes": 48,
             "anios": 4.0,
-            "valor": 246985.82
+            "valor": 247141.65
            },
            {
             "mes": 49,
             "anios": 4.0833,
-            "valor": 250929.53
+            "valor": 251093.63
            },
            {
             "mes": 50,
             "anios": 4.1667,
-            "valor": 254904.55
+            "valor": 255236.52
            },
            {
             "mes": 51,
             "anios": 4.25,
-            "valor": 258967.3
+            "valor": 259455.72
            },
            {
             "mes": 52,
             "anios": 4.3333,
-            "valor": 263072.48
+            "valor": 263514.05
            },
            {
             "mes": 53,
             "anios": 4.4167,
-            "valor": 267187.29
+            "valor": 267648.64
            },
            {
             "mes": 54,
             "anios": 4.5,
-            "valor": 271497.84
+            "valor": 271656.71
            },
            {
             "mes": 55,
             "anios": 4.5833,
-            "valor": 275521.66
+            "valor": 275977.94
            },
            {
             "mes": 56,
             "anios": 4.6667,
-            "valor": 279845.63
+            "valor": 280121.75
            },
            {
             "mes": 57,
             "anios": 4.75,
-            "valor": 284263.97
+            "valor": 284268.53
            },
            {
             "mes": 58,
             "anios": 4.8333,
-            "valor": 288372.98
+            "valor": 288427.37
            },
            {
             "mes": 59,
             "anios": 4.9167,
-            "valor": 292775.6
+            "valor": 292885.45
            },
            {
             "mes": 60,
             "anios": 5.0,
-            "valor": 296945.55
+            "valor": 296869.31
            }
           ],
           "p90": [
@@ -4259,302 +4273,302 @@
            {
             "mes": 1,
             "anios": 0.0833,
-            "valor": 83860.88
+            "valor": 83899.66
            },
            {
             "mes": 2,
             "anios": 0.1667,
-            "valor": 87307.23
+            "valor": 87302.76
            },
            {
             "mes": 3,
             "anios": 0.25,
-            "valor": 90698.35
+            "valor": 90643.58
            },
            {
             "mes": 4,
             "anios": 0.3333,
-            "valor": 94065.64
+            "valor": 93946.98
            },
            {
             "mes": 5,
             "anios": 0.4167,
-            "valor": 97393.5
+            "valor": 97327.19
            },
            {
             "mes": 6,
             "anios": 0.5,
-            "valor": 100687.3
+            "valor": 100666.25
            },
            {
             "mes": 7,
             "anios": 0.5833,
-            "valor": 104105.14
+            "valor": 103984.3
            },
            {
             "mes": 8,
             "anios": 0.6667,
-            "valor": 107440.85
+            "valor": 107399.5
            },
            {
             "mes": 9,
             "anios": 0.75,
-            "valor": 110865.0
+            "valor": 110800.93
            },
            {
             "mes": 10,
             "anios": 0.8333,
-            "valor": 114259.24
+            "valor": 114269.73
            },
            {
             "mes": 11,
             "anios": 0.9167,
-            "valor": 117715.37
+            "valor": 117662.88
            },
            {
             "mes": 12,
             "anios": 1.0,
-            "valor": 121156.26
+            "valor": 121068.27
            },
            {
             "mes": 13,
             "anios": 1.0833,
-            "valor": 124649.34
+            "valor": 124541.03
            },
            {
             "mes": 14,
             "anios": 1.1667,
-            "valor": 128086.55
+            "valor": 128107.11
            },
            {
             "mes": 15,
             "anios": 1.25,
-            "valor": 131598.38
+            "valor": 131595.84
            },
            {
             "mes": 16,
             "anios": 1.3333,
-            "valor": 135020.01
+            "valor": 135155.89
            },
            {
             "mes": 17,
             "anios": 1.4167,
-            "valor": 138578.03
+            "valor": 138644.19
            },
            {
             "mes": 18,
             "anios": 1.5,
-            "valor": 142260.14
+            "valor": 142140.13
            },
            {
             "mes": 19,
             "anios": 1.5833,
-            "valor": 145897.29
+            "valor": 145716.81
            },
            {
             "mes": 20,
             "anios": 1.6667,
-            "valor": 149598.32
+            "valor": 149530.52
            },
            {
             "mes": 21,
             "anios": 1.75,
-            "valor": 153206.98
+            "valor": 153064.83
            },
            {
             "mes": 22,
             "anios": 1.8333,
-            "valor": 156872.62
+            "valor": 156790.8
            },
            {
             "mes": 23,
             "anios": 1.9167,
-            "valor": 160619.17
+            "valor": 160425.75
            },
            {
             "mes": 24,
             "anios": 2.0,
-            "valor": 164253.39
+            "valor": 164195.35
            },
            {
             "mes": 25,
             "anios": 2.0833,
-            "valor": 168088.79
+            "valor": 167821.59
            },
            {
             "mes": 26,
             "anios": 2.1667,
-            "valor": 171714.55
+            "valor": 171544.55
            },
            {
             "mes": 27,
             "anios": 2.25,
-            "valor": 175638.1
+            "valor": 175261.08
            },
            {
             "mes": 28,
             "anios": 2.3333,
-            "valor": 179499.04
+            "valor": 179115.73
            },
            {
             "mes": 29,
             "anios": 2.4167,
-            "valor": 183345.62
+            "valor": 183171.11
            },
            {
             "mes": 30,
             "anios": 2.5,
-            "valor": 187232.22
+            "valor": 186875.08
            },
            {
             "mes": 31,
             "anios": 2.5833,
-            "valor": 191176.73
+            "valor": 190812.21
            },
            {
             "mes": 32,
             "anios": 2.6667,
-            "valor": 195012.28
+            "valor": 194623.42
            },
            {
             "mes": 33,
             "anios": 2.75,
-            "valor": 199042.46
+            "valor": 198736.59
            },
            {
             "mes": 34,
             "anios": 2.8333,
-            "valor": 203068.56
+            "valor": 202777.56
            },
            {
             "mes": 35,
             "anios": 2.9167,
-            "valor": 207106.06
+            "valor": 206902.96
            },
            {
             "mes": 36,
             "anios": 3.0,
-            "valor": 210884.71
+            "valor": 210873.21
            },
            {
             "mes": 37,
             "anios": 3.0833,
-            "valor": 214896.47
+            "valor": 214706.54
            },
            {
             "mes": 38,
             "anios": 3.1667,
-            "valor": 218966.59
+            "valor": 218783.65
            },
            {
             "mes": 39,
             "anios": 3.25,
-            "valor": 223150.06
+            "valor": 223014.77
            },
            {
             "mes": 40,
             "anios": 3.3333,
-            "valor": 227270.15
+            "valor": 227085.79
            },
            {
             "mes": 41,
             "anios": 3.4167,
-            "valor": 231487.38
+            "valor": 231035.63
            },
            {
             "mes": 42,
             "anios": 3.5,
-            "valor": 235667.48
+            "valor": 235177.03
            },
            {
             "mes": 43,
             "anios": 3.5833,
-            "valor": 239899.72
+            "valor": 239623.02
            },
            {
             "mes": 44,
             "anios": 3.6667,
-            "valor": 244060.51
+            "valor": 244139.91
            },
            {
             "mes": 45,
             "anios": 3.75,
-            "valor": 248363.2
+            "valor": 248197.35
            },
            {
             "mes": 46,
             "anios": 3.8333,
-            "valor": 252809.43
+            "valor": 252569.96
            },
            {
             "mes": 47,
             "anios": 3.9167,
-            "valor": 257107.53
+            "valor": 257004.93
            },
            {
             "mes": 48,
             "anios": 4.0,
-            "valor": 261497.29
+            "valor": 261179.09
            },
            {
             "mes": 49,
             "anios": 4.0833,
-            "valor": 265802.34
+            "valor": 265438.3
            },
            {
             "mes": 50,
             "anios": 4.1667,
-            "valor": 270444.6
+            "valor": 269975.34
            },
            {
             "mes": 51,
             "anios": 4.25,
-            "valor": 274747.73
+            "valor": 274471.67
            },
            {
             "mes": 52,
             "anios": 4.3333,
-            "valor": 279538.67
+            "valor": 278846.93
            },
            {
             "mes": 53,
             "anios": 4.4167,
-            "valor": 283846.63
+            "valor": 283348.85
            },
            {
             "mes": 54,
             "anios": 4.5,
-            "valor": 288524.24
+            "valor": 287893.96
            },
            {
             "mes": 55,
             "anios": 4.5833,
-            "valor": 292717.68
+            "valor": 292295.93
            },
            {
             "mes": 56,
             "anios": 4.6667,
-            "valor": 297521.53
+            "valor": 296942.14
            },
            {
             "mes": 57,
             "anios": 4.75,
-            "valor": 302312.59
+            "valor": 301834.59
            },
            {
             "mes": 58,
             "anios": 4.8333,
-            "valor": 306912.43
+            "valor": 306263.92
            },
            {
             "mes": 59,
             "anios": 4.9167,
-            "valor": 311616.76
+            "valor": 311156.9
            },
            {
             "mes": 60,
             "anios": 5.0,
-            "valor": 316285.75
+            "valor": 316122.81
            }
           ]
          }
@@ -4565,8 +4579,8 @@
           "etiqueta": "Valor esperado (mediana)",
           "formato": "moneda",
           "izquierda": 308717.58,
-          "derecha": 296945.55,
-          "delta": -11772.03,
+          "derecha": 296869.31,
+          "delta": -11848.27,
           "mejor": "izquierda"
          },
          {
@@ -4574,8 +4588,8 @@
           "etiqueta": "Escenario malo (p10)",
           "formato": "moneda",
           "izquierda": 273790.52,
-          "derecha": 279286.3,
-          "delta": 5495.78,
+          "derecha": 279198.07,
+          "delta": 5407.55,
           "mejor": "derecha"
          },
          {
@@ -4583,8 +4597,8 @@
           "etiqueta": "Rendimiento anual (TIR)",
           "formato": "porcentaje",
           "izquierda": 0.088813,
-          "derecha": 0.076983,
-          "delta": -0.01183,
+          "derecha": 0.076905,
+          "delta": -0.011908,
           "mejor": "izquierda"
          },
          {
@@ -4592,8 +4606,8 @@
           "etiqueta": "Volatilidad anual",
           "formato": "porcentaje",
           "izquierda": 0.058283,
-          "derecha": 0.029274,
-          "delta": -0.029009,
+          "derecha": 0.029218,
+          "delta": -0.029065,
           "mejor": "derecha"
          },
          {
@@ -4601,8 +4615,8 @@
           "etiqueta": "Peor caída promedio",
           "formato": "porcentaje",
           "izquierda": 0.020051,
-          "derecha": 0.002,
-          "delta": -0.018051,
+          "derecha": 0.00194,
+          "delta": -0.018111,
           "mejor": "derecha"
          },
          {
@@ -4661,7 +4675,9 @@
          },
          "disclaimer": "Comparación sobre datos sintéticos y mismos supuestos. Ganar en más métricas no la hace la opción correcta para ti.",
          "action": {
-          "name": "select_allocation"
+          "event": {
+           "name": "select_allocation"
+          }
          }
         },
         {
@@ -4684,7 +4700,9 @@
          "step": 500,
          "format": "moneda",
          "action": {
-          "name": "simulate"
+          "event": {
+           "name": "simulate"
+          }
          }
         },
         {
@@ -4700,9 +4718,11 @@
          "variant": "primary",
          "label": "Me quedo con mi perfil y quiero invertir",
          "action": {
-          "name": "ask",
-          "context": {
-           "prompt": "Arma la orden con la propuesta original"
+          "event": {
+           "name": "ask",
+           "context": {
+            "prompt": "Arma la orden con la propuesta original"
+           }
           }
          }
         }
@@ -4746,7 +4766,7 @@
        "surfaceId": "inv-main",
        "path": "/orden",
        "value": {
-        "order_id": "0bb9b91e-428f-47ee-bf91-65178c0c79e8",
+        "order_id": "fd081f6e-e799-436f-bbbe-120509c61d66",
         "folio": "BN-2026-100008",
         "estado": "pendiente",
         "client_id": "CLI-0001",
@@ -4834,7 +4854,7 @@
         "saldo_antes": 171085.96,
         "saldo_despues_estimado": 91085.96,
         "requiere_confirmacion": true,
-        "confirmation_token": "3j6wYHqobzXV2rDGSB0MBOol",
+        "confirmation_token": "_pJwlaU6OhKnAtD7sL2phXL7",
         "vence_en_minutos": 15,
         "mensaje": "Orden registrada sin ejecutar. Muestra el resumen al usuario y vuelve a llamar `place_order` con el mismo `idempotency_key` y este `confirmation_token` solo cuando el usuario confirme.",
         "disclaimer": "Operación simulada sobre datos sintéticos. No mueve dinero real."
@@ -4873,7 +4893,9 @@
          "requiresConfirmation": true,
          "disclaimer": "Operación simulada sobre datos sintéticos. No mueve dinero real.",
          "action": {
-          "name": "place_order"
+          "event": {
+           "name": "place_order"
+          }
          }
         },
         {
@@ -4938,17 +4960,17 @@
        "surfaceId": "inv-main",
        "path": "/orden",
        "value": {
-        "order_id": "0bb9b91e-428f-47ee-bf91-65178c0c79e8",
+        "order_id": "fd081f6e-e799-436f-bbbe-120509c61d66",
         "folio": "BN-2026-100008",
         "client_id": "CLI-0001",
         "account_id": "ACC-0002",
         "estado": "ejecutada",
         "monto": 80000.0,
         "motivo_rechazo": null,
-        "creada_en": "2026-09-01T06:14:38.564025",
-        "ejecutada_en": "2026-09-01T06:14:38.567974",
+        "creada_en": "2026-09-01T07:14:01.048300",
+        "ejecutada_en": "2026-09-01T07:14:01.065931",
         "idempotency_key": "CLI-0001-fixture-1",
-        "confirmation_token": "3j6wYHqobzXV2rDGSB0MBOol",
+        "confirmation_token": "_pJwlaU6OhKnAtD7sL2phXL7",
         "legs": [
          {
           "instrument_id": "BONOSM-10A",
@@ -5012,43 +5034,43 @@
         "saldo_despues": 91085.96,
         "posiciones": [
          {
-          "position_id": "POS-eac2492295",
+          "position_id": "POS-a25e84db3f",
           "instrument_id": "BONOSM-10A",
           "titulos": 87.630456,
           "monto_aplicado": 20000.0
          },
          {
-          "position_id": "POS-889ed6909f",
+          "position_id": "POS-67766d3a81",
           "instrument_id": "CETES-364",
           "titulos": 74.921954,
           "monto_aplicado": 16000.0
          },
          {
-          "position_id": "POS-0c5103e89d",
+          "position_id": "POS-f1088cffee",
           "instrument_id": "ETF-EM",
           "titulos": 8.620062,
           "monto_aplicado": 2400.0
          },
          {
-          "position_id": "POS-dd0f525ca7",
+          "position_id": "POS-6de55f68e5",
           "instrument_id": "FND-CORP-AAA",
           "titulos": 53.009944,
           "monto_aplicado": 12000.0
          },
          {
-          "position_id": "POS-1ca28a79a3",
+          "position_id": "POS-ce6b3edd12",
           "instrument_id": "FND-GUB-CP",
           "titulos": 39.564886,
           "monto_aplicado": 8000.0
          },
          {
-          "position_id": "POS-b97bcda178",
+          "position_id": "POS-548912e280",
           "instrument_id": "NAFTRAC",
           "titulos": 36.024034,
           "monto_aplicado": 9600.0
          },
          {
-          "position_id": "POS-3a80571f06",
+          "position_id": "POS-f77497aeb8",
           "instrument_id": "TRACK-SP500",
           "titulos": 45.21585,
           "monto_aplicado": 12000.0
@@ -5077,8 +5099,8 @@
           "titulos": 87.630456,
           "costo_total": 20000.0,
           "valor_mercado": 20000.0,
-          "rendimiento": -0.0,
-          "rendimiento_pct": -0.0,
+          "rendimiento": 0.0,
+          "rendimiento_pct": 0.0,
           "abierta_en": "2026-09-01"
          },
          {
@@ -5101,8 +5123,8 @@
           "titulos": 53.009944,
           "costo_total": 12000.0,
           "valor_mercado": 12000.0,
-          "rendimiento": -0.0,
-          "rendimiento_pct": -0.0,
+          "rendimiento": 0.0,
+          "rendimiento_pct": 0.0,
           "abierta_en": "2026-09-01"
          },
          {
@@ -5113,8 +5135,8 @@
           "titulos": 45.21585,
           "costo_total": 12000.0,
           "valor_mercado": 12000.0,
-          "rendimiento": -0.0,
-          "rendimiento_pct": -0.0,
+          "rendimiento": 0.0,
+          "rendimiento_pct": 0.0,
           "abierta_en": "2026-09-01"
          },
          {
@@ -5125,8 +5147,8 @@
           "titulos": 36.024034,
           "costo_total": 9600.0,
           "valor_mercado": 9600.0,
-          "rendimiento": -0.0,
-          "rendimiento_pct": -0.0,
+          "rendimiento": 0.0,
+          "rendimiento_pct": 0.0,
           "abierta_en": "2026-09-01"
          },
          {
@@ -5149,15 +5171,15 @@
           "titulos": 8.620062,
           "costo_total": 2400.0,
           "valor_mercado": 2400.0,
-          "rendimiento": -0.0,
-          "rendimiento_pct": -0.0,
+          "rendimiento": 0.0,
+          "rendimiento_pct": 0.0,
           "abierta_en": "2026-09-01"
          }
         ],
         "inversion": {
          "costo_total": 80000.0,
          "valor_mercado": 80000.0,
-         "rendimiento": -0.0
+         "rendimiento": 0.0
         },
         "patrimonio": 242067.4
        }
@@ -5191,8 +5213,8 @@
           "titulos": 87.630456,
           "costo_total": 20000.0,
           "valor_mercado": 20000.0,
-          "rendimiento": -0.0,
-          "rendimiento_pct": -0.0,
+          "rendimiento": 0.0,
+          "rendimiento_pct": 0.0,
           "abierta_en": "2026-09-01"
          },
          {
@@ -5215,8 +5237,8 @@
           "titulos": 53.009944,
           "costo_total": 12000.0,
           "valor_mercado": 12000.0,
-          "rendimiento": -0.0,
-          "rendimiento_pct": -0.0,
+          "rendimiento": 0.0,
+          "rendimiento_pct": 0.0,
           "abierta_en": "2026-09-01"
          },
          {
@@ -5227,8 +5249,8 @@
           "titulos": 45.21585,
           "costo_total": 12000.0,
           "valor_mercado": 12000.0,
-          "rendimiento": -0.0,
-          "rendimiento_pct": -0.0,
+          "rendimiento": 0.0,
+          "rendimiento_pct": 0.0,
           "abierta_en": "2026-09-01"
          },
          {
@@ -5239,8 +5261,8 @@
           "titulos": 36.024034,
           "costo_total": 9600.0,
           "valor_mercado": 9600.0,
-          "rendimiento": -0.0,
-          "rendimiento_pct": -0.0,
+          "rendimiento": 0.0,
+          "rendimiento_pct": 0.0,
           "abierta_en": "2026-09-01"
          },
          {
@@ -5263,15 +5285,15 @@
           "titulos": 8.620062,
           "costo_total": 2400.0,
           "valor_mercado": 2400.0,
-          "rendimiento": -0.0,
-          "rendimiento_pct": -0.0,
+          "rendimiento": 0.0,
+          "rendimiento_pct": 0.0,
           "abierta_en": "2026-09-01"
          }
         ],
         "inversion": {
          "costo_total": 80000.0,
          "valor_mercado": 80000.0,
-         "rendimiento": -0.0
+         "rendimiento": 0.0
         },
         "patrimonio": 242067.4
        }
@@ -5286,17 +5308,17 @@
        "surfaceId": "inv-estado",
        "path": "/orden",
        "value": {
-        "order_id": "0bb9b91e-428f-47ee-bf91-65178c0c79e8",
+        "order_id": "fd081f6e-e799-436f-bbbe-120509c61d66",
         "folio": "BN-2026-100008",
         "client_id": "CLI-0001",
         "account_id": "ACC-0002",
         "estado": "ejecutada",
         "monto": 80000.0,
         "motivo_rechazo": null,
-        "creada_en": "2026-09-01T06:14:38.564025",
-        "ejecutada_en": "2026-09-01T06:14:38.567974",
+        "creada_en": "2026-09-01T07:14:01.048300",
+        "ejecutada_en": "2026-09-01T07:14:01.065931",
         "idempotency_key": "CLI-0001-fixture-1",
-        "confirmation_token": "3j6wYHqobzXV2rDGSB0MBOol",
+        "confirmation_token": "_pJwlaU6OhKnAtD7sL2phXL7",
         "legs": [
          {
           "instrument_id": "BONOSM-10A",
@@ -5360,43 +5382,43 @@
         "saldo_despues": 91085.96,
         "posiciones": [
          {
-          "position_id": "POS-eac2492295",
+          "position_id": "POS-a25e84db3f",
           "instrument_id": "BONOSM-10A",
           "titulos": 87.630456,
           "monto_aplicado": 20000.0
          },
          {
-          "position_id": "POS-889ed6909f",
+          "position_id": "POS-67766d3a81",
           "instrument_id": "CETES-364",
           "titulos": 74.921954,
           "monto_aplicado": 16000.0
          },
          {
-          "position_id": "POS-0c5103e89d",
+          "position_id": "POS-f1088cffee",
           "instrument_id": "ETF-EM",
           "titulos": 8.620062,
           "monto_aplicado": 2400.0
          },
          {
-          "position_id": "POS-dd0f525ca7",
+          "position_id": "POS-6de55f68e5",
           "instrument_id": "FND-CORP-AAA",
           "titulos": 53.009944,
           "monto_aplicado": 12000.0
          },
          {
-          "position_id": "POS-1ca28a79a3",
+          "position_id": "POS-ce6b3edd12",
           "instrument_id": "FND-GUB-CP",
           "titulos": 39.564886,
           "monto_aplicado": 8000.0
          },
          {
-          "position_id": "POS-b97bcda178",
+          "position_id": "POS-548912e280",
           "instrument_id": "NAFTRAC",
           "titulos": 36.024034,
           "monto_aplicado": 9600.0
          },
          {
-          "position_id": "POS-3a80571f06",
+          "position_id": "POS-f77497aeb8",
           "instrument_id": "TRACK-SP500",
           "titulos": 45.21585,
           "monto_aplicado": 12000.0
@@ -5447,7 +5469,9 @@
           "path": "/cuenta/inversion"
          },
          "action": {
-          "name": "select_instrument"
+          "event": {
+           "name": "select_instrument"
+          }
          }
         },
         {

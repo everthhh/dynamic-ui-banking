@@ -5,7 +5,8 @@
 // calcula aquí: lo calcula el banco.
 
 import { useMemo, useState } from "react";
-import type { A2UIAction, ActionName } from "../catalog.types";
+import { leerAccion } from "../a2ui";
+import type { A2UIAction } from "../catalog.types";
 import { useStore } from "../store";
 
 type Opcion = { value: number; label: string };
@@ -44,7 +45,7 @@ function normalizar(entrada: unknown): Pregunta[] {
   });
 }
 
-export function RiskProfiler({ questions, value, action, intro }: RiskProfilerProps) {
+export function RiskProfiler({ nodoId, questions, value, action, intro }: RiskProfilerProps) {
   const preguntas = useMemo(() => normalizar(questions), [questions]);
   const iniciales = (typeof value === "object" && value !== null
     ? (value as Record<string, number>)
@@ -72,7 +73,8 @@ export function RiskProfiler({ questions, value, action, intro }: RiskProfilerPr
     if (faltan.length === 0) {
       setEnviado(true);
       const answers = preguntas.map((q) => ({ id: q.id, value: siguientes[q.id]! }));
-      if (action) void emitir(action.name as ActionName, { ...action.context, answers });
+      const accion = leerAccion(action);
+      if (accion) void emitir(accion.name, { ...accion.context, answers }, nodoId);
       return;
     }
     const siguienteIdx = preguntas.findIndex((q) => siguientes[q.id] === undefined);

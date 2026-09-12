@@ -51,10 +51,11 @@ dynamic-ui-banking/
 │  ├─ instrumentos.py  24 instrumentos, sus correlaciones y los bloques
 │  └─ finance/         riesgo, reglas de asignación, Monte Carlo, comparación
 ├─ services/        la única superficie que el agente puede tocar (15 servicios)
+├─ mcp_server/      servidor MCP standalone que expone services/ por stdio
 ├─ a2ui/            catalog.json (fuente única de verdad) + validador + contrato
-├─ agent/           loop propio sobre el SDK nativo de Anthropic
-├─ gateway/         FastAPI + SSE, sesiones y bitácora
-├─ web/             renderer A2UI, registry y componentes inv.*
+├─ agent/           loop propio sobre el SDK nativo de Anthropic + cliente MCP
+├─ gateway/         FastAPI + SSE, sesiones, bitácora y ciclo de vida del MCP
+├─ web/             renderer A2UI, registry y componentes inv.* (charts con Recharts)
 ├─ scripts/         generadores de artefactos y smoke del ciclo completo
 └─ docs/            arquitectura, trade-offs y guion de la demo
 ```
@@ -153,6 +154,29 @@ Lo que el loop hace y un wrapper no haría igual de bien:
 
 ---
 
+## Las tools de datos viven en un MCP separado
+
+`mcp_server/` es un proceso propio: expone `services.REGISTRO` por MCP
+(`list_tools` / `call_tool`, stdio) y no sabe nada de A2UI, prompts, ni de
+Claude. El gateway lo levanta como subproceso al arrancar y lo cierra al
+apagarse (`lifespan` en `gateway/main.py`); `agent/loop.py` le habla como
+cliente MCP (`agent/mcp_client.py`) y ya no importa `services` directo.
+
+Los schemas no se duplican: el servidor MCP construye su `list_tools()` desde
+`agent/tools.py::TOOLS_DATOS` — la misma lista que antes se le pasaba directo
+al SDK de Anthropic. Un solo lugar describe cada tool.
+
+```bash
+make mcp   # correrlo aislado, para inspeccionarlo con un cliente MCP externo
+```
+
+Los tests del loop usan `tests/fake_mcp.py` (llama `services` en el mismo
+proceso, sin subproceso) para no pagar el costo en cada corrida;
+`tests/test_mcp_server.py` prueba el servidor real por stdio, y `make smoke`
+corre el ciclo completo de seis turnos contra ese mismo servidor real.
+
+---
+
 ## La simulación del banco
 
 Todo sintético, generado con semilla fija (`SEED = 20260912`). `make seed` es
@@ -198,19 +222,22 @@ si el catálogo cambia, el guion se rompe y nos enteramos.
 ## Verificación
 
 ```
-206 tests
+215 tests
   a2ui/tests/test_contract.py    catálogo bien formado, artefactos alineados,
-                                 20 casos inválidos y que cada error sea accionable
+                                 casos inválidos (incl. spec A2UI real: action
+                                 anidado, deleteSurface) y que cada error sea accionable
   tests/test_finance.py          monotonía del score, tope por horizonte, pesos que
                                  suman 1, percentiles que no se cruzan, diversificación
                                  que baja la volatilidad, comisiones que se cobran
   tests/test_services.py         cuadre de cifras, errores con sugerencia, los dos
                                  pasos de la orden, idempotencia, token nunca expuesto
-  tests/test_agent_loop.py       encadenado de tools, validación con reintento,
-                                 fallback, bitácora, límites
+  tests/test_agent_loop.py       encadenado de tools (vía MCP falso), validación con
+                                 reintento, fallback, bitácora, límites
+  tests/test_mcp_server.py       el servidor MCP real por stdio: list_tools,
+                                 llamada exitosa, tool desconocida, error de servicio
 
-make smoke   ciclo completo de seis turnos contra los servicios reales, con un
-             cliente de Anthropic falso. Diez segundos, cero tokens.
+make smoke   ciclo completo de seis turnos contra el SERVIDOR MCP REAL
+             (subproceso propio) y un cliente de Anthropic falso. Sin tokens.
 ```
 
 El front se verificó manejando el guion completo en Chromium: seis turnos, la

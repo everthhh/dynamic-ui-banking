@@ -2,11 +2,12 @@
 
     python -m scripts.smoke
 
-Corre los seis turnos del guion contra los servicios reales y el validador
-real, con un cliente de Anthropic falso que representa al modelo. Sirve para
-contestar en diez segundos la pregunta "¿sigue cerrando el ciclo?" sin gastar
-un token, y para demostrarle a un jurado el encadenado completo aunque no haya
-red en la sede.
+Corre los seis turnos del guion contra el SERVIDOR MCP real (subproceso propio,
+igual que en producción) y el validador real, con un cliente de Anthropic
+falso que representa al modelo. Sirve para contestar en diez segundos la
+pregunta "¿sigue cerrando el ciclo con el MCP separado?" sin gastar un token,
+y para demostrarle a un jurado el encadenado completo aunque no haya red en
+la sede.
 
 Lo que NO prueba: que el modelo de verdad elija bien las tools. Eso solo se ve
 corriendo el gateway con una API key.
@@ -99,6 +100,7 @@ def _bloques_del_turno(turno: dict, token: str | None) -> list[list]:
 
 async def correr() -> int:
     from agent.loop import AgenteUIGenerativa, Sesion
+    from agent.mcp_client import ClienteMCP
     from tests.fake_anthropic import FakeAnthropic
 
     guion = json.loads(GUION_PATH.read_text(encoding="utf-8"))
@@ -106,46 +108,52 @@ async def correr() -> int:
     bitacora: list[tuple] = []
     fallas = 0
 
-    print(f"{NEGRITA}Ciclo completo, {len(guion['turnos'])} turnos, sin API{FIN}\n")
+    print(f"{NEGRITA}Ciclo completo, {len(guion['turnos'])} turnos, "
+          f"MCP real + sin API{FIN}\n")
 
-    for i, turno in enumerate(guion["turnos"], 1):
-        disparador = turno["disparador"]
-        entrada = (disparador["texto"] if disparador["tipo"] == "chat"
-                   else {"name": disparador["name"], "surfaceId": sesion.surface_id,
-                         "context": {}})
-        agente = AgenteUIGenerativa(
-            cliente=FakeAnthropic(_bloques_del_turno(turno, _token_pendiente(sesion))),
-            modelo="cliente-falso",
-            registrar_superficie=lambda *a: bitacora.append(a),
-        )
+    # El servidor MCP corre en su propio subproceso; hereda BANK_DB_PATH para
+    # que lea la base desechable que arma `main()`, no data/bank.sqlite.
+    env_mcp = {"BANK_DB_PATH": os.environ["BANK_DB_PATH"]}
+    async with ClienteMCP(env=env_mcp) as mcp:
+        for i, turno in enumerate(guion["turnos"], 1):
+            disparador = turno["disparador"]
+            entrada = (disparador["texto"] if disparador["tipo"] == "chat"
+                       else {"name": disparador["name"], "surfaceId": sesion.surface_id,
+                             "context": {}})
+            agente = AgenteUIGenerativa(
+                cliente=FakeAnthropic(_bloques_del_turno(turno, _token_pendiente(sesion))),
+                mcp=mcp,
+                modelo="cliente-falso",
+                registrar_superficie=lambda *a: bitacora.append(a),
+            )
 
-        etiqueta = (disparador.get("texto") or f"acción `{disparador.get('name')}`")[:58]
-        print(f"{NEGRITA}Turno {i}{FIN} · {etiqueta}")
+            etiqueta = (disparador.get("texto") or f"acción `{disparador.get('name')}`")[:58]
+            print(f"{NEGRITA}Turno {i}{FIN} · {etiqueta}")
 
-        tools: list[str] = []
-        a2ui: list[str] = []
-        rechazos = 0
-        async for evento in agente.run_turn(sesion, entrada):
-            if evento.tipo == "tool_call":
-                marca = f"{ROJO}${FIN}" if evento.datos.get("efecto") else "·"
-                tools.append(f"{marca} {evento.datos['name']}")
-            elif evento.tipo == "tool_result" and not evento.datos["ok"]:
-                fallas += 1
-                print(f"  {ROJO}tool falló:{FIN} {evento.datos['name']} → "
-                      f"{evento.datos['resumen'][:90]}")
-            elif evento.tipo == "a2ui":
-                msg = evento.datos["message"]
-                a2ui.append(next(k for k in ("createSurface", "updateComponents",
-                                             "updateDataModel", "action") if k in msg))
-            elif evento.tipo == "render_rechazado":
-                rechazos += 1
-            elif evento.tipo == "text" and evento.datos["text"].strip():
-                print(f"  {GRIS}«{evento.datos['text'].strip()[:80]}»{FIN}")
+            tools: list[str] = []
+            a2ui: list[str] = []
+            rechazos = 0
+            async for evento in agente.run_turn(sesion, entrada):
+                if evento.tipo == "tool_call":
+                    marca = f"{ROJO}${FIN}" if evento.datos.get("efecto") else "·"
+                    tools.append(f"{marca} {evento.datos['name']}")
+                elif evento.tipo == "tool_result" and not evento.datos["ok"]:
+                    fallas += 1
+                    print(f"  {ROJO}tool falló:{FIN} {evento.datos['name']} → "
+                          f"{evento.datos['resumen'][:90]}")
+                elif evento.tipo == "a2ui":
+                    msg = evento.datos["message"]
+                    a2ui.append(next(k for k in ("createSurface", "updateComponents",
+                                                 "updateDataModel", "deleteSurface") if k in msg))
+                elif evento.tipo == "render_rechazado":
+                    rechazos += 1
+                elif evento.tipo == "text" and evento.datos["text"].strip():
+                    print(f"  {GRIS}«{evento.datos['text'].strip()[:80]}»{FIN}")
 
-        print(f"  tools:  {'  '.join(tools) or '—'}")
-        print(f"  a2ui:   {' → '.join(a2ui) or '—'}"
-              + (f"   {ROJO}({rechazos} rechazado/s){FIN}" if rechazos else ""))
-        print()
+            print(f"  tools:  {'  '.join(tools) or '—'}")
+            print(f"  a2ui:   {' → '.join(a2ui) or '—'}"
+                  + (f"   {ROJO}({rechazos} rechazado/s){FIN}" if rechazos else ""))
+            print()
 
     print(f"{NEGRITA}Resultado{FIN}")
     print(f"  superficie final: {sesion.surface_id}")
@@ -166,7 +174,7 @@ async def correr() -> int:
     if fallas:
         print(f"{ROJO}{NEGRITA}{fallas} problema(s).{FIN}")
         return 1
-    print(f"{VERDE}{NEGRITA}El ciclo cierra: intención → tools → UI → acción → UI nueva.{FIN}")
+    print(f"{VERDE}{NEGRITA}El ciclo cierra: intención → tools (MCP) → UI → acción → UI nueva.{FIN}")
     return 0
 
 

@@ -15,6 +15,7 @@ import pytest
 from a2ui.models import CATALOG_ID
 from agent.loop import AgenteUIGenerativa, Sesion
 from tests.fake_anthropic import BloqueTexto, BloqueToolUse, FakeAnthropic
+from tests.fake_mcp import FakeClienteMCP
 
 
 def payloads_de_tools(sesion: Sesion) -> list[str]:
@@ -34,7 +35,7 @@ def payloads_de_tools(sesion: Sesion) -> list[str]:
 
 def correr(cliente: FakeAnthropic, entrada: Any, sesion: Sesion | None = None):
     sesion = sesion or Sesion(session_id="test", client_id="CLI-0001")
-    agente = AgenteUIGenerativa(cliente=cliente, modelo="modelo-falso")
+    agente = AgenteUIGenerativa(cliente=cliente, mcp=FakeClienteMCP(), modelo="modelo-falso")
 
     async def _ir():
         return [ev async for ev in agente.run_turn(sesion, entrada)]
@@ -53,7 +54,7 @@ def blueprint_perfilador() -> list[dict]:
             {"id": "h", "component": "Text", "text": "Cuatro preguntas", "variant": "h2"},
             {"id": "perfilador", "component": "inv.RiskProfiler",
              "questions": {"path": "/perfilador/questions"},
-             "action": {"name": "profile_done"}},
+             "action": {"event": {"name": "profile_done"}}},
         ]}},
     ]
 
@@ -253,7 +254,7 @@ def test_se_escribe_la_bitacora():
     ])
     sesion = Sesion(session_id="sesion-bitacora", client_id="CLI-0001")
     agente = AgenteUIGenerativa(
-        cliente=cliente, modelo="falso",
+        cliente=cliente, mcp=FakeClienteMCP(), modelo="falso",
         registrar_superficie=lambda *a: registradas.append(a))
 
     async def _ir():
@@ -278,7 +279,7 @@ def test_una_bitacora_que_falla_no_tumba_el_turno():
         [BloqueTexto("ok")],
     ])
     sesion = Sesion(session_id="s", client_id="CLI-0001")
-    agente = AgenteUIGenerativa(cliente=cliente, modelo="falso",
+    agente = AgenteUIGenerativa(cliente=cliente, mcp=FakeClienteMCP(), modelo="falso",
                                 registrar_superficie=explota)
 
     async def _ir():

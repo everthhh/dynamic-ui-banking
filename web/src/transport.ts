@@ -59,11 +59,18 @@ async function leerSSE(respuesta: Response, onEvento: ManejadorDeEvento): Promis
 }
 
 export type ChatIn = { message: string; session_id: string | null; client_id: string };
+
+/** Envelope real de client_to_server.json (spec A2UI v0.9) + `session_id` de ruteo. */
 export type AccionIn = {
-  name: string;
+  version: "v0.9";
   session_id: string;
-  surfaceId: string | null;
-  context: Record<string, unknown>;
+  action: {
+    name: string;
+    surfaceId: string;
+    sourceComponentId: string;
+    timestamp: string;
+    context: Record<string, unknown>;
+  };
 };
 
 export async function enviarMensaje(cuerpo: ChatIn, onEvento: ManejadorDeEvento): Promise<void> {

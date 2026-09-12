@@ -1,6 +1,7 @@
 // Tablas de dominio: inv.InstrumentTable y inv.PositionsTable.
 
-import type { A2UIAction, ActionName } from "../catalog.types";
+import { leerAccion } from "../a2ui";
+import type { A2UIAction } from "../catalog.types";
 import {
   ETIQUETA_CLASE,
   ETIQUETA_LIQUIDEZ,
@@ -51,8 +52,9 @@ export type InstrumentTableProps = {
   nodoId?: string;
 };
 
-export function InstrumentTable({ rows, columns, selectable = true, action }: InstrumentTableProps) {
+export function InstrumentTable({ nodoId, rows, columns, selectable = true, action }: InstrumentTableProps) {
   const emitir = useStore((s) => s.emitirAccion);
+  const accion = leerAccion(action);
   const filas = Array.isArray(rows) ? (rows as Fila[]) : [];
   const cols = (Array.isArray(columns) ? (columns as string[]) : []).filter((c) => COLUMNAS[c]);
   const usar = cols.length ? cols : ["nombre", "rend_esperado_anual", "riesgo_1a5", "liquidez"];
@@ -77,13 +79,14 @@ export function InstrumentTable({ rows, columns, selectable = true, action }: In
           {filas.map((f, i) => (
             <tr
               key={String(f.instrument_id ?? i)}
-              className={selectable && action ? "clickable" : undefined}
+              className={selectable && accion ? "clickable" : undefined}
               onClick={() => {
-                if (selectable && action && f.instrument_id) {
-                  void emitir(action.name as ActionName, {
-                    ...action.context,
-                    instrument_id: f.instrument_id,
-                  });
+                if (selectable && accion && f.instrument_id) {
+                  void emitir(
+                    accion.name,
+                    { ...accion.context, instrument_id: f.instrument_id },
+                    nodoId,
+                  );
                 }
               }}
             >
@@ -107,8 +110,9 @@ export type PositionsTableProps = {
   nodoId?: string;
 };
 
-export function PositionsTable({ positions, resumen, action }: PositionsTableProps) {
+export function PositionsTable({ nodoId, positions, resumen, action }: PositionsTableProps) {
   const emitir = useStore((s) => s.emitirAccion);
+  const accion = leerAccion(action);
   const filas = Array.isArray(positions) ? (positions as Fila[]) : [];
   const r = (typeof resumen === "object" && resumen !== null ? resumen : {}) as Fila;
 
@@ -154,13 +158,14 @@ export function PositionsTable({ positions, resumen, action }: PositionsTablePro
               return (
                 <tr
                   key={String(f.instrument_id ?? i)}
-                  className={action ? "clickable" : undefined}
+                  className={accion ? "clickable" : undefined}
                   onClick={() => {
-                    if (action && f.instrument_id) {
-                      void emitir(action.name as ActionName, {
-                        ...action.context,
-                        instrument_id: f.instrument_id,
-                      });
+                    if (accion && f.instrument_id) {
+                      void emitir(
+                        accion.name,
+                        { ...accion.context, instrument_id: f.instrument_id },
+                        nodoId,
+                      );
                     }
                   }}
                 >

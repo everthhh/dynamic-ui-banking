@@ -30,7 +30,7 @@ ACCIONES: dict[str, Any] = CATALOG["acciones"]
 CATALOG_ID: str = CATALOG["catalogId"]
 A2UI_VERSION: str = CATALOG["a2uiVersion"]
 
-CLAVES_MENSAJE = ("createSurface", "updateComponents", "updateDataModel", "action")
+CLAVES_MENSAJE = ("createSurface", "updateComponents", "updateDataModel", "deleteSurface")
 
 # Props que cualquier componente acepta sin declararlas.
 PROPS_IMPLICITAS = frozenset({"id", "component", "children"})
@@ -82,27 +82,58 @@ def _tipo_ok(valor: Any, tipo: str) -> bool:
     return True
 
 
+def _nombre_de_evento(valor: Any) -> Any:
+    """Extrae `event.name` de una `action` bien formada; None si no aplica."""
+    if not isinstance(valor, dict):
+        return None
+    evento = valor.get("event")
+    return evento.get("name") if isinstance(evento, dict) else None
+
+
 def _validar_action(valor: Any, ruta: str, errores: list[str]) -> None:
+    """Valida el prop `action` de un componente contra `common_types.json#/$defs/Action`
+    del spec A2UI v0.9: dispara un evento de servidor -> `{"event": {"name", "context"?}}`.
+    Este catálogo no declara funciones de cliente, así que `functionCall` no aplica aquí.
+    """
     if not isinstance(valor, dict):
         errores.append(
-            f"{ruta}: `action` debe ser un objeto {{name, context?}}, llegó {type(valor).__name__}."
+            f"{ruta}: `action` debe ser un objeto {{event: {{name, context?}}}}, "
+            f"llegó {type(valor).__name__}."
         )
         return
-    nombre = valor.get("name")
+    if "functionCall" in valor:
+        errores.append(
+            f"{ruta}: `functionCall` no está soportado; este catálogo solo declara "
+            "acciones de servidor. Usa {\"event\": {\"name\", \"context\"?}}."
+        )
+        return
+    evento = valor.get("event")
+    sobrantes_top = set(valor) - {"event"}
+    if sobrantes_top:
+        errores.append(
+            f"{ruta}: claves no permitidas en `action`: {', '.join(sorted(sobrantes_top))}. "
+            "Solo `event`."
+        )
+    if not isinstance(evento, dict):
+        errores.append(f"{ruta}: falta `event` (objeto {{name, context?}}) en la acción.")
+        return
+    nombre = evento.get("name")
     if nombre is None:
-        errores.append(f"{ruta}: falta `name` en la acción.")
+        errores.append(f"{ruta}.event: falta `name`.")
         return
     if nombre not in ACCIONES:
         errores.append(
-            f"{ruta}: acción desconocida {nombre!r}. "
+            f"{ruta}.event: acción desconocida {nombre!r}. "
             f"Acciones declaradas en el catálogo: {', '.join(sorted(ACCIONES))}."
         )
-    sobrantes = set(valor) - {"name", "context", "surfaceId"}
+    sobrantes = set(evento) - {"name", "context"}
     if sobrantes:
         errores.append(
-            f"{ruta}: claves no permitidas en la acción: {', '.join(sorted(sobrantes))}. "
-            "Solo `name`, `context` y `surfaceId`."
+            f"{ruta}.event: claves no permitidas: {', '.join(sorted(sobrantes))}. "
+            "Solo `name` y `context`."
         )
+    if "context" in evento and not isinstance(evento["context"], dict):
+        errores.append(f"{ruta}.event: `context` debe ser un objeto.")
 
 
 def _validar_componente(nodo: Any, idx: int, errores: list[str], avisos: list[str]) -> str | None:
@@ -214,17 +245,19 @@ def _validar_componente(nodo: Any, idx: int, errores: list[str], avisos: list[st
             )
     if nombre == "inv.RiskProfiler":
         accion = nodo.get("action")
-        if isinstance(accion, dict) and accion.get("name") not in (None, "profile_done"):
+        nombre_evento = _nombre_de_evento(accion)
+        if accion is not None and nombre_evento not in (None, "profile_done"):
             errores.append(
-                f"{ruta} (inv.RiskProfiler): su `action` debe ser `profile_done`, "
-                f"llegó {accion.get('name')!r}."
+                f"{ruta} (inv.RiskProfiler): su `action.event.name` debe ser `profile_done`, "
+                f"llegó {nombre_evento!r}."
             )
     if nombre == "inv.OrderTicket":
         accion = nodo.get("action")
-        if isinstance(accion, dict) and accion.get("name") not in (None, "place_order"):
+        nombre_evento = _nombre_de_evento(accion)
+        if accion is not None and nombre_evento not in (None, "place_order"):
             errores.append(
-                f"{ruta} (inv.OrderTicket): su `action` debe ser `place_order`, "
-                f"llegó {accion.get('name')!r}."
+                f"{ruta} (inv.OrderTicket): su `action.event.name` debe ser `place_order`, "
+                f"llegó {nombre_evento!r}."
             )
 
     return cid if isinstance(cid, str) else None
@@ -263,7 +296,7 @@ def _validar_mensaje(msg: Any, idx: int, res: ValidationResult) -> None:
         res.errores.append(f"{ruta}.{clave}: debe ser un objeto.")
         return
 
-    if clave != "action" and not cuerpo.get("surfaceId"):
+    if not cuerpo.get("surfaceId"):
         res.errores.append(f"{ruta}.{clave}: falta `surfaceId`.")
 
     if clave == "createSurface":
@@ -329,8 +362,10 @@ def _validar_mensaje(msg: Any, idx: int, res: ValidationResult) -> None:
         if "value" not in cuerpo:
             res.errores.append(f"{ruta}.updateDataModel: falta `value`.")
 
-    elif clave == "action":
-        _validar_action(cuerpo, f"{ruta}.action", res.errores)
+    elif clave == "deleteSurface":
+        # Solo necesita `surfaceId`, ya validado arriba. Nada más que revisar:
+        # es una señal de "quita esta superficie", no un árbol de componentes.
+        pass
 
 
 def validate_a2ui(mensajes: Any) -> ValidationResult:

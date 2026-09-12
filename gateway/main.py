@@ -7,7 +7,9 @@ Responsabilidades, y nada mas:
   * leer la bitacora
 
 Lo que NO hace: decidir que pintar. Eso es del agente. Lo que tampoco hace:
-calcular. Eso es de los servicios.
+calcular. Eso es de los servicios — y desde que el MCP es separado, ni
+siquiera corren en este proceso: viven en `mcp_server/`, un subproceso propio
+que el gateway levanta al arrancar y cierra al apagarse.
 
     uvicorn gateway.main:app --reload --port 8000
 """
@@ -18,6 +20,7 @@ import json
 import logging
 import os
 import uuid
+from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator
 
 from fastapi import FastAPI, HTTPException
@@ -28,13 +31,31 @@ from sse_starlette.sse import EventSourceResponse
 
 from a2ui.models import CATALOG, CATALOG_PATH
 from agent.loop import AgenteUIGenerativa, Sesion
+from agent.mcp_client import ClienteMCP
 from bank import db
 from services.orders import registrar_superficie
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 log = logging.getLogger("gateway")
 
-app = FastAPI(title="dynamic-ui-banking · gateway", version="0.1.0")
+_mcp: ClienteMCP | None = None
+_agente: AgenteUIGenerativa | None = None
+
+
+@asynccontextmanager
+async def _lifespan(_app: FastAPI):
+    global _mcp
+    _mcp = ClienteMCP()
+    await _mcp.conectar()
+    log.info("cliente MCP conectado a mcp_server/ (subproceso propio)")
+    try:
+        yield
+    finally:
+        await _mcp.cerrar()
+        _mcp = None
+
+
+app = FastAPI(title="dynamic-ui-banking · gateway", version="0.1.0", lifespan=_lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(","),
@@ -43,14 +64,18 @@ app.add_middleware(
 )
 
 SESIONES: dict[str, Sesion] = {}
-_agente: AgenteUIGenerativa | None = None
 
 
 def agente() -> AgenteUIGenerativa:
-    """Instancia perezosa: importar el gateway no debe exigir una API key."""
+    """Instancia perezosa: crear el agente no debe exigir una API key hasta el
+    primer turno real. El cliente MCP sí debe existir ya — lo conecta `_lifespan`
+    antes de que el servidor acepte requests.
+    """
     global _agente
     if _agente is None:
-        _agente = AgenteUIGenerativa(registrar_superficie=registrar_superficie)
+        if _mcp is None:
+            raise RuntimeError("el cliente MCP no está conectado (¿arrancaste fuera de uvicorn?)")
+        _agente = AgenteUIGenerativa(mcp=_mcp, registrar_superficie=registrar_superficie)
     return _agente
 
 
@@ -69,11 +94,19 @@ class ChatIn(BaseModel):
     client_id: str = "CLI-0001"
 
 
-class AccionIn(BaseModel):
+class AccionEvento(BaseModel):
+    """El mensaje `action` real de client_to_server.json (spec A2UI v0.9)."""
     name: str
-    session_id: str
-    surfaceId: str | None = None
+    surfaceId: str
+    sourceComponentId: str
+    timestamp: str
     context: dict[str, Any] = Field(default_factory=dict)
+
+
+class AccionIn(BaseModel):
+    version: str = "v0.9"
+    session_id: str
+    action: AccionEvento
 
 
 # ------------------------------------------------------------------------- stream
@@ -101,9 +134,10 @@ async def accion(cuerpo: AccionIn):
         raise HTTPException(404, f"sesión desconocida: {cuerpo.session_id}")
     ses = SESIONES[cuerpo.session_id]
     return EventSourceResponse(_stream(ses, {
-        "name": cuerpo.name,
-        "surfaceId": cuerpo.surfaceId or ses.surface_id,
-        "context": cuerpo.context,
+        "name": cuerpo.action.name,
+        "surfaceId": cuerpo.action.surfaceId or ses.surface_id,
+        "sourceComponentId": cuerpo.action.sourceComponentId,
+        "context": cuerpo.action.context,
     }))
 
 

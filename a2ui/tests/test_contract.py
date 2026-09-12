@@ -102,7 +102,7 @@ def blueprint_valido() -> list[dict]:
             {"id": "cta", "component": "inv.OrderTicket",
              "order": {"path": "/orden"}, "requiresConfirmation": True,
              "disclaimer": "Operación simulada.",
-             "action": {"name": "place_order"}},
+             "action": {"event": {"name": "place_order"}}},
         ]}},
         {"version": "v0.9", "updateDataModel": {
             "surfaceId": "inv-main", "path": "/sim/escenarios",
@@ -118,6 +118,11 @@ def test_blueprint_de_referencia_pasa():
 
 def test_acepta_la_forma_de_la_tool():
     assert validate_a2ui({"messages": blueprint_valido()}).ok
+
+
+def test_deleteSurface_valido():
+    res = validate_a2ui([{"version": "v0.9", "deleteSurface": {"surfaceId": "inv-main"}}])
+    assert res.ok, res.errores
 
 
 # ------------------------------------------------------------------ casos que fallan
@@ -138,20 +143,25 @@ CASOS_INVALIDOS = {
     "binding en prop no enlazable": _solo_componentes([
         {"id": "root", "component": "inv.AmountSlider", "label": "Monto",
          "value": 1, "min": 0, "max": 10, "step": {"path": "/paso"},
-         "action": {"name": "simulate"}}]),
+         "action": {"event": {"name": "simulate"}}}]),
     "ruta sin slash": _solo_componentes([
         {"id": "root", "component": "Text", "text": {"path": "sin-slash"}}]),
     "accion inexistente": _solo_componentes([
         {"id": "root", "component": "Button", "label": "Ir",
-         "action": {"name": "transferir_a_mi_cuenta"}}]),
+         "action": {"event": {"name": "transferir_a_mi_cuenta"}}}]),
     "ticket sin confirmacion": _solo_componentes([
         {"id": "root", "component": "inv.OrderTicket", "order": {},
          "requiresConfirmation": False, "disclaimer": "x",
-         "action": {"name": "place_order"}}]),
+         "action": {"event": {"name": "place_order"}}}]),
     "ticket con accion equivocada": _solo_componentes([
         {"id": "root", "component": "inv.OrderTicket", "order": {},
          "requiresConfirmation": True, "disclaimer": "x",
-         "action": {"name": "simulate"}}]),
+         "action": {"event": {"name": "simulate"}}}]),
+    "action con functionCall (no soportado)": _solo_componentes([
+        {"id": "root", "component": "Button", "label": "Ir",
+         "action": {"functionCall": {"call": "cerrarModal"}}}]),
+    "action sin event": _solo_componentes([
+        {"id": "root", "component": "Button", "label": "Ir", "action": {}}]),
     "children en componente que no anida": _solo_componentes([
         {"id": "root", "component": "Text", "text": "x", "children": ["a"]}]),
     "falta root": _solo_componentes([

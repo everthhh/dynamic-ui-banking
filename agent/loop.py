@@ -13,19 +13,23 @@ Anatomia de un turno:
         ▼
     messages.stream ──► texto  ──────────────────────────────► evento texto
         │              tool_use
-        ├── tool de datos  ► services.REGISTRO ► tool_result ──┐
-        │                                                      │ vuelve al modelo
+        ├── tool de datos  ► cliente MCP ► mcp_server/ ► tool_result ──┐
+        │                                                              │ vuelve al modelo
         └── render_surface ► validate_a2ui ──► ok ─► eventos a2ui
                                     └──► error ─► tool_result is_error ──┘
                                                    (hasta MAX_REINTENTOS,
                                                     luego plantilla estatica)
 
 El turno termina cuando el modelo deja de pedir tools (`stop_reason != tool_use`).
+
+Las tools de datos ya NO se llaman importando `services` directo: viven en un
+proceso separado (`mcp_server/`) y este loop les habla como cliente MCP (ver
+`agent/mcp_client.py`). Los schemas que ve el modelo tampoco se escriben aquí:
+se piden a `list_tools()` del servidor la primera vez que corre un turno.
 """
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
 import os
@@ -35,8 +39,8 @@ from typing import Any, AsyncIterator, Callable
 from a2ui.models import validate_a2ui
 from agent.fallback import plantilla_fallback
 from agent.prompts import construir_system, contexto_de_sesion
-from agent.tools import NOMBRE_RENDER, NOMBRES_DATOS, tools_para_el_modelo
-from services import CON_EFECTO, REGISTRO, ServiceError
+from agent.tools import RENDER_SURFACE, NOMBRE_RENDER
+from services import CON_EFECTO
 
 log = logging.getLogger("agent.loop")
 
@@ -99,47 +103,20 @@ def _resumir(valor: Any, limite: int = 220) -> str:
     return texto if len(texto) <= limite else texto[:limite] + "…"
 
 
-def ejecutar_tool_de_datos(nombre: str, argumentos: dict[str, Any]) -> tuple[bool, Any]:
-    """Llama un servicio del banco. Devuelve (ok, payload).
-
-    Un `ServiceError` NO es una excepcion que haya que propagar: es informacion
-    para el modelo. Se convierte en `tool_result` con `is_error=true` y el texto
-    explica como corregir.
-    """
-    fn = REGISTRO.get(nombre)
-    if fn is None:
-        return False, {
-            "error": "tool_desconocida",
-            "mensaje": f"No existe la tool {nombre!r}.",
-            "sugerencia": f"Tools disponibles: {', '.join(sorted(REGISTRO))}.",
-        }
-    try:
-        return True, fn(**argumentos)
-    except ServiceError as exc:
-        log.info("servicio rechazo %s: %s", nombre, exc)
-        return False, exc.to_dict()
-    except TypeError as exc:
-        return False, {
-            "error": "argumentos_invalidos",
-            "mensaje": f"{nombre}: {exc}",
-            "sugerencia": "Revisa el input_schema de la tool.",
-        }
-    except Exception as exc:                       # noqa: BLE001 - nunca tumbar el turno
-        log.exception("falla inesperada en %s", nombre)
-        return False, {
-            "error": "falla_interna",
-            "mensaje": f"{nombre} falló de forma inesperada: {type(exc).__name__}.",
-            "sugerencia": "Intenta con otros argumentos o continúa sin esa información.",
-        }
-
-
 class AgenteUIGenerativa:
-    """Un turno de conversacion = una llamada a `run_turn`."""
+    """Un turno de conversacion = una llamada a `run_turn`.
+
+    `mcp` es cualquier objeto con `tools_para_el_modelo()` y `llamar(nombre, args)`
+    async — normalmente un `agent.mcp_client.ClienteMCP` ya conectado. Los tests
+    usan `tests.fake_mcp.FakeClienteMCP`, que llama `services.REGISTRO` en el
+    mismo proceso para no pagar el costo de un subproceso real.
+    """
 
     def __init__(
         self,
         cliente: Any | None = None,
         *,
+        mcp: Any,
         modelo: str = MODELO_DEFAULT,
         registrar_superficie: Callable[..., None] | None = None,
     ) -> None:
@@ -147,15 +124,23 @@ class AgenteUIGenerativa:
             import anthropic                       # import tardio: los tests no lo necesitan
             cliente = anthropic.AsyncAnthropic()
         self.cliente = cliente
+        self.mcp = mcp
         self.modelo = modelo
-        self.tools = tools_para_el_modelo()
+        self.tools: list[dict[str, Any]] | None = None
         self._registrar = registrar_superficie
+
+    async def _preparar(self) -> None:
+        """Pide los schemas de datos al servidor MCP una sola vez por instancia."""
+        if self.tools is None:
+            datos = await self.mcp.tools_para_el_modelo()
+            self.tools = [*datos, RENDER_SURFACE]
 
     # ------------------------------------------------------------------ publico
     async def run_turn(
         self, sesion: Sesion, entrada: str | dict[str, Any]
     ) -> AsyncIterator[Evento]:
         """Procesa un mensaje del usuario o una accion de la UI."""
+        await self._preparar()
         sesion.turno += 1
         sesion.tools_del_turno = []
         sesion.a2ui_del_turno = []
@@ -197,8 +182,7 @@ class AgenteUIGenerativa:
 
                 yield Evento("tool_call", {"name": nombre, "input": args,
                                            "efecto": nombre in CON_EFECTO})
-                ok, payload = await asyncio.get_running_loop().run_in_executor(
-                    None, ejecutar_tool_de_datos, nombre, args)
+                ok, payload = await self._llamar_tool_de_datos(nombre, args)
                 sesion.tools_del_turno.append({
                     "name": nombre, "input": args, "ok": ok,
                     "output_resumen": _resumir(payload)})
@@ -233,6 +217,24 @@ class AgenteUIGenerativa:
                               "uso": dict(sesion.uso)})
 
     # ------------------------------------------------------------------ interno
+    async def _llamar_tool_de_datos(self, nombre: str, argumentos: dict[str, Any]) -> tuple[bool, Any]:
+        """Delega en el cliente MCP. Devuelve (ok, payload) para el `tool_result`.
+
+        Un `ServiceError` del lado del servidor NO es una excepcion que haya
+        que propagar: llega como `(False, payload)` y el texto explica al
+        modelo como corregir. Si el cliente MCP mismo falla (proceso caído,
+        timeout), tampoco tumbamos el turno.
+        """
+        try:
+            return await self.mcp.llamar(nombre, argumentos)
+        except Exception as exc:                   # noqa: BLE001 - nunca tumbar el turno
+            log.exception("el cliente MCP falló llamando %s", nombre)
+            return False, {
+                "error": "mcp_no_disponible",
+                "mensaje": f"No pude llamar {nombre!r}: {type(exc).__name__}.",
+                "sugerencia": "Intenta de nuevo en un momento o continúa sin esa información.",
+            }
+
     @staticmethod
     def _texto_de_entrada(entrada: str | dict[str, Any]) -> str:
         if isinstance(entrada, str):

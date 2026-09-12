@@ -6,7 +6,8 @@
 // marcador de abajo deja claro que ganar más métricas no vuelve a una opción la
 // correcta.
 
-import type { A2UIAction, ActionName } from "../catalog.types";
+import { leerAccion } from "../a2ui";
+import type { A2UIAction } from "../catalog.types";
 import { porFormato } from "../format";
 import { useStore } from "../store";
 
@@ -35,8 +36,9 @@ function lado(v: unknown): Lado {
   return (typeof v === "object" && v !== null ? v : {}) as Lado;
 }
 
-export function ComparePanel({ left, right, metrics, action, disclaimer }: ComparePanelProps) {
+export function ComparePanel({ nodoId, left, right, metrics, action, disclaimer }: ComparePanelProps) {
   const emitir = useStore((s) => s.emitirAccion);
+  const accion = leerAccion(action);
   const izq = lado(left);
   const der = lado(right);
   const filas: FilaMetrica[] = Array.isArray(metrics) ? (metrics as FilaMetrica[]) : [];
@@ -82,19 +84,19 @@ export function ComparePanel({ left, right, metrics, action, disclaimer }: Compa
         <span className="cmp-marcador">
           {puntos.izquierda} — {puntos.derecha} en métricas ganadas
         </span>
-        {action ? (
+        {accion ? (
           <span className="cmp-acciones">
             <button
               type="button"
               className="c-button c-button-secondary"
-              onClick={() => void emitir(action.name as ActionName, { ...action.context, lado: "izquierda" })}
+              onClick={() => void emitir(accion.name, { ...accion.context, lado: "izquierda" }, nodoId)}
             >
               Quedarme como estoy
             </button>
             <button
               type="button"
               className="c-button c-button-primary"
-              onClick={() => void emitir(action.name as ActionName, { ...action.context, lado: "derecha" })}
+              onClick={() => void emitir(accion.name, { ...accion.context, lado: "derecha" }, nodoId)}
             >
               Cambiar a {der.etiqueta ?? "la otra"}
             </button>

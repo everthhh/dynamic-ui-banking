@@ -2,7 +2,8 @@
 // componentes de dominio, no reinventarlos apilando Row y Text.
 
 import type { ReactNode } from "react";
-import type { A2UIAction, ActionName } from "../catalog.types";
+import { leerAccion } from "../a2ui";
+import type { A2UIAction } from "../catalog.types";
 import { porFormato } from "../format";
 import { useStore } from "../store";
 
@@ -70,6 +71,7 @@ export function Divider() {
 }
 
 export function Button({
+  nodoId,
   label,
   action,
   variant = "secondary",
@@ -77,13 +79,14 @@ export function Button({
 }: ComunProps & { label?: string; action?: A2UIAction; variant?: string; disabled?: boolean }) {
   const emitir = useStore((s) => s.emitirAccion);
   const pensando = useStore((s) => s.estado === "pensando");
+  const accion = leerAccion(action);
   return (
     <button
       type="button"
       className={`c-button c-button-${variant}`}
-      disabled={disabled || pensando || !action}
+      disabled={disabled || pensando || !accion}
       onClick={() => {
-        if (action) void emitir(action.name as ActionName, action.context);
+        if (accion) void emitir(accion.name, accion.context, nodoId);
       }}
     >
       {label ?? "…"}

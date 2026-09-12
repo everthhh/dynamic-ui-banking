@@ -1,4 +1,4 @@
-.PHONY: install seed test dev api web clean catalog fixtures smoke check build
+.PHONY: install seed test dev api web mcp clean catalog fixtures smoke check build
 
 PY := python3
 
@@ -40,8 +40,15 @@ api:
 web:
 	cd web && npm run dev
 
+# Servidor MCP standalone (para inspeccionarlo con `mcp dev` o un cliente MCP
+# externo). El gateway lo levanta solo, como subproceso, al arrancar `make api`
+# — esto es para probarlo aislado.
+mcp:
+	$(PY) -m mcp_server.server
+
 dev:
 	@echo "Dos terminales:  make api   |   make web"
+	@echo "(make api levanta el MCP de services/ como subproceso; no hace falta correr `make mcp` aparte)"
 	@echo "Sin API key:     make web y abre http://localhost:5173/?mock=1"
 
 clean:

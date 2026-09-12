@@ -1,11 +1,13 @@
-// inv.AllocationDonut — SVG a mano, sin librería de gráficas.
+// inv.AllocationDonut — dona con Recharts.
 //
-// Dos razones: el bundle no carga 300 kB para pintar siete arcos, y el control
-// del detalle (el hueco central con el monto, el hover que explica el bloque)
-// es justo lo que hace que se vea como un producto y no como un demo.
+// El hueco central con el monto y el hover que explica el bloque son lo que
+// hace que se vea como un producto y no como un demo; eso se conserva con un
+// overlay absoluto sobre el <PieChart> (Recharts no expone un slot de centro).
 
 import { useState } from "react";
-import type { A2UIAction, ActionName } from "../catalog.types";
+import { Cell, Pie, PieChart } from "recharts";
+import { leerAccion } from "../a2ui";
+import type { A2UIAction } from "../catalog.types";
 import { moneda, porcentaje } from "../format";
 import { useStore } from "../store";
 
@@ -41,37 +43,13 @@ const COLOR_BLOQUE: Record<string, string> = {
 };
 const COLORES_FALLBACK = ["#3F5A80", "#2F6F6B", "#D1762B", "#C2392E", "#6B7B94", "#8E1F2F", "#9AA4B2"];
 
-const R_EXT = 92;
-const R_INT = 58;
-const CENTRO = 110;
-
-function arco(desde: number, hasta: number): string {
-  const a0 = desde * 2 * Math.PI - Math.PI / 2;
-  const a1 = hasta * 2 * Math.PI - Math.PI / 2;
-  const grande = hasta - desde > 0.5 ? 1 : 0;
-  const x0 = CENTRO + R_EXT * Math.cos(a0);
-  const y0 = CENTRO + R_EXT * Math.sin(a0);
-  const x1 = CENTRO + R_EXT * Math.cos(a1);
-  const y1 = CENTRO + R_EXT * Math.sin(a1);
-  const xi1 = CENTRO + R_INT * Math.cos(a1);
-  const yi1 = CENTRO + R_INT * Math.sin(a1);
-  const xi0 = CENTRO + R_INT * Math.cos(a0);
-  const yi0 = CENTRO + R_INT * Math.sin(a0);
-  return [
-    `M ${x0} ${y0}`,
-    `A ${R_EXT} ${R_EXT} 0 ${grande} 1 ${x1} ${y1}`,
-    `L ${xi1} ${yi1}`,
-    `A ${R_INT} ${R_INT} 0 ${grande} 0 ${xi0} ${yi0}`,
-    "Z",
-  ].join(" ");
-}
-
 function normalizar(entrada: unknown): Slice[] {
   if (!Array.isArray(entrada)) return [];
   return entrada.filter((s): s is Slice => typeof s === "object" && s !== null);
 }
 
 export function AllocationDonut({
+  nodoId,
   slices,
   total,
   editable = false,
@@ -81,60 +59,70 @@ export function AllocationDonut({
   const datos = normalizar(slices);
   const [activo, setActivo] = useState<number | null>(null);
   const emitir = useStore((s) => s.emitirAccion);
+  const accion = leerAccion(action);
 
   if (!datos.length) {
     return <div className="rndr-hueco">La asignación llegó vacía.</div>;
   }
 
   const suma = datos.reduce((acc, s) => acc + (Number(s.peso) || 0), 0) || 1;
-  let acumulado = 0;
-  const arcos = datos.map((s, i) => {
-    const peso = (Number(s.peso) || 0) / suma;
-    const desde = acumulado;
-    acumulado += peso;
-    return {
-      slice: s,
-      d: arco(desde, acumulado),
-      color: COLOR_BLOQUE[s.bloque ?? ""] ?? COLORES_FALLBACK[i % COLORES_FALLBACK.length]!,
-      peso,
-      i,
-    };
-  });
+  const arcos = datos.map((s, i) => ({
+    slice: s,
+    peso: (Number(s.peso) || 0) / suma,
+    color: COLOR_BLOQUE[s.bloque ?? ""] ?? COLORES_FALLBACK[i % COLORES_FALLBACK.length]!,
+    i,
+  }));
 
   const montoTotal = Number(total);
   const seleccionado = activo !== null ? arcos[activo] : null;
+
+  function clicSlice(a: (typeof arcos)[number]) {
+    if (accion && a.slice.instrument_id) {
+      void emitir(accion.name, { ...accion.context, instrument_id: a.slice.instrument_id }, nodoId);
+    }
+  }
 
   return (
     <section className="ad">
       {subtitulo ? <p className="ad-subtitulo">{String(subtitulo)}</p> : null}
       <div className="ad-cuerpo">
-        <svg viewBox="0 0 220 220" className="ad-svg" role="img" aria-label="Asignación propuesta">
-          {arcos.map((a) => (
-            <path
-              key={a.slice.instrument_id ?? a.i}
-              d={a.d}
-              fill={a.color}
-              className={"ad-arco" + (activo === a.i ? " activo" : "")}
-              opacity={activo === null || activo === a.i ? 1 : 0.35}
-              onMouseEnter={() => setActivo(a.i)}
-              onMouseLeave={() => setActivo(null)}
-              onClick={() => {
-                if (action && a.slice.instrument_id) {
-                  void emitir(action.name as ActionName, {
-                    ...action.context,
-                    instrument_id: a.slice.instrument_id,
-                  });
-                }
-              }}
-            />
-          ))}
-          <text x={CENTRO} y={CENTRO - 6} className="ad-centro-valor" textAnchor="middle">
-            {Number.isFinite(montoTotal) ? moneda(montoTotal) : ""}
-          </text>
-          <text x={CENTRO} y={CENTRO + 14} className="ad-centro-label" textAnchor="middle">
-            {seleccionado ? porcentaje(seleccionado.peso) : "a invertir"}
-          </text>
-        </svg>
+        <div className="ad-svg" role="img" aria-label="Asignación propuesta">
+          <PieChart width={220} height={220}>
+            <Pie
+              data={arcos}
+              dataKey="peso"
+              nameKey="i"
+              cx="50%"
+              cy="50%"
+              innerRadius={58}
+              outerRadius={92}
+              startAngle={90}
+              endAngle={-270}
+              stroke="none"
+              isAnimationActive={false}
+            >
+              {arcos.map((a) => (
+                <Cell
+                  key={a.slice.instrument_id ?? a.i}
+                  fill={a.color}
+                  opacity={activo === null || activo === a.i ? 1 : 0.35}
+                  style={{ cursor: accion ? "pointer" : "default", transition: "opacity .15s" }}
+                  onMouseEnter={() => setActivo(a.i)}
+                  onMouseLeave={() => setActivo(null)}
+                  onClick={() => clicSlice(a)}
+                />
+              ))}
+            </Pie>
+          </PieChart>
+          <div className="ad-centro">
+            <strong className="ad-centro-valor">
+              {Number.isFinite(montoTotal) ? moneda(montoTotal) : ""}
+            </strong>
+            <span className="ad-centro-label">
+              {seleccionado ? porcentaje(seleccionado.peso) : "a invertir"}
+            </span>
+          </div>
+        </div>
 
         <ul className="ad-leyenda">
           {arcos.map((a) => (

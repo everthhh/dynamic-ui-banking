@@ -7,7 +7,8 @@
 // Quitar cualquiera de las tres y la demo dejaría de ser defendible.
 
 import { useState } from "react";
-import type { A2UIAction, ActionName } from "../catalog.types";
+import { leerAccion } from "../a2ui";
+import type { A2UIAction } from "../catalog.types";
 import { moneda, numero, porcentaje } from "../format";
 import { useStore } from "../store";
 
@@ -41,10 +42,17 @@ export type OrderTicketProps = {
   nodoId?: string;
 };
 
-export function OrderTicket({ order, action, requiresConfirmation = true, disclaimer }: OrderTicketProps) {
+export function OrderTicket({
+  nodoId,
+  order,
+  action,
+  requiresConfirmation = true,
+  disclaimer,
+}: OrderTicketProps) {
   const emitir = useStore((s) => s.emitirAccion);
   const pensando = useStore((s) => s.estado === "pensando");
   const [acepto, setAcepto] = useState(false);
+  const accion = leerAccion(action);
 
   const o = (typeof order === "object" && order !== null ? order : {}) as Orden;
 
@@ -119,21 +127,21 @@ export function OrderTicket({ order, action, requiresConfirmation = true, discla
               type="button"
               className="c-button c-button-ghost"
               disabled={pensando}
-              onClick={() => void emitir("cancel_order", { order_id: o.order_id })}
+              onClick={() => void emitir("cancel_order", { order_id: o.order_id }, nodoId)}
             >
               Cancelar
             </button>
             <button
               type="button"
               className="c-button c-button-primary"
-              disabled={!acepto || pensando || !action || !o.confirmation_token}
+              disabled={!acepto || pensando || !accion || !o.confirmation_token}
               onClick={() => {
-                if (!action) return;
-                void emitir(action.name as ActionName, {
-                  ...action.context,
-                  order_id: o.order_id,
-                  confirmation_token: o.confirmation_token,
-                });
+                if (!accion) return;
+                void emitir(
+                  accion.name,
+                  { ...accion.context, order_id: o.order_id, confirmation_token: o.confirmation_token },
+                  nodoId,
+                );
               }}
             >
               {pensando ? "Procesando…" : `Confirmar ${moneda(o.monto)}`}

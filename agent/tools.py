@@ -296,11 +296,16 @@ RENDER_SURFACE: dict[str, Any] = {
         "Pinta la interfaz. Su argumento es un arreglo de mensajes A2UI "
         f"{A2UI_VERSION} validado contra el catálogo del banco.\n"
         "Reglas:\n"
-        "  · Un mensaje = una acción (createSurface | updateComponents | updateDataModel | action).\n"
+        "  · Un mensaje = una acción de servidor (createSurface | updateComponents | "
+        "updateDataModel | deleteSurface). `action` NO es una de estas: es el prop de un "
+        "componente, y solo el cliente la manda de vuelta.\n"
         "  · Solo componentes del catálogo; cualquier otro lo ignora el renderer.\n"
         "  · Recalculaste datos pero la intención es la misma -> `updateDataModel`.\n"
         "    Cambió lo que el usuario quiere ver -> `updateComponents`.\n"
         "    Cambió de tarea -> `createSurface` nueva.\n"
+        "    Tarea terminada y la superficie ya no aplica -> `deleteSurface`.\n"
+        "  · El prop `action` de un componente va anidado: "
+        "{\"event\": {\"name\": ..., \"context\": {...}}}.\n"
         "  · Toda cifra enlazada por `{\"path\": ...}` debe existir en el data model: "
         "mándala antes con `updateDataModel`.\n"
         "  · Prefiere pintar a explicar. Si puedes mostrarlo con un componente, no lo "
@@ -327,11 +332,11 @@ RENDER_SURFACE: dict[str, Any] = {
 
 CATALOGO_EN_USO = CATALOG_ID
 
-
-def tools_para_el_modelo() -> list[dict[str, Any]]:
-    """Lo que va en el parametro `tools` de `messages.create`."""
-    return [*TOOLS_DATOS, RENDER_SURFACE]
-
+# El parametro `tools` de `messages.create` ya NO sale de aqui directo: las
+# tools de datos las expone `mcp_server/server.py` (que sí lee TOOLS_DATOS) y
+# el agente las pide por MCP (ver `agent/mcp_client.py`). `RENDER_SURFACE` se
+# agrega aparte porque no es una tool de datos, es la señal que intercepta
+# `agent/loop.py`.
 
 NOMBRES_DATOS = frozenset(t["name"] for t in TOOLS_DATOS)
 NOMBRE_RENDER = RENDER_SURFACE["name"]

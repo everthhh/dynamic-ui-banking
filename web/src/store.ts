@@ -10,8 +10,8 @@
 
 import { create } from "zustand";
 import {
-  esAction,
   esCreateSurface,
+  esDeleteSurface,
   esUpdateComponents,
   esUpdateDataModel,
   type A2UIMessage,
@@ -62,7 +62,12 @@ type Store = {
   /** Escritura local optimista: el control se siente inmediato. */
   escribirLocal: (path: string, valor: unknown) => void;
   leerRuta: (path: string) => unknown;
-  emitirAccion: (nombre: ActionName, contexto?: Record<string, unknown>) => Promise<void>;
+  /** `origenId`: el id del componente que disparó la acción (`sourceComponentId` en el wire). */
+  emitirAccion: (
+    nombre: ActionName,
+    contexto?: Record<string, unknown>,
+    origenId?: string,
+  ) => Promise<void>;
 };
 
 function superficieVacia(surfaceId: string, theme?: Record<string, string | number>): Superficie {
@@ -184,12 +189,17 @@ export const useStore = create<Store>((set, get) => ({
       return;
     }
 
-    // ------------------------------------------------------------------ action
-    if (esAction(msg)) {
-      // El agente puede emitir una acción para cerrar un ciclo (por ejemplo,
-      // pedir que se re-simule). No se ejecuta aquí: se reenvía.
-      get().trazar("action (del agente)", msg.action.name);
-      void get().emitirAccion(msg.action.name as ActionName, msg.action.context);
+    // -------------------------------------------------------------- deleteSurface
+    if (esDeleteSurface(msg)) {
+      const { surfaceId } = msg.deleteSurface;
+      set((s) => {
+        const { [surfaceId]: _fuera, ...resto } = s.superficies;
+        return {
+          superficies: resto,
+          superficieActiva: s.superficieActiva === surfaceId ? null : s.superficieActiva,
+        };
+      });
+      get().trazar("deleteSurface", surfaceId);
     }
   },
 
@@ -212,17 +222,31 @@ export const useStore = create<Store>((set, get) => ({
     return sup ? leer(sup.datos, path) : undefined;
   },
 
-  emitirAccion: async (nombre, contexto) => {
+  emitirAccion: async (nombre, contexto, origenId) => {
     const { sessionId, superficieActiva, trazar, setEstado, setError } = get();
     if (!sessionId) {
       setError("No hay sesión abierta todavía.");
+      return;
+    }
+    if (!superficieActiva) {
+      setError("No hay superficie activa para reportar la acción.");
       return;
     }
     trazar("accion -> agente", `${nombre} ${JSON.stringify(contexto ?? {})}`);
     setEstado("pensando");
     try {
       await enviarAccion(
-        { name: nombre, session_id: sessionId, surfaceId: superficieActiva, context: contexto ?? {} },
+        {
+          version: "v0.9",
+          session_id: sessionId,
+          action: {
+            name: nombre,
+            surfaceId: superficieActiva,
+            sourceComponentId: origenId ?? "desconocido",
+            timestamp: new Date().toISOString(),
+            context: contexto ?? {},
+          },
+        },
         manejarEvento,
       );
       setEstado("inactivo");

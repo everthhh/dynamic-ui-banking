@@ -15,10 +15,11 @@ export type ActionName =
   | "cancel_order"
   | "ask";
 
+// Spec A2UI v0.9 (common_types.json#/$defs/Action): el prop `action` de un
+// componente dispara un evento de servidor. `functionCall` no aplica: este
+// catálogo no declara funciones de cliente.
 export type A2UIAction = {
-  name: ActionName;
-  surfaceId?: string;
-  context?: Record<string, unknown>;
+  event: { name: ActionName; context?: Record<string, unknown> };
 };
 
 /** Apilar cosas verticalmente. Es la raíz habitual de una superficie. */

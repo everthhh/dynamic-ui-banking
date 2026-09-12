@@ -5,11 +5,11 @@
 `catalogId`: `https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json`
 
 Reglas del catálogo:
-- Un mensaje A2UI contiene exactamente una acción: createSurface, updateComponents, updateDataModel o action.
+- Un mensaje A2UI contiene exactamente una acción de servidor: createSurface, updateComponents, updateDataModel o deleteSurface. `action` NO es una de estas: es el prop de un componente, y es el cliente quien la manda de vuelta, nunca tú.
 - Todo componente debe existir en este catálogo. El renderer ignora cualquier otro.
 - Los datos numéricos se enlazan por ruta ({"path": "/sim/escenarios"}), nunca se escriben inline.
-- Recalcular datos -> updateDataModel. Cambiar la intención -> updateComponents. Cambiar la tarea -> nueva superficie.
-- Solo los ids declarados en `acciones` son válidos en la prop `action` de cualquier componente.
+- Recalcular datos -> updateDataModel. Cambiar la intención -> updateComponents. Cambiar la tarea -> nueva superficie. Tarea terminada y superficie ya no aplica -> deleteSurface.
+- El prop `action` de cualquier componente va anidado como {"event": {"name": ..., "context": {...}}} (spec A2UI v0.9). Solo los ids declarados en `acciones` son válidos como `event.name`.
 
 ### Acciones declaradas
 

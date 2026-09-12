@@ -1,6 +1,11 @@
 # LLM: SDK nativo de Anthropic. Nada de LangChain / LlamaIndex / frameworks de agentes.
 anthropic>=0.40.0
 
+# MCP: servidor separado para las tools de datos (mcp_server/) + cliente del
+# agente (agent/mcp_client.py). Fijado a la serie 1.x: la 2.x renombró/movió
+# la API (FastMCP -> MCPServer) y todavía no es la que documenta el ecosistema.
+mcp>=1.2.0,<2
+
 # Gateway
 fastapi>=0.115.0
 uvicorn[standard]>=0.32.0

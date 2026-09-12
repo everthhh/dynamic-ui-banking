@@ -26,7 +26,8 @@ def plantilla_fallback(
             {"id": "detalle", "component": "Text", "text": detalle, "tone": "muted"},
             {"id": "reintentar", "component": "Button", "label": "Intentar de nuevo",
              "variant": "primary",
-             "action": {"name": "ask", "context": {"prompt": "Vuelve a intentarlo"}}},
+             "action": {"event": {"name": "ask",
+                                   "context": {"prompt": "Vuelve a intentarlo"}}}},
         ]}},
     ]
 

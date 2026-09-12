@@ -94,13 +94,14 @@ export async function reproducirChatSimulado(
 }
 
 export async function reproducirAccionSimulada(
-  cuerpo: { name: string },
+  cuerpo: { action: { name: string } },
   onEvento: ManejadorDeEvento,
 ): Promise<void> {
-  const turno = siguienteTurno(cuerpo.name);
+  const nombre = cuerpo.action.name;
+  const turno = siguienteTurno(nombre);
   if (!turno) {
     onEvento("warning", {
-      mensaje: `El guion simulado no tiene un turno para la acción \`${cuerpo.name}\`.`,
+      mensaje: `El guion simulado no tiene un turno para la acción \`${nombre}\`.`,
     });
     onEvento("done", { turno: -1, render_ok: false });
     return;

@@ -6,8 +6,8 @@
 // dispara un turno por píxel; soltar dispara uno.
 
 import { useEffect, useRef, useState } from "react";
-import { esBinding } from "../a2ui";
-import type { A2UIAction, ActionName } from "../catalog.types";
+import { esBinding, leerAccion } from "../a2ui";
+import type { A2UIAction } from "../catalog.types";
 import { porFormato } from "../format";
 import { useStore } from "../store";
 
@@ -57,8 +57,9 @@ export function AmountSlider({
 
   function soltar() {
     arrastrando.current = false;
-    if (!action) return;
-    void emitir(action.name as ActionName, { ...action.context, [claveDeContexto(label)]: local });
+    const accion = leerAccion(action);
+    if (!accion) return;
+    void emitir(accion.name, { ...accion.context, [claveDeContexto(label)]: local }, nodoId);
   }
 
   return (
