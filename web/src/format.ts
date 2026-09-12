@@ -121,4 +121,5 @@ export const ETIQUETA_CLASE: Record<string, string> = {
   fondo_rv: "Fondo de renta variable",
   etf: "ETF",
   pagare: "Pagaré",
+  accion: "Acción BMV",
 };

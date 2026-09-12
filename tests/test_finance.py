@@ -228,8 +228,10 @@ def test_la_comparacion_usa_los_mismos_supuestos():
 
 def test_cada_fila_sabe_como_se_formatea_y_cual_gana():
     c = compare.comparar({"CETES-364": 1.0}, {"NAFTRAC": 1.0}, 50_000, 5)
+    # Si se agrega una metrica con un formato que el front no sabe pintar,
+    # la celda cae al formato por defecto y el numero se ve mal en silencio.
     for f in c["filas"]:
-        assert f["formato"] in ("moneda", "porcentaje")
+        assert f["formato"] in compare.FORMATOS_VALIDOS, f["formato"]
         assert f["mejor"] in ("izquierda", "derecha", "empate")
         assert f["etiqueta"]
 

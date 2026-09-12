@@ -22,6 +22,20 @@ Lo que se decidió, contra qué, y qué costó.
 | **Zustand** | Redux, o Context puro | El store es chico y necesita escrituras desde fuera de React (el transporte SSE) | Una dependencia más |
 | **SQLite** | Postgres | Cero infraestructura, `make seed` en dos segundos, y el archivo se versiona si hace falta | Un solo escritor; irrelevante a esta escala |
 | **Fixtures generados desde los servicios** | Fixtures escritos a mano | Los números del guion son reales y los blueprints pasan por el mismo validador; si el catálogo cambia, el guion se rompe y nos enteramos | Hay que regenerar con `make fixtures` |
+| **Riesgo de emisora calculado, no capturado** | `riesgo_1a5` escrito a mano por acción, como el resto del catálogo | Con 15 empresas, un número tecleado no se puede defender ante la pregunta «¿por qué esta es 5 y esta 3?». `bank/emisoras.py` lo deriva de seis factores (volatilidad, beta, calificación, apalancamiento, bursatilidad y riesgo propio) y devuelve el desglose | Hay que mantener los fundamentales al día; el `--check` del seed avisa si el riesgo guardado ya no coincide con el calculado |
+| **Precios anclados a una foto con fecha** | Feed de mercado en vivo | El seed tiene que ser reproducible byte a byte: con precios en vivo, `make seed` da resultados distintos cada corrida y los tests dejan de significar algo | Los precios envejecen. Cada `Emisora` trae `fuente` (`anclado`/`estimado`) y el `--check` falla si la foto pasa de 90 días |
+| **CAPM para el rendimiento esperado de acciones** | Rendimiento por emisora escrito a mano | Hace explícito lo que importa: el mercado paga por beta, no por riesgo propio. Por eso TLEVISA sale con la volatilidad más alta del catálogo y un rendimiento esperado mediocre — que es el argumento contra concentrarse en ella | CAPM es un modelo discutible; se declara como supuesto en `bank/mercado.py` con su prima de riesgo |
+| **Modelo de índice único para correlacionar emisoras** | Correlación promedio por clase de activo | Con la matriz de clases, CEMEX y WALMEX salían al 0.94 por ser las dos «renta variable». Con beta y sector salen al 0.35, y de ahí sale la volatilidad de los fondos que las traen | Una matriz más que mantener; se calcula, no se captura |
+| **Emisoras como tenencias, no como instrumentos** | Vender las 15 acciones directo en el catálogo | Es un producto de fondos, no una casa de bolsa. Las empresas entran por debajo (`bank/carteras.py`) y el cliente llega a ellas vía los fondos. Un invariante del seed verifica que ninguna emisora sea contratable | La exposición a una empresa concreta solo se ajusta cambiando de fondo |
+| **Riesgo del fondo derivado de su cartera** | `riesgo_1a5` y volatilidad tecleados por fondo | No pueden existir dos verdades. `NAFTRAC` decía 0.155 porque alguien lo escribió; ahora dice 0.177 porque es lo que da `sqrt(w'Σw)` sobre sus tenencias. Si una emisora se deteriora, el fondo sube de riesgo solo | Solo aplica a los fondos con desglose; los internacionales siguen con cifras declaradas |
+| **Concentración medida por look-through** | Tope sobre lo que el cliente compró | «Diversificado» no es «tiene varios fondos». Con 60% en renta variable un cliente puede acabar con 10.4% en un solo banco sin haberlo elegido, y sin mirar dentro de los fondos nadie se entera | Hay que mantener la composición de los fondos, y los internacionales no se pueden mirar: se reporta `cobertura_desglose` en vez de fingir transparencia |
+| **Idoneidad como control ejecutable** | Guardarraíles en el prompt | Un guardarraíl que vive en el prompt es una sugerencia. `place_order` verifica contra el perfil **guardado** y rechaza; el modelo no puede desactivarlo | Hay reglas duras que a veces estorban en el demo (un conservador no recibe acciones, punto) |
+| **Verificar idoneidad dos veces en `place_order`** | Solo al registrar | Entre el paso 1 y el paso 2 pasan minutos: el perfil pudo vencer o alguien pudo reperfilar al cliente | Una consulta más por ejecución |
+| **Origen de fondos en la fórmula** | Tratar todo el dinero igual | No es lo mismo invertir un excedente que invertir con una tarjeta al 42%. Con deuda, la referencia para «no perder» es lo que vas a deber, y el perfil aplicable baja a conservador | Un parámetro más que arrastrar por toda la cadena |
+| **Bloquear crédito por condición de arbitraje** | Tope fijo de riesgo con crédito | Es una regla defendible con número: si el rendimiento esperado no supera el costo del financiamiento, el valor esperado es negativo. Con el catálogo actual eso bloquea casi todo crédito, y ese es el resultado correcto | Un usuario decidido a apalancarse no puede hacerlo desde aquí |
+| **Tasa corta estocástica (Vasicek)** | Tasa constante | Sin esto, un CETES-28 se simula como si su tasa de hoy durara diez años, y el riesgo de reinversión —el riesgo *real* de los CETES— desaparece. Cada instrumento reacciona con dos parámetros propios: `sens_reinversion` y `duracion_anios` | Un proceso más que calibrar (`TASA_LARGA`, κ, σ), todos declarados en `bank/mercado.py` |
+| **Impuestos dentro de la proyección** | Proyección bruta | El número bruto es el que el cliente nunca va a recibir. La retención de intereses se cobra sobre el **capital**, así que se paga aunque el instrumento pierda: en un pagaré al 5.15% se lleva casi un quinto del rendimiento | El modelo fiscal es una simplificación (sin compensación de pérdidas, sin regímenes especiales); está declarado en `bank/finance/fiscal.py` |
+| **Tres probabilidades de perder, no una** | Solo `prob_perdida_nominal` | «Probabilidad de perder» sin decir contra qué es medio dato. Nominal, real (contra inflación) y contra el origen del dinero dan respuestas muy distintas, y con crédito solo la tercera es honesta | Más columnas que explicar en la UI |
 | **Claude Sonnet** | Opus para todo | La latencia es parte de la experiencia: una UI que tarda ocho segundos en aparecer no se siente generativa | Se compensa con few-shots y prompt caching |
 | **Mutaciones de banca personal sin candado de dos pasos** (`block_card`, `set_card_limit`, `set_account_alias`, `set_budget`) | El mismo patrón de `place_order` (token + segunda llamada) | Ninguna mueve dinero real; bloquear una tarjeta es la acción de urgencia y debe costar un toque, no dos. El límite y el presupuesto sí llevan techo/piso de negocio explícito en el servidor | Confiar en la validación server-side (ownership + rangos) en vez de una confirmación en pantalla |
 | **`card_events`: tabla de auditoría propia** | Confiar en los logs del proceso | Cada bloqueo, cambio de límite o alias queda en la base, no solo en un log que se pierde al reiniciar — es lo que permite reconstruir "quién cambió qué" sin la sesión activa | Una tabla e inserts extra en cada mutación |
@@ -46,6 +60,31 @@ Pagos, Seguros, Educación financiera). El criterio de corte del proyecto se
 respeta a propósito: Inversiones se cerró y se ensayó, luego Banca personal
 (el segundo), y cada dominio nuevo espera a que el anterior esté completo.
 Media demo de cuatro dominios es peor que dos completos.
+
+## Lo que el modelo financiero sigue sin capturar
+
+Se dice de frente porque todas estas omisiones empujan en la misma dirección:
+**subestiman la pérdida**.
+
+- **Colas delgadas.** Los retornos son lognormales. No hay crashes.
+- **Correlaciones fijas.** No hay régimen de crisis donde todo se va a 1 justo
+  cuando importa. Es la simplificación más cara de la lista.
+- **Sin default como evento discreto.** El riesgo de crédito está disuelto en la
+  volatilidad y en la calificación, no modelado como impago.
+- **Sin costo de transacción ni spread.** El rebalanceo mensual es gratis y
+  perfecto.
+- **Sin backtest.** Nada valida que una prima de riesgo de 5.5% para México sea
+  la correcta; es un supuesto declarado, no un resultado medido.
+- **Fundamentales estimados.** Los precios de cinco emisoras están anclados a una
+  consulta con fecha; el resto de los precios y **todos** los demás
+  fundamentales (beta, apalancamiento, calificación, bursatilidad) son
+  estimaciones calibradas a un rango plausible. No es un feed de mercado.
+- **Carteras estáticas.** La composición de los fondos no rota: un fondo activo
+  real cambia posiciones cada trimestre. El look-through es una foto, igual que
+  los precios.
+- **Solo dos fondos tienen desglose.** Los internacionales y sectoriales globales
+  no traen composición porque su subyacente no son emisoras de la BMV, y se
+  declara (`cobertura_desglose`) en lugar de inventarles una cartera.
 
 ## El riesgo número uno
 

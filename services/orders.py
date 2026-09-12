@@ -11,10 +11,19 @@ Dos candados, los dos exigidos por §07 del marco tecnico:
      reintenta la misma orden (porque se le cayo el stream, porque se confundio
      de turno), la segunda llamada devuelve el mismo folio con
      `duplicado: true` en lugar de comprar dos veces.
+
+  3. Idoneidad. La asignacion se verifica contra el perfil GUARDADO del
+     cliente antes de registrar la orden y otra vez antes de ejecutarla. Este
+     era el hueco grande: el modelo podia armar cualquier asignacion y nadie
+     la cruzaba contra el perfil. Se revisa dos veces a proposito, porque
+     entre el paso 1 y el paso 2 pueden pasar minutos y el perfil pudo
+     vencer.
 """
 
 from __future__ import annotations
 
+import hashlib
+import math
 import json
 import secrets
 import sqlite3
@@ -23,6 +32,8 @@ from datetime import date, datetime, timedelta
 from typing import Any
 
 from bank import db
+from bank.finance import idoneidad
+from bank.finance import origen as origen_mod
 from bank.instrumentos import BY_ID
 from services.errors import NotFound, ReglaDeNegocio, ServiceError
 from services.portfolio import _asignacion_desde_entrada
@@ -31,6 +42,12 @@ MONTO_MINIMO_ORDEN = 1_000.0
 MONTO_MAXIMO_ORDEN = 50_000_000.0
 TOLERANCIA_PESOS = 0.01
 VIGENCIA_TOKEN_MINUTOS = 15
+
+def _hash_token(token: str) -> str:
+    """El token crudo (alta entropía, 144 bits) nunca se guarda en la base.
+    Un hash simple basta; no es una contraseña de baja entropía sujeta a
+    fuerza bruta, así que no hace falta salt/HMAC/costo adaptativo."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def _ahora(conn) -> datetime:
@@ -129,6 +146,52 @@ def _orden_a_dict(conn, order_id: str) -> dict[str, Any]:
     return {**orden, "legs": legs}
 
 
+def _verificar_idoneidad(
+    conn,
+    client_id: str,
+    pesos: dict[str, float],
+    monto: float,
+    cuenta: dict[str, Any],
+    origen: str | None,
+) -> dict[str, Any]:
+    """Cruza la asignacion contra el perfil vigente. Revienta si no es apta.
+
+    El perfil sale de la BASE, nunca de lo que diga el modelo. El horizonte
+    tambien. El origen, si no se especifica, se deduce del tipo de la cuenta
+    de cargo: cargar a una cuenta de nomina no es lo mismo que cargar a una
+    de inversion.
+    """
+    perfil = db.query_one(
+        conn,
+        "SELECT perfil, score, horizonte_meses, vigente_hasta FROM risk_profiles"
+        " WHERE client_id = ? ORDER BY respondido_en DESC LIMIT 1", (client_id,))
+    if perfil is None:
+        raise ReglaDeNegocio(
+            f"{client_id} no tiene perfil de riesgo. No puedo ejecutar una orden "
+            "sin saber si le corresponde.",
+            sugerencia="Perfílalo con `get_risk_questions` y `score_risk_profile`.")
+
+    hoy = _ahora(conn).date()
+    if date.fromisoformat(perfil["vigente_hasta"]) < hoy:
+        raise ReglaDeNegocio(
+            f"El perfil de {client_id} venció el {perfil['vigente_hasta']}.",
+            sugerencia="Vuelve a perfilar con `score_risk_profile` antes de operar.")
+
+    if origen is None:
+        origen = origen_mod.desde_cuenta(cuenta["tipo"]).clave
+
+    try:
+        return idoneidad.exigir(
+            pesos, perfil["perfil"], perfil["horizonte_meses"] / 12,
+            monto=monto, origen=origen)
+    except idoneidad.IdoneidadInvalida as exc:
+        raise ReglaDeNegocio(
+            str(exc),
+            sugerencia="Pide una asignación con `propose_allocation` pasando "
+                       "`client_id`, o revisa el detalle con `check_suitability`.",
+        ) from exc
+
+
 # ---------------------------------------------------------------------------
 def place_order(
     client_id: str,
@@ -137,14 +200,23 @@ def place_order(
     idempotency_key: str,
     account_id: str | None = None,
     confirmation_token: str | None = None,
+    origen: str | None = None,
 ) -> dict[str, Any]:
     """Registra o ejecuta una orden de inversion.
 
     Sin `confirmation_token`: valida todo, deja la orden `pendiente` y devuelve
     el token mas un resumen para que el usuario confirme en pantalla.
     Con `confirmation_token` valido: ejecuta, mueve el saldo y abre posiciones.
+
+    Antes de cualquiera de las dos cosas corre el control de idoneidad
+    (`bank/finance/idoneidad.py`) contra el perfil GUARDADO del cliente. Ese
+    control no es opcional ni negociable desde el prompt: es la razon por la
+    que el modelo no puede ejecutar una asignacion que no le corresponde al
+    cliente, aunque se la haya inventado y aunque el usuario diga que si.
     """
     monto = float(monto)
+    if not math.isfinite(monto):
+        raise ServiceError("`monto` debe ser un número finito.")
     if not idempotency_key or not isinstance(idempotency_key, str):
         raise ServiceError(
             "`idempotency_key` es obligatorio y debe ser un string estable.",
@@ -165,7 +237,8 @@ def place_order(
             raise NotFound(f"No existe el cliente {client_id!r}.")
 
         existente = db.query_one(
-            conn, "SELECT * FROM orders WHERE idempotency_key = ?", (idempotency_key,))
+            conn, "SELECT * FROM orders WHERE idempotency_key = ? AND client_id = ?",
+            (idempotency_key, client_id))
 
         # ------------------------------------------------ reintento idempotente
         if existente is not None:
@@ -188,11 +261,14 @@ def place_order(
                     **_orden_a_dict(conn, existente["order_id"]),
                     "duplicado": True,
                     "requiere_confirmacion": True,
-                    "confirmation_token": existente["confirmation_token"],
                     "mensaje": "Ya había una orden pendiente con esa clave; "
-                               "sigue esperando confirmación.",
+                               "sigue esperando confirmación. El token original ya se entregó "
+                               "cuando se creó la orden; si se perdió, cancela y vuelve a "
+                               "generar la orden con una nueva `idempotency_key`.",
                 }
-            if not secrets.compare_digest(confirmation_token, existente["confirmation_token"]):
+            if not secrets.compare_digest(
+                _hash_token(confirmation_token), existente["confirmation_token_hash"]
+            ):
                 raise ReglaDeNegocio(
                     "El `confirmation_token` no corresponde a la orden pendiente.",
                     sugerencia="Vuelve a llamar `place_order` sin token para obtener uno nuevo.",
@@ -218,6 +294,9 @@ def place_order(
                 sugerencia="Baja el monto o elige otra cuenta con `get_accounts`.",
             )
 
+        veredicto = _verificar_idoneidad(conn, client_id, pesos, monto,
+                                         cuenta, origen)
+
         legs = _armar_legs(conn, pesos, monto)
         momento = _ahora(conn)
         order_id = str(uuid.uuid4())
@@ -227,13 +306,13 @@ def place_order(
         try:
             conn.execute(
                 "INSERT INTO orders (order_id, folio, client_id, account_id, estado, monto,"
-                " creada_en, idempotency_key, confirmation_token)"
+                " creada_en, idempotency_key, confirmation_token_hash)"
                 " VALUES (?,?,?,?,'pendiente',?,?,?,?)",
                 (order_id, folio, client_id, cuenta["account_id"], monto,
-                 momento.isoformat(), idempotency_key, token))
+                 momento.isoformat(), idempotency_key, _hash_token(token)))
         except sqlite3.IntegrityError as exc:        # carrera con otro turno
             raise ReglaDeNegocio(
-                "Ya existe una orden con esa `idempotency_key`.",
+                "Ya existe una orden con esa `idempotency_key` para este cliente.",
                 sugerencia="Vuelve a llamar con la misma clave para recuperar su estado.",
             ) from exc
 
@@ -253,6 +332,7 @@ def place_order(
             "legs": legs,
             "saldo_antes": round(cuenta["saldo_disponible"], 2),
             "saldo_despues_estimado": round(cuenta["saldo_disponible"] - monto, 2),
+            "idoneidad": veredicto,
             "requiere_confirmacion": True,
             "confirmation_token": token,
             "vence_en_minutos": VIGENCIA_TOKEN_MINUTOS,
@@ -265,13 +345,43 @@ def place_order(
 
 def _ejecutar(conn, order_id: str) -> dict[str, Any]:
     orden = db.query_one(conn, "SELECT * FROM orders WHERE order_id = ?", (order_id,))
+
+    # Reclamo atomico: si dos confirmaciones llegan casi al mismo tiempo, solo
+    # una puede ganar este UPDATE (SQLite serializa escritores). La que pierde
+    # ve rowcount == 0 y se detiene antes de tocar saldo o posiciones.
+    cur = conn.execute(
+        "UPDATE orders SET estado='ejecutando' WHERE order_id=? AND estado='pendiente'",
+        (order_id,))
+    if cur.rowcount == 0:
+        raise ReglaDeNegocio(
+            "La orden ya no está pendiente (fue ejecutada, rechazada o cancelada "
+            "por otra solicitud).",
+            sugerencia="Llama `get_orders` para ver el estado actual.",
+        )
+
     legs = db.query(conn, "SELECT * FROM order_legs WHERE order_id = ?", (order_id,))
     cuenta = db.query_one(
         conn, "SELECT * FROM accounts WHERE account_id = ?", (orden["account_id"],))
 
-    if cuenta["saldo_disponible"] + 1e-6 < orden["monto"]:
+    # Segunda pasada del control. Entre registrar y confirmar pudieron pasar
+    # minutos: el perfil pudo vencer o alguien pudo reperfilar al cliente a
+    # algo mas conservador. Se vuelve a verificar contra lo que dice la base
+    # AHORA, no contra lo que decia cuando se armo la orden.
+    try:
+        _verificar_idoneidad(
+            conn, orden["client_id"],
+            {leg["instrument_id"]: leg["peso"] for leg in legs},
+            orden["monto"], cuenta, None)
+    except ReglaDeNegocio as exc:
         conn.execute(
             "UPDATE orders SET estado='rechazada', motivo_rechazo=? WHERE order_id=?",
+            (f"idoneidad al ejecutar: {exc}"[:500], order_id))
+        raise
+
+    if cuenta["saldo_disponible"] + 1e-6 < orden["monto"]:
+        conn.execute(
+            "UPDATE orders SET estado='ejecutada', ejecutada_en=? "
+            "WHERE order_id=? AND estado='ejecutando'",
             ("saldo insuficiente al momento de ejecutar", order_id))
         raise ReglaDeNegocio(
             f"Saldo insuficiente al ejecutar: hay ${cuenta['saldo_disponible']:,.2f} "

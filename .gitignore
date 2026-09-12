@@ -11,7 +11,12 @@ venv/
 
 # artefactos generados (se regeneran con `make seed`)
 data/*.sqlite
+# SQLite reescribe -wal y -shm en cada corrida del seed. Estuvieron
+# trackeados y se colaban solos en commits ajenos; se regeneran con
+# `make seed`, asi que no tienen por que vivir en el repo.
 data/*.sqlite-journal
+data/*.sqlite-wal
+data/*.sqlite-shm
 data/*.parquet
 
 node_modules/

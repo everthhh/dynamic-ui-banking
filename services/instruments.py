@@ -4,8 +4,9 @@ from __future__ import annotations
 
 from typing import Any
 
-from bank import db
-from bank.instrumentos import BY_ID
+from bank import carteras, db
+from bank.finance import fiscal
+from bank.instrumentos import BY_ID, duracion_anios
 from services.errors import NotFound, ServiceError
 
 CLASES_VALIDAS = ("deuda_gub", "deuda_corp", "renta_variable",
@@ -90,9 +91,35 @@ def list_instruments(
                 "plazo_dias": f["plazo_dias"],
                 "monto_minimo": f["monto_minimo"],
                 "descripcion": f["descripcion"],
+                "regimen_fiscal": f["regimen_fiscal"],
+                # Los fondos de renta variable mexicana traen el resumen de
+                # lo que tienen dentro: es lo que permite que la tabla
+                # muestre de donde sale el riesgo en lugar de un numero del 1
+                # al 5 sin explicacion.
+                "desglose": _resumen_desglose(f["instrument_id"]),
             }
             for f in filas
         ],
+    }
+
+
+def _resumen_desglose(instrument_id: str) -> dict[str, Any] | None:
+    """Que empresas hay dentro del fondo, en corto. None si no aplica."""
+    if not carteras.tiene_desglose(instrument_id):
+        return None
+    ficha = carteras.ficha(instrument_id)
+    derivado = ficha["derivado_de_tenencias"]
+    return {
+        "estilo": ficha["estilo"],
+        "n_emisoras": ficha["n_emisoras"],
+        "principales": [
+            {"ticker": e["ticker"], "peso": e["peso"], "calificacion": e["calificacion"]}
+            for e in ficha["emisoras"][:3]
+        ],
+        "beta": derivado["beta"],
+        "concentracion_hhi": derivado["concentracion_hhi"],
+        "descuento_por_diversificacion": derivado["descuento_por_diversificacion"],
+        "riesgo_derivado": True,
     }
 
 
@@ -121,6 +148,8 @@ def get_instrument_factsheet(instrument_id: str, meses_historia: int = 60) -> di
     cagr = (fin / inicio) ** (1 / anios) - 1 if anios > 0 else 0.0
     peores = sorted(serie, key=lambda s: s["rend_mensual"])[:3]
 
+    desglose_fondo = carteras.ficha(instrument_id)
+
     return {
         **inst,
         "historia": {
@@ -134,5 +163,25 @@ def get_instrument_factsheet(instrument_id: str, meses_historia: int = 60) -> di
                 for p in peores
             ],
         },
-        "disclaimer": "Serie sintética generada con semilla fija. No es historia real.",
+        # Sensibilidad a tasas: por que un CETES-28 y un Bono M 10A no se
+        # comportan igual aunque los dos sean deuda gubernamental.
+        "sensibilidad_tasas": {
+            "duracion_anios": round(duracion_anios(instrument_id), 4),
+            "sens_reinversion": inst["sens_reinversion"],
+            "perdida_si_suben_100pb": round(
+                -duracion_anios(instrument_id) * 0.01, 6),
+        },
+        "fiscal": {
+            "regimen": fiscal.regimen_de(instrument_id),
+            "etiqueta": fiscal.ETIQUETA_REGIMEN[fiscal.regimen_de(instrument_id)],
+            "arrastre_dividendos_anual": round(
+                fiscal.arrastre_dividendos(instrument_id), 6),
+        },
+        "desglose": desglose_fondo,
+        "disclaimer": (
+            "Serie sintética generada con semilla fija. No es historia real."
+            if not desglose_fondo["tiene_desglose"]
+            else "Serie sintética. Los fundamentales de las emisoras que trae el "
+                 "fondo son una foto con fecha, no un feed de mercado en vivo."
+        ),
     }

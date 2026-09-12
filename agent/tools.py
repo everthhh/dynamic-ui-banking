@@ -226,8 +226,11 @@ TOOLS_DATOS: list[dict[str, Any]] = [
     {
         "name": "list_instruments",
         "description": (
-            "Catálogo de instrumentos filtrado. Pasa `monto_disponible` para no mostrar "
-            "instrumentos cuyo mínimo el cliente no alcanza."
+            "Catálogo de los 24 instrumentos contratables: deuda, pagarés, fondos y "
+            "ETFs. Aquí no hay acciones sueltas; es un producto de fondos. Los fondos "
+            "de renta variable mexicana traen `desglose` con las empresas que tienen "
+            "dentro y su riesgo derivado de ellas. Pasa `monto_disponible` para no "
+            "mostrar instrumentos cuyo mínimo el cliente no alcanza."
         ),
         "input_schema": {
             "type": "object",
@@ -262,6 +265,94 @@ TOOLS_DATOS: list[dict[str, Any]] = [
                                    "default": 60},
             },
             "required": ["instrument_id"],
+        },
+    },
+    {
+        "name": "get_issuer_profile",
+        "description": (
+            "Fundamentales de una empresa de la BMV y el DESGLOSE de su riesgo: beta, "
+            "volatilidad, calificación, apalancamiento, bursatilidad y qué tanto de su "
+            "riesgo es propio de la empresa (el que no desaparece diversificando y que "
+            "el mercado tampoco te paga). Úsala cuando el usuario pregunte «¿qué tan "
+            "segura es esta empresa?» o «¿por qué me conviene un fondo que la trae?». "
+            "La respuesta es la tabla de factores, no tu opinión.\n"
+            "OJO: esta empresa NO se puede contratar. Este es un producto de fondos; "
+            "el cliente llega a ella a través de los fondos que la tienen en cartera, "
+            "y la respuesta te dice cuáles son."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "ticker": {"type": "string",
+                           "description": "Ej. 'WALMEX', 'GFNORTEO', 'CEMEXCPO'."},
+            },
+            "required": ["ticker"],
+        },
+    },
+    {
+        "name": "get_fund_holdings",
+        "description": (
+            "Qué empresas hay DENTRO de lo que el cliente compra.\n"
+            "Con `instrument_id`: la cartera de ese fondo y las cifras que se derivan "
+            "de ella (volatilidad, beta, concentración, riesgo). Es de dónde sale el "
+            "riesgo del fondo: no está tecleado, se calcula desde sus tenencias.\n"
+            "Con `asignacion`: el look-through del portafolio completo, o sea el peso "
+            "EFECTIVO en cada empresa sumando lo que aporta cada fondo. Es la respuesta "
+            "a «¿en qué empresas está mi dinero?» cuando el cliente nunca compró una "
+            "acción. Mira `cobertura_desglose`: los fondos internacionales no se pueden "
+            "ver por dentro y hay que decirlo."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "instrument_id": {"type": "string",
+                                  "description": "Ej. 'NAFTRAC', 'FND-RV-MX'."},
+                "asignacion": {"type": "object",
+                               "additionalProperties": {"type": "number"}},
+            },
+        },
+    },
+    {
+        "name": "get_funding_sources",
+        "description": (
+            "De dónde puede salir el dinero y qué le hace cada opción al cálculo. Con "
+            "`client_id` devuelve las cuentas y créditos REALES del cliente con su tasa "
+            "contratada. Llámala antes de simular si el usuario menciona pagar con "
+            "tarjeta, con un crédito o «lo que tengo en la cuenta»: invertir con deuda "
+            "cambia la referencia de pérdida y baja el perfil aplicable a conservador."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"client_id": {"type": "string"}},
+        },
+    },
+    {
+        "name": "check_suitability",
+        "description": (
+            "¿Esta asignación le corresponde a este cliente? Devuelve `apto`, los "
+            "motivos `bloqueantes` y los `avisos`. Es EXACTAMENTE el mismo control que "
+            "aplica `place_order`, así que si aquí sale `apto: false`, la orden se va a "
+            "rechazar. Úsala antes de pintar una propuesta que armaste tú, para no "
+            "enseñarle al usuario algo que no va a poder ejecutar."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "asignacion": {"type": "object",
+                               "additionalProperties": {"type": "number"}},
+                "client_id": {"type": "string",
+                              "description": "Si lo pasas, el perfil y el horizonte "
+                                             "salen de la base y ganan sobre lo que "
+                                             "mandes tú."},
+                "perfil": {"type": "string",
+                           "enum": ["conservador", "moderado", "balanceado",
+                                    "crecimiento", "agresivo"]},
+                "horizonte_anios": {"type": "number", "exclusiveMinimum": 0},
+                "monto": {"type": "number", "minimum": 0},
+                "origen": {"type": "string",
+                           "description": "Clave de `get_funding_sources`."},
+            },
+            "required": ["asignacion"],
         },
     },
     {
@@ -307,34 +398,53 @@ TOOLS_DATOS: list[dict[str, Any]] = [
     {
         "name": "propose_allocation",
         "description": (
-            "Asignación por reglas del banco para un perfil, horizonte y monto. Devuelve "
-            "`slices` (para `inv.AllocationDonut`) y `asignacion` (para simular y ordenar). "
-            "Nunca inventes porcentajes: pide la propuesta aquí."
+            "Asignación por reglas del banco. Devuelve `slices` (para "
+            "`inv.AllocationDonut`), `asignacion` (para simular y ordenar) e "
+            "`idoneidad` (el veredicto contra el perfil). Nunca inventes porcentajes: "
+            "pide la propuesta aquí.\n"
+            "PASA SIEMPRE `client_id` cuando lo tengas: así el perfil y el horizonte "
+            "salen de la base. Si mandas un `perfil` distinto al vigente, gana el de "
+            "la base y te lo dice en `notas`. La propuesta son SOLO fondos; los "
+            "`slices` de renta variable mexicana traen `principales_emisoras` para "
+            "poder decir en qué empresas acaba el dinero."
         ),
         "input_schema": {
             "type": "object",
             "properties": {
+                "monto": {"type": "number", "exclusiveMinimum": 0},
+                "client_id": {"type": "string",
+                              "description": "Preferido. Toma el perfil vigente y el "
+                                             "horizonte de la base."},
                 "perfil": {"type": "string",
                            "enum": ["conservador", "moderado", "balanceado",
-                                    "crecimiento", "agresivo"]},
+                                    "crecimiento", "agresivo"],
+                           "description": "Solo si no hay `client_id`."},
                 "horizonte_anios": {"type": "number", "exclusiveMinimum": 0, "maximum": 40},
-                "monto": {"type": "number", "exclusiveMinimum": 0},
                 "liquidez_requerida": {
                     "type": "boolean", "default": False,
                     "description": "True si el usuario dijo que podría necesitar el dinero antes.",
                 },
                 "excluir_clases": {"type": "array", "items": {"type": "string"}},
+                "origen": {"type": "string",
+                           "description": "De dónde sale el dinero (`get_funding_sources`). "
+                                          "Con crédito el perfil aplicable baja a "
+                                          "conservador."},
             },
-            "required": ["perfil", "horizonte_anios", "monto"],
+            "required": ["monto"],
         },
     },
     {
         "name": "simulate_portfolio",
         "description": (
-            "Monte Carlo de 5000 trayectorias: escenarios p10/p50/p90 mes a mes, TIR, "
-            "volatilidad, peor caída y probabilidad de perder. Es determinista: los mismos "
-            "argumentos dan los mismos números. Todo lo que pintes en "
-            "`inv.ProjectionChart` viene de aquí."
+            "Monte Carlo de 5000 trayectorias, NETO de impuestos y de costo de "
+            "financiamiento. Devuelve escenarios p10/p50/p90 mes a mes, TIR, "
+            "volatilidad, peor caída, `indice_riesgo` (0-100) y tres probabilidades de "
+            "perder distintas: `prob_perdida_nominal` (no recuperar lo aportado), "
+            "`prob_perdida_real` (no ganarle a la inflación) y `prob_perdida_vs_origen` "
+            "(no ganarle a la deuda o al rendimiento que ya tenía ese dinero). Cuando "
+            "el dinero es prestado, la tercera es la única honesta: úsala.\n"
+            "Es determinista: los mismos argumentos dan los mismos números. Todo lo que "
+            "pintes en `inv.ProjectionChart` viene de aquí."
         ),
         "input_schema": {
             "type": "object",
@@ -347,6 +457,12 @@ TOOLS_DATOS: list[dict[str, Any]] = [
                 "monto": {"type": "number", "minimum": 0},
                 "horizonte_anios": {"type": "number", "exclusiveMinimum": 0, "maximum": 40},
                 "aportacion_mensual": {"type": "number", "minimum": 0, "default": 0},
+                "origen": {"type": "string",
+                           "description": "De dónde sale el dinero (`get_funding_sources`). "
+                                          "Cambia la referencia de pérdida."},
+                "client_id": {"type": "string",
+                              "description": "Si lo pasas, el resultado trae adjunto el "
+                                             "veredicto de idoneidad."},
             },
             "required": ["asignacion", "monto", "horizonte_anios"],
         },
@@ -375,6 +491,9 @@ TOOLS_DATOS: list[dict[str, Any]] = [
                 },
                 "etiqueta_izquierda": {"type": "string", "default": "Opción A"},
                 "etiqueta_derecha": {"type": "string", "default": "Opción B"},
+                "origen": {"type": "string",
+                           "description": "Mismo origen para las dos, para que la "
+                                          "diferencia sea de las asignaciones."},
             },
             "required": ["izquierda", "derecha", "monto", "horizonte_anios"],
         },
@@ -389,7 +508,10 @@ TOOLS_DATOS: list[dict[str, Any]] = [
             "llamarla con el MISMO `idempotency_key` y el token que te dio el paso 1.\n"
             "Nunca llames el paso 2 por iniciativa propia. `idempotency_key` debe ser "
             "estable para la misma intención (ej. '<client_id>-<monto>-<turno>'), para que "
-            "un reintento no compre dos veces."
+            "un reintento no compre dos veces.\n"
+            "Los DOS pasos verifican la asignación contra el perfil guardado del cliente "
+            "y la rechazan si no le corresponde. Ese control no se puede desactivar desde "
+            "aquí: si quieres saber antes si va a pasar, llama `check_suitability`."
         ),
         "input_schema": {
             "type": "object",
@@ -404,6 +526,9 @@ TOOLS_DATOS: list[dict[str, Any]] = [
                     "type": "string",
                     "description": "SOLO en el paso 2, con el valor exacto del paso 1.",
                 },
+                "origen": {"type": "string",
+                           "description": "Por omisión se deduce del tipo de la cuenta "
+                                          "de cargo."},
             },
             "required": ["client_id", "asignacion", "monto", "idempotency_key"],
         },

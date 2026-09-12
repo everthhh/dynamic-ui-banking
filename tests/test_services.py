@@ -94,8 +94,9 @@ def test_rango_de_meses_invalido(meses):
 
 # --------------------------------------------------------------- instrumentos
 def test_el_catalogo_completo_sale_ordenado_por_rendimiento_neto():
+    from bank.instrumentos import INSTRUMENTOS
     r = REGISTRO["list_instruments"](limite=100)
-    assert r["total"] == 24
+    assert r["total"] == len(INSTRUMENTOS)
     netos = [i["rend_neto_anual"] for i in r["instrumentos"]]
     assert netos == sorted(netos, reverse=True)
     for i in r["instrumentos"]:
@@ -365,6 +366,12 @@ def test_todo_servicio_devuelve_algo_serializable(nombre):
         "set_card_alias": {"client_id": "CLI-0002", "card_id": card_debito, "alias": "Diario"},
         "set_account_alias": {"client_id": "CLI-0002", "account_id": account_id, "alias": None},
         "set_budget": {"client_id": "CLI-0002", "categoria": "super", "monto_mensual": 1500},
+        "get_issuer_profile": {"ticker": "WALMEX"},
+        "get_funding_sources": {"client_id": "CLI-0002"},
+        "check_suitability": {"asignacion": {"CETES-364": 1.0},
+                              "perfil": "conservador", "horizonte_anios": 2},
+        "get_fund_holdings": {"instrument_id": "NAFTRAC",
+                              "asignacion": {"NAFTRAC": 0.5, "CETES-364": 0.5}},
     }[nombre]
     salida = REGISTRO[nombre](**argumentos)
     json.dumps(salida)          # explota si hay algo no serializable
