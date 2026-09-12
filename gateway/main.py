@@ -23,6 +23,7 @@ import uuid
 from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator
 
+from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -34,6 +35,11 @@ from agent.loop import AgenteUIGenerativa, Sesion
 from agent.mcp_client import ClienteMCP
 from bank import db
 from services.orders import registrar_superficie
+
+# .env NUNCA se commitea (está en .gitignore); load_dotenv no pisa una
+# variable que ya exista en el entorno real (deploy, CI), solo rellena lo
+# que falte para desarrollo local. Ver .env.example.
+load_dotenv()
 
 logging.basicConfig(level=os.environ.get("LOG_LEVEL", "INFO"))
 log = logging.getLogger("gateway")

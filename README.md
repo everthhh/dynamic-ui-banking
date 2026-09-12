@@ -25,13 +25,19 @@ make catalog      # artefactos derivados del catálogo A2UI
 make fixtures     # guion grabado del front
 
 # con API key: agente real
-export ANTHROPIC_API_KEY=sk-ant-...
-make api          # terminal 1 · gateway en :8000
+cp .env.example .env    # y pon tu ANTHROPIC_API_KEY real ahí — .env nunca se commitea
+make api          # terminal 1 · gateway en :8000 (carga .env con python-dotenv)
 make web          # terminal 2 · front en :5173
 
 # sin API key ni backend: guion grabado con datos reales
 make web          # y abre http://localhost:5173/?mock=1
 ```
+
+**La clave nunca toca el repo.** `.env` está en `.gitignore`;
+`gateway/main.py` la carga con `load_dotenv()` al arrancar y nada más lo
+necesita — ni siquiera `mcp_server/`, que corre en su propio subproceso sin
+heredar variables de entorno arbitrarias. Ver `.env.example` para la lista
+completa de variables y las reglas de manejo.
 
 Antes de empujar nada:
 
