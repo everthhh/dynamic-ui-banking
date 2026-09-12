@@ -11,6 +11,12 @@ from typing import Any, Mapping
 
 from bank.finance import montecarlo
 
+# Vocabulario de formatos que puede llevar una fila. Tiene que coincidir con
+# lo que sabe pintar `porFormato` en web/src/format.ts: si aqui aparece uno
+# que alla no existe, la celda cae al formato por defecto y el numero se ve
+# mal sin que nadie se entere.
+FORMATOS_VALIDOS = frozenset({"moneda", "porcentaje", "numero", "anios", "texto"})
+
 METRICAS = {
     "valor_final_p50":      {"etiqueta": "Valor esperado (mediana)", "formato": "moneda", "mejor": "alto"},
     "valor_final_p10":      {"etiqueta": "Escenario malo (p10)",     "formato": "moneda", "mejor": "alto"},
@@ -20,10 +26,21 @@ METRICAS = {
     "volatilidad_anual":    {"etiqueta": "Volatilidad anual",        "formato": "porcentaje", "mejor": "bajo"},
     "max_drawdown":         {"etiqueta": "Peor caída promedio",      "formato": "porcentaje", "mejor": "bajo"},
     "prob_perdida_nominal": {"etiqueta": "Probabilidad de perder",   "formato": "porcentaje", "mejor": "bajo"},
+    "prob_perdida_real":    {"etiqueta": "Prob. de perder contra la inflación",
+                             "formato": "porcentaje", "mejor": "bajo"},
+    "prob_perdida_vs_origen": {"etiqueta": "Prob. de perder contra el origen del dinero",
+                               "formato": "porcentaje", "mejor": "bajo"},
+    "perdida_esperada_pct": {"etiqueta": "Pérdida esperada",         "formato": "porcentaje", "mejor": "bajo"},
+    "cvar_95_pct":          {"etiqueta": "Pérdida en el 5% peor (CVaR)",
+                             "formato": "porcentaje", "mejor": "bajo"},
+    "indice_riesgo":        {"etiqueta": "Índice de riesgo (0-100)", "formato": "numero", "mejor": "bajo"},
+    "impuestos_p50":        {"etiqueta": "Impuestos pagados (mediana)",
+                             "formato": "moneda", "mejor": "bajo"},
 }
 
 METRICAS_DEFAULT = ("valor_final_p50", "valor_final_p10", "tir_anual_p50",
-                    "volatilidad_anual", "max_drawdown", "prob_perdida_nominal")
+                    "volatilidad_anual", "max_drawdown", "prob_perdida_nominal",
+                    "prob_perdida_real", "cvar_95_pct", "indice_riesgo")
 
 
 class ComparacionInvalida(ValueError):
@@ -40,6 +57,7 @@ def comparar(
     metricas: tuple[str, ...] = METRICAS_DEFAULT,
     etiqueta_izquierda: str = "Opción A",
     etiqueta_derecha: str = "Opción B",
+    origen: str | None = None,
 ) -> dict[str, Any]:
     desconocidas = [m for m in metricas if m not in METRICAS]
     if desconocidas:
@@ -48,8 +66,10 @@ def comparar(
             f"Disponibles: {', '.join(METRICAS)}"
         )
 
-    sim_izq = montecarlo.simular(izquierda, monto, horizonte_anios, aportacion_mensual)
-    sim_der = montecarlo.simular(derecha, monto, horizonte_anios, aportacion_mensual)
+    sim_izq = montecarlo.simular(izquierda, monto, horizonte_anios, aportacion_mensual,
+                                 origen=origen)
+    sim_der = montecarlo.simular(derecha, monto, horizonte_anios, aportacion_mensual,
+                                 origen=origen)
     res_izq = montecarlo.metricas_resumen(sim_izq)
     res_der = montecarlo.metricas_resumen(sim_der)
 
@@ -82,6 +102,9 @@ def comparar(
             "horizonte_anios": horizonte_anios,
             "aportacion_mensual": round(aportacion_mensual, 2),
             "trayectorias": sim_izq["trayectorias"],
+            "origen": sim_izq["origen"],
+            "impuestos_aplicados": sim_izq["impuestos"]["aplicados"],
+            **sim_izq["supuestos"],
         },
         "izquierda": {"etiqueta": etiqueta_izquierda, "asignacion": sim_izq["asignacion"],
                       "metricas": res_izq, "escenarios": sim_izq["escenarios"]},

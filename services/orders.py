@@ -11,6 +11,13 @@ Dos candados, los dos exigidos por §07 del marco tecnico:
      reintenta la misma orden (porque se le cayo el stream, porque se confundio
      de turno), la segunda llamada devuelve el mismo folio con
      `duplicado: true` en lugar de comprar dos veces.
+
+  3. Idoneidad. La asignacion se verifica contra el perfil GUARDADO del
+     cliente antes de registrar la orden y otra vez antes de ejecutarla. Este
+     era el hueco grande: el modelo podia armar cualquier asignacion y nadie
+     la cruzaba contra el perfil. Se revisa dos veces a proposito, porque
+     entre el paso 1 y el paso 2 pueden pasar minutos y el perfil pudo
+     vencer.
 """
 
 from __future__ import annotations
@@ -23,6 +30,8 @@ from datetime import date, datetime, timedelta
 from typing import Any
 
 from bank import db
+from bank.finance import idoneidad
+from bank.finance import origen as origen_mod
 from bank.instrumentos import BY_ID
 from services.errors import NotFound, ReglaDeNegocio, ServiceError
 from services.portfolio import _asignacion_desde_entrada
@@ -129,6 +138,52 @@ def _orden_a_dict(conn, order_id: str) -> dict[str, Any]:
     return {**orden, "legs": legs}
 
 
+def _verificar_idoneidad(
+    conn,
+    client_id: str,
+    pesos: dict[str, float],
+    monto: float,
+    cuenta: dict[str, Any],
+    origen: str | None,
+) -> dict[str, Any]:
+    """Cruza la asignacion contra el perfil vigente. Revienta si no es apta.
+
+    El perfil sale de la BASE, nunca de lo que diga el modelo. El horizonte
+    tambien. El origen, si no se especifica, se deduce del tipo de la cuenta
+    de cargo: cargar a una cuenta de nomina no es lo mismo que cargar a una
+    de inversion.
+    """
+    perfil = db.query_one(
+        conn,
+        "SELECT perfil, score, horizonte_meses, vigente_hasta FROM risk_profiles"
+        " WHERE client_id = ? ORDER BY respondido_en DESC LIMIT 1", (client_id,))
+    if perfil is None:
+        raise ReglaDeNegocio(
+            f"{client_id} no tiene perfil de riesgo. No puedo ejecutar una orden "
+            "sin saber si le corresponde.",
+            sugerencia="Perfílalo con `get_risk_questions` y `score_risk_profile`.")
+
+    hoy = _ahora(conn).date()
+    if date.fromisoformat(perfil["vigente_hasta"]) < hoy:
+        raise ReglaDeNegocio(
+            f"El perfil de {client_id} venció el {perfil['vigente_hasta']}.",
+            sugerencia="Vuelve a perfilar con `score_risk_profile` antes de operar.")
+
+    if origen is None:
+        origen = origen_mod.desde_cuenta(cuenta["tipo"]).clave
+
+    try:
+        return idoneidad.exigir(
+            pesos, perfil["perfil"], perfil["horizonte_meses"] / 12,
+            monto=monto, origen=origen)
+    except idoneidad.IdoneidadInvalida as exc:
+        raise ReglaDeNegocio(
+            str(exc),
+            sugerencia="Pide una asignación con `propose_allocation` pasando "
+                       "`client_id`, o revisa el detalle con `check_suitability`.",
+        ) from exc
+
+
 # ---------------------------------------------------------------------------
 def place_order(
     client_id: str,
@@ -137,12 +192,19 @@ def place_order(
     idempotency_key: str,
     account_id: str | None = None,
     confirmation_token: str | None = None,
+    origen: str | None = None,
 ) -> dict[str, Any]:
     """Registra o ejecuta una orden de inversion.
 
     Sin `confirmation_token`: valida todo, deja la orden `pendiente` y devuelve
     el token mas un resumen para que el usuario confirme en pantalla.
     Con `confirmation_token` valido: ejecuta, mueve el saldo y abre posiciones.
+
+    Antes de cualquiera de las dos cosas corre el control de idoneidad
+    (`bank/finance/idoneidad.py`) contra el perfil GUARDADO del cliente. Ese
+    control no es opcional ni negociable desde el prompt: es la razon por la
+    que el modelo no puede ejecutar una asignacion que no le corresponde al
+    cliente, aunque se la haya inventado y aunque el usuario diga que si.
     """
     monto = float(monto)
     if not idempotency_key or not isinstance(idempotency_key, str):
@@ -218,6 +280,9 @@ def place_order(
                 sugerencia="Baja el monto o elige otra cuenta con `get_accounts`.",
             )
 
+        veredicto = _verificar_idoneidad(conn, client_id, pesos, monto,
+                                         cuenta, origen)
+
         legs = _armar_legs(conn, pesos, monto)
         momento = _ahora(conn)
         order_id = str(uuid.uuid4())
@@ -253,6 +318,7 @@ def place_order(
             "legs": legs,
             "saldo_antes": round(cuenta["saldo_disponible"], 2),
             "saldo_despues_estimado": round(cuenta["saldo_disponible"] - monto, 2),
+            "idoneidad": veredicto,
             "requiere_confirmacion": True,
             "confirmation_token": token,
             "vence_en_minutos": VIGENCIA_TOKEN_MINUTOS,
@@ -268,6 +334,21 @@ def _ejecutar(conn, order_id: str) -> dict[str, Any]:
     legs = db.query(conn, "SELECT * FROM order_legs WHERE order_id = ?", (order_id,))
     cuenta = db.query_one(
         conn, "SELECT * FROM accounts WHERE account_id = ?", (orden["account_id"],))
+
+    # Segunda pasada del control. Entre registrar y confirmar pudieron pasar
+    # minutos: el perfil pudo vencer o alguien pudo reperfilar al cliente a
+    # algo mas conservador. Se vuelve a verificar contra lo que dice la base
+    # AHORA, no contra lo que decia cuando se armo la orden.
+    try:
+        _verificar_idoneidad(
+            conn, orden["client_id"],
+            {leg["instrument_id"]: leg["peso"] for leg in legs},
+            orden["monto"], cuenta, None)
+    except ReglaDeNegocio as exc:
+        conn.execute(
+            "UPDATE orders SET estado='rechazada', motivo_rechazo=? WHERE order_id=?",
+            (f"idoneidad al ejecutar: {exc}"[:500], order_id))
+        raise
 
     if cuenta["saldo_disponible"] + 1e-6 < orden["monto"]:
         conn.execute(

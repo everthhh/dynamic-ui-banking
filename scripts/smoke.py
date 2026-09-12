@@ -72,11 +72,19 @@ def _bloques_del_turno(turno: dict, token: str | None) -> list[list]:
         "get_client_snapshot": {"client_id": "CLI-0001"},
         "get_risk_questions": {},
         "get_spending_summary": {"client_id": "CLI-0001"},
+        # El perfil se GUARDA. Antes iba con `guardar: False` y funcionaba
+        # porque nadie verificaba nada; ahora `place_order` exige un perfil
+        # vigente en la base, igual que en una conversación real. La base del
+        # smoke es temporal, así que esto no toca el invariante del demo
+        # (CLI-0001 arranca sin perfil).
         "score_risk_profile": {"answers": [
             {"id": "horizonte", "value": 4}, {"id": "reaccion_caida", "value": 3},
             {"id": "experiencia", "value": 2}, {"id": "proposito", "value": 3}],
-            "guardar": False},
-        "propose_allocation": {"perfil": "balanceado", "horizonte_anios": 5, "monto": 80000},
+            "client_id": "CLI-0001", "guardar": True},
+        # `client_id` hace que el perfil salga de la base; el horizonte
+        # explícito es el que dijo el usuario ("los podría dejar 5 años").
+        "propose_allocation": {"client_id": "CLI-0001", "horizonte_anios": 5,
+                               "monto": 80000},
         "simulate_portfolio": {"asignacion": {"CETES-364": 0.5, "FND-GUB-CP": 0.5},
                                "monto": 80000, "horizonte_anios": 5},
         "compare_allocations": {"izquierda": {"CETES-364": 1.0},

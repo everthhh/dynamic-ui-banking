@@ -239,18 +239,23 @@ def get_spending_summary(client_id: str, meses: int = 6) -> dict[str, Any]:
         }
 
     gasto_total = sum(g["total"] for g in gasto.values())
-    prom_gasto = gasto_total / meses
-    prom_ingreso = ingreso_observado / meses
-    capacidad = max(0.0, prom_ingreso - prom_gasto)
+    # Se redondea PRIMERO y se resta despues, igual que en `get_client_snapshot`.
+    # Al reves, las tres cifras que van juntas en pantalla (ingreso, gasto y
+    # capacidad) pueden no cuadrar por un centavo por doble redondeo, y la
+    # capacidad de ahorro es justo la que alimenta el tope del slider de
+    # aportacion: tiene que ser la resta de lo que el usuario esta viendo.
+    prom_gasto = round(gasto_total / meses, 2)
+    prom_ingreso = round(ingreso_observado / meses, 2)
+    capacidad = round(max(0.0, prom_ingreso - prom_gasto), 2)
 
     return {
         "client_id": client_id,
         "meses": meses,
         "desde": desde,
         "ingreso_mensual_declarado": cliente["ingreso_mensual"],
-        "ingreso_mensual_observado": round(prom_ingreso, 2),
-        "gasto_mensual_promedio": round(prom_gasto, 2),
-        "capacidad_ahorro_mensual": round(capacidad, 2),
+        "ingreso_mensual_observado": prom_ingreso,
+        "gasto_mensual_promedio": prom_gasto,
+        "capacidad_ahorro_mensual": capacidad,
         "tasa_ahorro": round(capacidad / prom_ingreso, 4) if prom_ingreso else 0.0,
         "por_categoria": sorted(gasto.values(), key=lambda g: -g["total"]),
     }

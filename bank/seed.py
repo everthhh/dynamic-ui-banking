@@ -25,14 +25,22 @@ from pathlib import Path
 
 import numpy as np
 
-from bank import db
-from bank.instrumentos import INSTRUMENTOS, correlacion
+from bank import carteras, db, emisoras, mercado
+from bank.finance import fiscal
+from bank.instrumentos import (
+    INSTRUMENTOS,
+    correlacion_instrumentos,
+    duracion_anios,
+    sensibilidad_reinversion,
+)
 
 MESES_SERIE = 120          # 10 anos
 MESES_MOVIMIENTOS = 18
 FECHA_VALUACION = date(2026, 9, 1)
-TASA_LIBRE_RIESGO = 0.0755
-INFLACION_ANUAL = 0.0415
+# Los parametros de mercado ya no se inventan aqui: viven en bank/mercado.py
+# con su procedencia. Estos alias existen para no romper a quien los importa.
+TASA_LIBRE_RIESGO = mercado.TASA_LIBRE_RIESGO
+INFLACION_ANUAL = mercado.INFLACION_ANUAL
 
 CIUDADES = ("Monterrey", "Guadalajara", "CDMX", "Queretaro",
             "Merida", "Puebla", "Tijuana", "Leon")
@@ -110,12 +118,12 @@ def generar_series(rng: np.random.Generator) -> dict[str, list[tuple[date, float
     corr = np.empty((n, n))
     for i, a in enumerate(INSTRUMENTOS):
         for j, b in enumerate(INSTRUMENTOS):
-            if i == j:
-                corr[i, j] = 1.0
-            else:
-                base = correlacion(a.clase, b.clase)
-                # dentro de la misma clase, dos instrumentos se parecen mas
-                corr[i, j] = min(0.97, base + 0.12) if a.clase == b.clase else base
+            # `correlacion_instrumentos` usa el modelo de indice unico entre
+            # dos acciones (beta y sector) y la matriz de clases para el
+            # resto. Antes aqui habia un promedio de clase que ponia a CEMEX
+            # y a WALMEX al 0.94 por ser las dos "renta variable".
+            corr[i, j] = 1.0 if i == j else correlacion_instrumentos(
+                a.instrument_id, b.instrument_id)
     corr = (corr + corr.T) / 2
     corr += np.eye(n) * 1e-6
     try:
@@ -261,18 +269,22 @@ def sembrar_core(conn: sqlite3.Connection, rng: np.random.Generator) -> None:
         # tarjetas
         conn.execute(
             "INSERT INTO cards (card_id, client_id, account_id, tipo, last4, limite_credito,"
-            " saldo_utilizado, dia_corte, dia_pago) VALUES (?,?,?,?,?,?,?,?,?)",
+            " saldo_utilizado, tasa_anual, dia_corte, dia_pago) VALUES (?,?,?,?,?,?,?,?,?,?)",
             (f"CRD-{idx * 2 + 1:04d}", cid, uso, "debito", f"{int(rng.integers(1000, 9999))}",
-             None, 0.0, None, None),
+             None, 0.0, None, None, None),
         )
         if segmento != "nomina" or rng.random() < 0.6:
             limite = round(float(ingreso) * rng.uniform(1.5, 5.0), -3)
+            # La tasa es lo que convierte a la tarjeta en un origen de fondos
+            # evaluable: sin ella no se puede comparar contra el rendimiento
+            # esperado del portafolio.
+            tasa_tdc = round(float(rng.uniform(0.32, 0.52)), 4)
             conn.execute(
                 "INSERT INTO cards (card_id, client_id, account_id, tipo, last4, limite_credito,"
-                " saldo_utilizado, dia_corte, dia_pago) VALUES (?,?,?,?,?,?,?,?,?)",
+                " saldo_utilizado, tasa_anual, dia_corte, dia_pago) VALUES (?,?,?,?,?,?,?,?,?,?)",
                 (f"CRD-{idx * 2 + 2:04d}", cid, None, "credito",
                  f"{int(rng.integers(1000, 9999))}", limite,
-                 round(limite * float(rng.uniform(0.05, 0.55)), 2),
+                 round(limite * float(rng.uniform(0.05, 0.55)), 2), tasa_tdc,
                  int(rng.integers(1, 28)), int(rng.integers(1, 28))),
             )
 
@@ -374,6 +386,42 @@ def sembrar_inversiones(
 
 
 # ---------------------------------------------------------------------------
+# emisoras
+# ---------------------------------------------------------------------------
+def sembrar_emisoras(conn: sqlite3.Connection) -> None:
+    """Vuelca los fundamentales y el riesgo CALCULADO de cada emisora.
+
+    Lo que se guarda en `issuers.score_riesgo` y `issuers.riesgo_1a5` es el
+    resultado de `emisoras.perfil_riesgo()`, no un numero tecleado. El
+    desglose por factor va a `issuer_risk_factors` para que la cifra se pueda
+    auditar sin volver a correr Python.
+    """
+    for e in emisoras.EMISORAS:
+        perfil = emisoras.perfil_riesgo(e)
+        conn.execute(
+            "INSERT INTO issuers (ticker, nombre, sector, precio, fuente_precio,"
+            " fecha_precio, acciones_circulacion, capitalizacion_mdp, float_pct,"
+            " beta, volatilidad_anual, dividend_yield, calificacion,"
+            " deuda_neta_ebitda, cobertura_intereses, indice_capitalizacion,"
+            " importe_operado_mdp, r_cuadrada, score_riesgo, riesgo_1a5, descripcion)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (e.ticker, e.nombre, e.sector, e.precio, e.fuente,
+             emisoras.FECHA_PRECIOS.isoformat(), e.acciones_circulacion,
+             round(emisoras.capitalizacion(e), 2), e.float_pct, e.beta,
+             e.volatilidad_anual, e.dividend_yield, e.calificacion,
+             e.deuda_neta_ebitda, e.cobertura_intereses, e.indice_capitalizacion,
+             e.importe_operado_diario, emisoras.r_cuadrada(e), perfil["score"],
+             perfil["riesgo_1a5"], e.descripcion),
+        )
+        conn.executemany(
+            "INSERT INTO issuer_risk_factors (ticker, factor, valor, peso, aporte)"
+            " VALUES (?,?,?,?,?)",
+            [(e.ticker, f["factor"], f["valor"], f["peso"], f["aporte"])
+             for f in perfil["desglose"]],
+        )
+
+
+# ---------------------------------------------------------------------------
 def construir(path: Path | None = None) -> Path:
     rng = np.random.default_rng(db.SEED)
     target = db.reset(path)
@@ -381,21 +429,47 @@ def construir(path: Path | None = None) -> Path:
 
     with db.session(target) as conn:
         conn.execute(
-            "INSERT INTO market_params (id, fecha_valuacion, tasa_libre_riesgo,"
-            " inflacion_anual, seed) VALUES (1,?,?,?,?)",
-            (FECHA_VALUACION.isoformat(), TASA_LIBRE_RIESGO, INFLACION_ANUAL, db.SEED),
+            "INSERT INTO market_params (id, fecha_valuacion, fecha_mercado,"
+            " tasa_libre_riesgo, tasa_referencia, tasa_larga, inflacion_anual,"
+            " ipc_nivel, volatilidad_mercado, prima_riesgo_mercado,"
+            " isr_retencion_capital, isr_ganancia_capital, isr_dividendos, seed)"
+            " VALUES (1,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            (FECHA_VALUACION.isoformat(), mercado.FECHA_MERCADO.isoformat(),
+             mercado.TASA_LIBRE_RIESGO, mercado.TASA_REFERENCIA, mercado.TASA_LARGA,
+             mercado.INFLACION_ANUAL, mercado.IPC_NIVEL, mercado.VOLATILIDAD_MERCADO,
+             mercado.PRIMA_RIESGO_MERCADO, mercado.ISR_RETENCION_CAPITAL,
+             mercado.ISR_GANANCIA_CAPITAL, mercado.ISR_DIVIDENDOS, db.SEED),
         )
+        for fila in mercado.ficha()["parametros"]:
+            conn.execute(
+                "INSERT INTO market_sources (clave, valor, tipo, fuente, tomado_en)"
+                " VALUES (?,?,?,?,?)",
+                (fila["clave"], fila["valor"], fila["tipo"], fila["fuente"],
+                 fila["tomado_en"])),
+        sembrar_emisoras(conn)
         for inst in INSTRUMENTOS:
             conn.execute(
                 "INSERT INTO instruments (instrument_id, nombre, clase, emisor, moneda,"
                 " rend_esperado_anual, volatilidad_anual, comision_anual, plazo_dias,"
-                " liquidez, monto_minimo, riesgo_1a5, isin_mock, descripcion)"
-                " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+                " liquidez, monto_minimo, riesgo_1a5, isin_mock, descripcion,"
+                " regimen_fiscal, duracion_anios, sens_reinversion, riesgo_derivado)"
+                " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (inst.instrument_id, inst.nombre, inst.clase, inst.emisor, inst.moneda,
                  inst.rend_esperado_anual, inst.volatilidad_anual, inst.comision_anual,
                  inst.plazo_dias, inst.liquidez, inst.monto_minimo, inst.riesgo_1a5,
-                 f"MX0MOCK{abs(hash(inst.instrument_id)) % 10**6:06d}", inst.descripcion),
+                 f"MX0MOCK{abs(hash(inst.instrument_id)) % 10**6:06d}", inst.descripcion,
+                 fiscal.regimen_de(inst.instrument_id),
+                 duracion_anios(inst.instrument_id),
+                 sensibilidad_reinversion(inst.instrument_id),
+                 int(carteras.tiene_desglose(inst.instrument_id))),
             )
+        # Las carteras van DESPUES de los instrumentos: la llave foranea las
+        # ata a `instruments`, no al reves.
+        for fondo, pesos in carteras.COMPOSICION.items():
+            conn.executemany(
+                "INSERT INTO fund_holdings (instrument_id, ticker, peso)"
+                " VALUES (?,?,?)",
+                [(fondo, ticker, peso) for ticker, peso in pesos.items()])
         conn.executemany(
             "INSERT INTO instrument_series (instrument_id, fecha, valor_unitario, rend_mensual)"
             " VALUES (?,?,?,?)",
@@ -445,6 +519,45 @@ def verificar(path: Path | None = None) -> list[str]:
             problemas.append(f"clients: esperaba {len(CLIENTES)}, hay {n}")
         if uno("SELECT COUNT(*) n FROM transactions") < 8 * MESES_MOVIMIENTOS * 10:
             problemas.append("transactions: muy pocos movimientos")
+        if (n := uno("SELECT COUNT(*) n FROM issuers")) != len(emisoras.EMISORAS):
+            problemas.append(f"issuers: esperaba {len(emisoras.EMISORAS)}, hay {n}")
+        esperado_factores = len(emisoras.EMISORAS) * len(emisoras.PESOS_RIESGO)
+        if (n := uno("SELECT COUNT(*) n FROM issuer_risk_factors")) != esperado_factores:
+            problemas.append(
+                f"issuer_risk_factors: esperaba {esperado_factores}, hay {n}")
+        # El riesgo guardado tiene que seguir siendo el que calcula el modelo.
+        # Si alguien toca un fundamental y no vuelve a sembrar, esto lo caza.
+        for fila in conn.execute(
+                "SELECT ticker, score_riesgo, riesgo_1a5 FROM issuers").fetchall():
+            vivo = emisoras.perfil_riesgo(emisoras.POR_TICKER[fila["ticker"]])
+            if abs(vivo["score"] - fila["score_riesgo"]) > 0.01 or                     vivo["riesgo_1a5"] != fila["riesgo_1a5"]:
+                problemas.append(
+                    f"{fila['ticker']}: el riesgo guardado ya no coincide con el "
+                    f"calculado ({fila['score_riesgo']} vs {vivo['score']}). "
+                    "Corre `make seed`.")
+        # Los precios son una foto con fecha. Si envejece demasiado hay que
+        # volver a consultarlos, no seguir presentandolos como actuales.
+        dias = (FECHA_VALUACION - emisoras.FECHA_PRECIOS).days
+        if dias > 90:
+            problemas.append(
+                f"issuers: la foto de precios tiene {dias} dias. Actualiza "
+                "bank/emisoras.py y vuelve a sembrar.")
+        if uno("SELECT COUNT(*) n FROM market_sources") == 0:
+            problemas.append("market_sources: sin procedencia de los parametros")
+        esperado_holdings = sum(len(v) for v in carteras.COMPOSICION.values())
+        if (n := uno("SELECT COUNT(*) n FROM fund_holdings")) != esperado_holdings:
+            problemas.append(
+                f"fund_holdings: esperaba {esperado_holdings}, hay {n}")
+        # Este es un producto de fondos: ninguna emisora puede ser contratable.
+        contratables = conn.execute(
+            "SELECT COUNT(*) n FROM instruments WHERE instrument_id IN"
+            " (SELECT ticker FROM issuers)").fetchall()[0]["n"]
+        if contratables:
+            problemas.append(
+                f"{contratables} emisora(s) aparecen como instrumento contratable. "
+                "Las acciones sueltas no se venden en este producto.")
+        problemas += emisoras.validar_catalogo()
+        problemas += carteras.validar()
         vigentes = conn.execute(
             "SELECT COUNT(*) n FROM risk_profiles WHERE client_id='CLI-0001'"
             " AND vigente_hasta >= ?", (FECHA_VALUACION.isoformat(),)

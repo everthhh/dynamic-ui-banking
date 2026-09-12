@@ -54,9 +54,12 @@ dynamic-ui-banking/
 ├─ bank/            simulación de la base del banco + motor financiero
 │  ├─ schema.sql       core bancario e inversiones
 │  ├─ seed.py          generador determinista (semilla 20260912)
-│  ├─ instrumentos.py  24 instrumentos, sus correlaciones y los bloques
-│  └─ finance/         riesgo, reglas de asignación, Monte Carlo, comparación
-├─ services/        la única superficie que el agente puede tocar (15 servicios)
+│  ├─ mercado.py       parámetros de mercado CON su procedencia y fecha
+│  ├─ emisoras.py      15 emisoras BMV: fundamentales y riesgo derivado de ellos
+│  ├─ carteras.py      qué empresas hay DENTRO de cada fondo (look-through)
+│  ├─ instrumentos.py  24 instrumentos contratables, correlaciones y bloques
+│  └─ finance/         riesgo, idoneidad, origen de fondos, fiscal, Monte Carlo
+├─ services/        la única superficie que el agente puede tocar (17 servicios)
 ├─ mcp_server/      servidor MCP standalone que expone services/ por stdio
 ├─ a2ui/            catalog.json (fuente única de verdad) + validador + contrato
 ├─ agent/           loop propio sobre el SDK nativo de Anthropic + cliente MCP
@@ -78,6 +81,37 @@ número que llega a pantalla viene de un `tool_result` calculado en
 determinista —la semilla se deriva de los argumentos con BLAKE2b— así que mover
 un slider y regresarlo devuelve exactamente los mismos números. En un demo en
 vivo eso importa.
+
+### 1b. Los guardarraíles son código, no prompt
+
+Un guardarraíl que vive en el system prompt es una sugerencia. Dos controles
+están en `bank/finance/` y el modelo no puede desactivarlos:
+
+**Idoneidad** (`idoneidad.py`). Toda asignación se cruza contra el perfil
+**guardado** del cliente antes de simularse y antes de ejecutarse: riesgo del
+instrumento contra el perfil, techo de renta variable, concentración efectiva
+por empresa y por sector **mirando dentro de los fondos**, plazo forzoso contra
+el horizonte y montos mínimos. `place_order` lo verifica **dos veces** —al
+registrar y al ejecutar— porque entre los dos pasos pueden pasar minutos y el
+perfil pudo vencer. Si el modelo pide una propuesta «agresiva» para un cliente
+con score 18, gana la base y queda escrito en `notas`.
+
+**Origen de los fondos** (`origen.py`). No es lo mismo invertir un excedente de
+la cuenta de ahorro que invertir con una tarjeta al 42%, y hasta ahora el
+sistema trataba los dos casos igual. Con dinero prestado: la deuda corre en
+paralelo y la referencia para «no perder» deja de ser lo aportado, el perfil
+aplicable baja a conservador, y la operación se bloquea por **condición de
+arbitraje** si el rendimiento esperado no supera el costo del crédito. Con el
+catálogo actual el instrumento más rentable espera 14.9% y el crédito más barato
+cuesta 10.75%, así que casi todo crédito queda bloqueado. Ese es el resultado
+correcto, no un efecto secundario.
+
+Por eso `simulate_portfolio` devuelve **tres** probabilidades de perder y no
+una: nominal (no recuperar lo aportado), real (no ganarle a la inflación) y
+contra el origen (no ganarle a la deuda o a lo que ese dinero ya rendía). Con
+crédito, la única honesta es la tercera. Y cada una viene acompañada de cuánto
+se pierde cuando se pierde —pérdida media condicional, VaR y CVaR 95—, porque
+una probabilidad sola no distingue perder 2% de perder 40%.
 
 ### 2. El catálogo es la fuente única de verdad
 
@@ -191,16 +225,60 @@ reproducible byte a byte.
 **Core bancario:** 8 clientes con cuentas, 18 meses de movimientos con barrido de
 fin de mes, tarjetas de débito y crédito, y créditos con amortización real.
 
-**Inversiones:** 24 instrumentos con perfil riesgo-rendimiento plausible para
-México a 2026 (CETES, bonos M, UDIBONOs, pagarés, fondos, ETFs, FIBRAs), 120
-meses de series por instrumento con GBM correlacionado entre clases de activo
-vía Cholesky, posiciones y órdenes.
+**Inversiones:** 24 instrumentos contratables (CETES, bonos M, UDIBONOs,
+pagarés, fondos y ETFs), repreciados sobre la curva real de septiembre 2026:
+CETES 28d en 6.49%, tasa objetivo de Banxico en 6.50%. Más 120 meses de series
+por instrumento con GBM correlacionado vía Cholesky, posiciones y órdenes.
 
-Dos detalles del modelo que vale la pena defender:
+**Esto es un producto de fondos, no una casa de bolsa.** No se venden acciones
+sueltas y no hay trading. Pero debajo del catálogo viven **15 emisoras reales de
+la BMV** (WALMEX, GFNORTEO, AMXB, GMEXICOB, CEMEXCPO, FEMSAUBD, BIMBOA, KOFUBL,
+TLEVISACPO, ALFAA, ORBIA, ASURB, GAPB, PENOLES, LIVEPOLC1) como **tenencias de
+los fondos**. El cliente nunca compra WALMEX; compra un fondo que la trae. Un
+invariante del seed lo verifica: ninguna emisora puede aparecer como instrumento
+contratable.
+
+Cinco precios están **anclados** a una consulta con fecha; el resto de los
+precios y todos los demás fundamentales son **estimados**, y cada `Emisora` lo
+declara en su campo `fuente`. No es un feed en vivo: es una foto con fecha,
+porque el seed tiene que ser reproducible byte a byte.
+
+**El riesgo de una empresa no se captura, se calcula.** `bank/emisoras.py`
+combina seis factores —volatilidad, beta, calificación crediticia,
+apalancamiento y cobertura, bursatilidad y tamaño, y riesgo propio (`1 − R²`)—
+y devuelve el desglose, no solo el número. Si alguien pregunta por qué Televisa
+sale 70/100 y Walmex 17, la respuesta es una tabla con pesos y aportes.
+
+**Y el riesgo del fondo tampoco.** `NAFTRAC` y `FND-RV-MX` no declaran su
+volatilidad: sale de `sqrt(w'Σw)` sobre las empresas que traen, con la matriz de
+correlación entre emisoras (modelo de índice único: beta y sector). El índice da
+17.7% de volatilidad y riesgo 3; el fondo activo, más concentrado, da 20.8% y
+riesgo 4. Si una emisora se deteriora, el fondo que la trae sube de riesgo solo.
+El `--check` del seed falla si el riesgo guardado deja de coincidir con el
+calculado.
+
+**Look-through.** `peso efectivo = peso del fondo × peso de la empresa dentro
+del fondo`. Es la única forma de contestar «¿en qué empresas está mi dinero?» en
+un producto donde el cliente nunca compró una acción, y de detectar que alguien
+con 60% en renta variable acabó con 10.4% de su patrimonio en un solo banco sin
+elegirlo. El control de concentración de `idoneidad.py` mira ahí, no en lo que
+se compró. Se reporta también `cobertura_desglose`: los fondos internacionales
+no se pueden ver por dentro y se dice, en lugar de inventarles cartera.
+
+Cuatro detalles del modelo que vale la pena defender:
 
 - `rend_esperado_anual` es rendimiento **aritmético** esperado, así que la deriva
   logarítmica es `log1p(mu) − σ²/2`. El arrastre por volatilidad es real y no se
   esconde: la trayectoria mediana rinde menos que la media.
+- La **tasa corta es estocástica** (Vasicek con reversión a la media). Sin esto,
+  un CETES-28 se simula como si su tasa de hoy durara diez años y el riesgo de
+  reinversión —el riesgo real de los CETES— desaparece. Cada instrumento reacciona
+  con dos parámetros propios: `sens_reinversion` (cuánto se renegocia a la tasa
+  vigente) y `duracion_anios` (cuánto pierde de precio si la tasa sube). Un
+  CETES-28 es todo lo primero; un Bono M 10A, todo lo segundo.
+- La proyección va **neta de impuestos**. La retención de intereses se cobra
+  sobre el **capital**, no sobre la ganancia: se paga aunque el instrumento
+  pierda. En un pagaré al 5.15% se lleva casi un quinto del rendimiento.
 - Con aportaciones mensuales, `(final/aportado)^(1/años) − 1` **miente**: trata el
   dinero del mes 59 como si hubiera estado invertido cinco años. Se reporta la
   **TIR** por bisección sobre los flujos reales.

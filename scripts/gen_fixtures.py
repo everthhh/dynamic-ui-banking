@@ -64,9 +64,14 @@ def construir() -> dict[str, Any]:
         {"id": "experiencia", "value": 2},
         {"id": "proposito", "value": 3},
     ]
-    perfil = REGISTRO["score_risk_profile"](respuestas, client_id=None, guardar=False)
+    # El perfil se GUARDA, igual que en una conversación real: `place_order`
+    # exige un perfil vigente en la base antes de registrar nada. Este script
+    # corre contra una copia temporal de la base (ver `main`), así que no
+    # rompe el invariante del demo de que CLI-0001 arranca sin perfil.
+    perfil = REGISTRO["score_risk_profile"](respuestas, client_id=CLIENT_ID,
+                                            guardar=True)
     propuesta = REGISTRO["propose_allocation"](
-        perfil=perfil["perfil"], horizonte_anios=HORIZONTE, monto=MONTO)
+        client_id=CLIENT_ID, horizonte_anios=HORIZONTE, monto=MONTO)
     asignacion = propuesta["asignacion"]
 
     sim_sin_aporte = REGISTRO["simulate_portfolio"](asignacion, MONTO, HORIZONTE, 0)

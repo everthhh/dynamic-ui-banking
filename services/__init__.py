@@ -28,12 +28,16 @@ REGISTRO: dict[str, Callable[..., Any]] = {
     # lectura: inversiones
     "list_instruments": instruments.list_instruments,
     "get_instrument_factsheet": instruments.get_instrument_factsheet,
+    "get_issuer_profile": portfolio.get_issuer_profile,
+    "get_fund_holdings": portfolio.get_fund_holdings,
+    "get_funding_sources": portfolio.get_funding_sources,
     "get_risk_questions": portfolio.get_risk_questions,
     # calculo
     "score_risk_profile": portfolio.score_risk_profile,
     "propose_allocation": portfolio.propose_allocation,
     "simulate_portfolio": portfolio.simulate_portfolio,
     "compare_allocations": portfolio.compare_allocations,
+    "check_suitability": portfolio.check_suitability,
     # efecto real
     "place_order": orders.place_order,
     "get_orders": orders.get_orders,
