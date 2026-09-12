@@ -34,6 +34,12 @@ async function leerSSE(respuesta: Response, onEvento: ManejadorDeEvento): Promis
     const { done, value } = await lector.read();
     if (done) break;
     buffer += decodificador.decode(value, { stream: true });
+    // El spec de SSE acepta \n, \r\n o \r sueltos como fin de línea. Uvicorn
+    // (y cualquier proxy de por medio) puede mandar \r\n; si solo se busca
+    // "\n\n" el separador nunca hace match, el buffer crece para siempre y
+    // ningún evento llega — sin error visible, porque técnicamente no falló
+    // nada, solo nunca se encontró el corte.
+    buffer = buffer.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
 
     // Un evento SSE termina en línea en blanco.
     let corte: number;
