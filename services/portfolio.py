@@ -7,6 +7,7 @@ bank/finance.
 
 from __future__ import annotations
 
+import math
 import json
 import uuid
 from datetime import date, timedelta
@@ -103,6 +104,7 @@ def _asignacion_desde_entrada(asignacion: Any) -> dict[str, float]:
     El modelo manda una u otra forma segun de donde copio la asignacion, y
     pelearse con eso en el prompt cuesta mas que aceptar las dos aqui.
     """
+
     if isinstance(asignacion, Mapping):
         bruto = {str(k): float(v) for k, v in asignacion.items()}
     elif isinstance(asignacion, list):
@@ -121,6 +123,11 @@ def _asignacion_desde_entrada(asignacion: Any) -> dict[str, float]:
         raise ServiceError(
             "`asignacion` debe ser un objeto {instrument_id: peso} o una lista "
             "de {instrument_id, peso}.")
+
+    no_finitos = [k for k, v in bruto.items() if not math.isfinite(v)]
+    if no_finitos:
+        raise ServiceError(
+            f"Pesos no numéricos (NaN/infinito) en: {', '.join(no_finitos)}.")
 
     fuera = sorted(k for k in bruto if k not in BY_ID)
     if fuera:

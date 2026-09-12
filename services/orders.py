@@ -15,6 +15,8 @@ Dos candados, los dos exigidos por §07 del marco tecnico:
 
 from __future__ import annotations
 
+import hashlib
+import math
 import json
 import secrets
 import sqlite3
@@ -31,6 +33,12 @@ MONTO_MINIMO_ORDEN = 1_000.0
 MONTO_MAXIMO_ORDEN = 50_000_000.0
 TOLERANCIA_PESOS = 0.01
 VIGENCIA_TOKEN_MINUTOS = 15
+
+def _hash_token(token: str) -> str:
+    """El token crudo (alta entropía, 144 bits) nunca se guarda en la base.
+    Un hash simple basta; no es una contraseña de baja entropía sujeta a
+    fuerza bruta, así que no hace falta salt/HMAC/costo adaptativo."""
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def _ahora(conn) -> datetime:
@@ -145,6 +153,8 @@ def place_order(
     Con `confirmation_token` valido: ejecuta, mueve el saldo y abre posiciones.
     """
     monto = float(monto)
+    if not math.isfinite(monto):
+        raise ServiceError("`monto` debe ser un número finito.")
     if not idempotency_key or not isinstance(idempotency_key, str):
         raise ServiceError(
             "`idempotency_key` es obligatorio y debe ser un string estable.",
@@ -165,7 +175,8 @@ def place_order(
             raise NotFound(f"No existe el cliente {client_id!r}.")
 
         existente = db.query_one(
-            conn, "SELECT * FROM orders WHERE idempotency_key = ?", (idempotency_key,))
+            conn, "SELECT * FROM orders WHERE idempotency_key = ? AND client_id = ?",
+            (idempotency_key, client_id))
 
         # ------------------------------------------------ reintento idempotente
         if existente is not None:
@@ -188,11 +199,14 @@ def place_order(
                     **_orden_a_dict(conn, existente["order_id"]),
                     "duplicado": True,
                     "requiere_confirmacion": True,
-                    "confirmation_token": existente["confirmation_token"],
                     "mensaje": "Ya había una orden pendiente con esa clave; "
-                               "sigue esperando confirmación.",
+                               "sigue esperando confirmación. El token original ya se entregó "
+                               "cuando se creó la orden; si se perdió, cancela y vuelve a "
+                               "generar la orden con una nueva `idempotency_key`.",
                 }
-            if not secrets.compare_digest(confirmation_token, existente["confirmation_token"]):
+            if not secrets.compare_digest(
+                _hash_token(confirmation_token), existente["confirmation_token_hash"]
+            ):
                 raise ReglaDeNegocio(
                     "El `confirmation_token` no corresponde a la orden pendiente.",
                     sugerencia="Vuelve a llamar `place_order` sin token para obtener uno nuevo.",
@@ -227,13 +241,13 @@ def place_order(
         try:
             conn.execute(
                 "INSERT INTO orders (order_id, folio, client_id, account_id, estado, monto,"
-                " creada_en, idempotency_key, confirmation_token)"
+                " creada_en, idempotency_key, confirmation_token_hash)"
                 " VALUES (?,?,?,?,'pendiente',?,?,?,?)",
                 (order_id, folio, client_id, cuenta["account_id"], monto,
-                 momento.isoformat(), idempotency_key, token))
+                 momento.isoformat(), idempotency_key, _hash_token(token)))
         except sqlite3.IntegrityError as exc:        # carrera con otro turno
             raise ReglaDeNegocio(
-                "Ya existe una orden con esa `idempotency_key`.",
+                "Ya existe una orden con esa `idempotency_key` para este cliente.",
                 sugerencia="Vuelve a llamar con la misma clave para recuperar su estado.",
             ) from exc
 
@@ -265,13 +279,28 @@ def place_order(
 
 def _ejecutar(conn, order_id: str) -> dict[str, Any]:
     orden = db.query_one(conn, "SELECT * FROM orders WHERE order_id = ?", (order_id,))
+
+    # Reclamo atomico: si dos confirmaciones llegan casi al mismo tiempo, solo
+    # una puede ganar este UPDATE (SQLite serializa escritores). La que pierde
+    # ve rowcount == 0 y se detiene antes de tocar saldo o posiciones.
+    cur = conn.execute(
+        "UPDATE orders SET estado='ejecutando' WHERE order_id=? AND estado='pendiente'",
+        (order_id,))
+    if cur.rowcount == 0:
+        raise ReglaDeNegocio(
+            "La orden ya no está pendiente (fue ejecutada, rechazada o cancelada "
+            "por otra solicitud).",
+            sugerencia="Llama `get_orders` para ver el estado actual.",
+        )
+
     legs = db.query(conn, "SELECT * FROM order_legs WHERE order_id = ?", (order_id,))
     cuenta = db.query_one(
         conn, "SELECT * FROM accounts WHERE account_id = ?", (orden["account_id"],))
 
     if cuenta["saldo_disponible"] + 1e-6 < orden["monto"]:
         conn.execute(
-            "UPDATE orders SET estado='rechazada', motivo_rechazo=? WHERE order_id=?",
+            "UPDATE orders SET estado='ejecutada', ejecutada_en=? "
+            "WHERE order_id=? AND estado='ejecutando'",
             ("saldo insuficiente al momento de ejecutar", order_id))
         raise ReglaDeNegocio(
             f"Saldo insuficiente al ejecutar: hay ${cuenta['saldo_disponible']:,.2f} "

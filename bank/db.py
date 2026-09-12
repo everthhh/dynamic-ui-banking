@@ -39,7 +39,7 @@ def connect(path: Path | None = None, *, readonly: bool = False) -> sqlite3.Conn
         target.parent.mkdir(parents=True, exist_ok=True)
         conn = sqlite3.connect(target)
     conn.row_factory = _row_to_dict
-    conn.execute("PRAGMA foreign_keys = ON")
+    conn.execute("PRAGMA busy_timeout = 3000")
     return conn
 
 
