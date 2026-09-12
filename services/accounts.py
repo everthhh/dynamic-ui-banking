@@ -100,8 +100,11 @@ def get_client_snapshot(client_id: str) -> dict[str, Any]:
         total_mercado = 0.0
         detalle = []
         for p in posiciones:
-            costo = p["titulos"] * p["costo_promedio"]
-            mercado = p["titulos"] * p["valor_actual"]
+            # Se redondea PRIMERO y se resta después. Al revés, las tres cifras
+            # que van juntas en pantalla pueden no cuadrar por un centavo, y un
+            # centavo que no cuadra en un estado de cuenta se nota.
+            costo = round(p["titulos"] * p["costo_promedio"], 2)
+            mercado = round(p["titulos"] * p["valor_actual"], 2)
             total_invertido += costo
             total_mercado += mercado
             detalle.append({
@@ -110,15 +113,17 @@ def get_client_snapshot(client_id: str) -> dict[str, Any]:
                 "clase": p["clase"],
                 "riesgo_1a5": p["riesgo_1a5"],
                 "titulos": round(p["titulos"], 6),
-                "costo_total": round(costo, 2),
-                "valor_mercado": round(mercado, 2),
+                "costo_total": costo,
+                "valor_mercado": mercado,
                 "rendimiento": round(mercado - costo, 2),
                 "rendimiento_pct": round((mercado / costo - 1) if costo else 0.0, 6),
                 "abierta_en": p["abierta_en"],
             })
         detalle.sort(key=lambda d: -d["valor_mercado"])
 
-        efectivo = sum(c["saldo_disponible"] for c in cuentas)
+        efectivo = round(sum(c["saldo_disponible"] for c in cuentas), 2)
+        total_invertido = round(total_invertido, 2)
+        total_mercado = round(total_mercado, 2)
         credito = _resumen_credito(conn, client_id, cliente["ingreso_mensual"])
 
         return {
@@ -131,13 +136,13 @@ def get_client_snapshot(client_id: str) -> dict[str, Any]:
             "horizonte_declarado_meses": cliente["horizonte_meses"],
             "fecha_valuacion": hoy.isoformat(),
             "cuentas": cuentas,
-            "efectivo_total": round(efectivo, 2),
+            "efectivo_total": efectivo,
             "perfil_riesgo": perfil,
             "perfil_vigente": bool(perfil and perfil["vigente"]),
             "posiciones": detalle,
             "inversion": {
-                "costo_total": round(total_invertido, 2),
-                "valor_mercado": round(total_mercado, 2),
+                "costo_total": total_invertido,
+                "valor_mercado": total_mercado,
                 "rendimiento": round(total_mercado - total_invertido, 2),
             },
             "patrimonio_total": round(efectivo + total_mercado, 2),

@@ -76,8 +76,26 @@ class Sesion:
         "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0})
 
 
+# El panel de traza del front muestra estos resúmenes en pantalla, y en un demo
+# la pantalla se proyecta. Un `confirmation_token` a la vista invita a que
+# alguien pregunte si el modelo pudo haberlo copiado, que es justo la duda que
+# el diseño quiere cerrar.
+CLAVES_SENSIBLES = ("confirmation_token", "idempotency_key")
+
+
+def _redactar(valor: Any) -> Any:
+    if isinstance(valor, dict):
+        return {
+            k: ("«oculto»" if k in CLAVES_SENSIBLES else _redactar(v))
+            for k, v in valor.items()
+        }
+    if isinstance(valor, list):
+        return [_redactar(v) for v in valor]
+    return valor
+
+
 def _resumir(valor: Any, limite: int = 220) -> str:
-    texto = json.dumps(valor, ensure_ascii=False, default=str)
+    texto = json.dumps(_redactar(valor), ensure_ascii=False, default=str)
     return texto if len(texto) <= limite else texto[:limite] + "…"
 
 
