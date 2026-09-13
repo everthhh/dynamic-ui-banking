@@ -9,14 +9,21 @@ import type { ComponentType } from "react";
 import { AccountsOverview } from "./components/AccountsOverview";
 import { AllocationDonut } from "./components/AllocationDonut";
 import { AmountSlider } from "./components/AmountSlider";
+import { BillsPanel } from "./components/BillsPanel";
 import { CardManager } from "./components/CardManager";
+import { CashAccess } from "./components/CashAccess";
 import { ComparePanel } from "./components/ComparePanel";
 import { FactSheet, SpendingBreakdown } from "./components/FactSheet";
 import { OrderTicket } from "./components/OrderTicket";
+import { PaymentHistory } from "./components/PaymentHistory";
+import { PaymentTicket } from "./components/PaymentTicket";
 import { ProjectionChart } from "./components/ProjectionChart";
+import { ReceivedMoney } from "./components/ReceivedMoney";
 import { RiskProfiler } from "./components/RiskProfiler";
+import { ServiceForm } from "./components/ServiceForm";
 import { SpendingBudgets } from "./components/SpendingBudgets";
 import { TransactionSearch } from "./components/TransactionSearch";
+import { TransferForm } from "./components/TransferForm";
 import {
   Badge,
   Button,
@@ -58,4 +65,12 @@ export const REGISTRY: Record<string, ComponenteDelCatalogo> = {
   "bank.CardManager": CardManager,
   "bank.SpendingBudgets": SpendingBudgets,
   "bank.TransactionSearch": TransactionSearch,
+  // pagos
+  "pay.BillsPanel": BillsPanel,
+  "pay.ServiceForm": ServiceForm,
+  "pay.TransferForm": TransferForm,
+  "pay.PaymentTicket": PaymentTicket,
+  "pay.PaymentHistory": PaymentHistory,
+  "pay.ReceivedMoney": ReceivedMoney,
+  "pay.CashAccess": CashAccess,
 };

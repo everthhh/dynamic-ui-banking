@@ -139,8 +139,12 @@ Dos guardias independientes:
 | Allowlist del catálogo | `store.ts` + `registry.ts` | Que un componente inventado se monte. A2UI son datos, no código |
 | Validación con reintento | `agent/loop.py` + `a2ui/models.py` | Blueprints rotos en pantalla |
 | Plantilla estática | `agent/fallback.py` | Que el usuario se quede sin pantalla |
-| Confirmación en dos pasos | componente, agente y `services/orders.py` | Que el modelo ejecute por su cuenta |
-| Idempotencia (`UNIQUE`) | `bank/schema.sql` | Que un reintento compre dos veces |
+| Confirmación en dos pasos | componente, agente, `services/orders.py` y `services/movements.py` | Que el modelo ejecute por su cuenta |
+| Idempotencia (`UNIQUE`) | `bank/schema.sql` | Que un reintento compre o pague dos veces |
+| Dígito verificador de CLABE y Luhn | `bank/pagos.py` | Que un número mal tecleado llegue a ser operación |
+| Tope a destino nuevo y tope diario, revisados otra vez al ejecutar | `services/movements.py` | El fraude «agrega esta cuenta y mándame todo» y dos pendientes que juntas rebasan el tope |
+| Ninguna tool acredita dinero | `services/__init__.py` (la liquidación no está en `REGISTRO`) | Que el modelo cree saldo de la nada |
+| Hash del código de retiro y números enmascarados | `services/movements.py` + `services/payments.py` | Que un código o una CLABE ajena salga completa en la base o en pantalla |
 | Disclaimers como props | `a2ui/catalog.json` | Que el modelo redacte sus propias advertencias |
 | Bitácora del blueprint | `surface_log` | Que una sesión no se pueda reconstruir |
 | Redacción de tokens | `agent/loop.py` | Que un token salga en la traza proyectada |
@@ -174,6 +178,15 @@ El esquema ya trae el core bancario completo (tarjetas, créditos, categorizaci�
 de gasto) precisamente para que abrir un dominio nuevo no exija rehacer la
 base.
 
-**Criterio de corte, sin cambios:** un dominio nuevo solo se abre cuando el
-anterior está completo y ensayado. Faltan Crédito (recalificación,
-amortización, refinanciamiento), Pagos, Seguros y Educación financiera.
+Pagos (`pay.*`) es el tercero y siguió los mismos cuatro pasos: tablas nuevas
+en `bank/schema.sql` con su catálogo en `bank/pagos.py`, lectura en
+`services/payments.py` y efecto en `services/movements.py`, tools en
+`TOOLS_DATOS` y siete componentes en el catálogo. Lo único nuevo en la
+arquitectura es una frontera explícita: la liquidación de depósitos en efectivo
+vive en `services/` pero fuera de `REGISTRO`, porque acreditar dinero que llega
+de fuera no es algo que el agente pueda pedir.
+
+**Criterio de corte:** un dominio nuevo se abre cuando el anterior está completo
+y ensayado; Pagos se abrió a pedido explícito del equipo. Faltan Crédito
+(recalificación, amortización, refinanciamiento), Seguros y Educación
+financiera.

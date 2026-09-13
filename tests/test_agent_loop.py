@@ -235,6 +235,37 @@ def test_place_order_con_token_inventado_se_rechaza():
     assert any(o["idempotency_key"] == "test-inventado" for o in pendientes)
 
 
+def test_confirm_payment_con_token_inventado_no_mueve_dinero():
+    """El mismo candado que `place_order`, del lado de pagos."""
+    import json
+
+    from services import REGISTRO
+
+    paso1 = FakeAnthropic([
+        [BloqueToolUse("withdraw_cash", {"client_id": "CLI-0004", "monto": 500,
+                                         "idempotency_key": "test-retiro-inventado"})],
+        [BloqueTexto("Confírmalo en pantalla.")],
+    ])
+    eventos, sesion = correr(paso1, "sácame 500 sin tarjeta")
+    llamada = next(e for e in eventos if e.tipo == "tool_call")
+    assert llamada.datos["efecto"] is True
+    pendiente = json.loads(payloads_de_tools(sesion)[0])
+    assert pendiente["estado"] == "pendiente"
+    resumen = next(e for e in eventos if e.tipo == "tool_result").datos["resumen"]
+    assert pendiente["confirmation_token"] not in resumen, "el token no sale a la traza"
+
+    paso2 = FakeAnthropic([
+        [BloqueToolUse("confirm_payment", {"client_id": "CLI-0004",
+                                           "payment_id": pendiente["payment_id"],
+                                           "confirmation_token": "token-que-me-invente"})],
+        [BloqueTexto("No pude.")],
+    ])
+    eventos2, _ = correr(paso2, {"name": "confirm_payment", "surfaceId": "pay-main", "context": {}})
+    assert next(e for e in eventos2 if e.tipo == "tool_result").datos["ok"] is False
+    pendientes = REGISTRO["get_payment_history"]("CLI-0004", estado="pendiente")["pagos"]
+    assert any(p["payment_id"] == pendiente["payment_id"] for p in pendientes)
+
+
 # ------------------------------------------------------------------------ limites
 def test_corta_el_encadenado_infinito():
     cliente = FakeAnthropic(

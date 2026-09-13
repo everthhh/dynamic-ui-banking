@@ -141,6 +141,25 @@ def test_blueprint_banca_personal_pasa():
     assert res.ok, res.errores
 
 
+def test_blueprint_pagos_pasa():
+    mensajes = [
+        {"version": "v0.9", "createSurface": {"surfaceId": "pay-main", "catalogId": CATALOG_ID}},
+        {"version": "v0.9", "updateComponents": {"surfaceId": "pay-main", "components": [
+            {"id": "root", "component": "Column", "children": ["recibos", "ticket", "efectivo"]},
+            {"id": "recibos", "component": "pay.BillsPanel",
+             "servicios": {"path": "/recibos/servicios"}, "resumen": {"path": "/recibos/resumen"}},
+            {"id": "ticket", "component": "pay.PaymentTicket", "payment": {"path": "/pago"},
+             "requiresConfirmation": True, "disclaimer": "Operación simulada.",
+             "action": {"event": {"name": "confirm_payment"}}},
+            {"id": "efectivo", "component": "pay.CashAccess",
+             "cuentas": {"path": "/efectivo/cuentas"}, "canales": {"path": "/efectivo/canales"},
+             "retiro": {"path": "/efectivo/retiro"}},
+        ]}},
+    ]
+    res = validate_a2ui(mensajes)
+    assert res.ok, res.errores
+
+
 # ------------------------------------------------------------------ casos que fallan
 def _solo_componentes(componentes: list[dict]) -> list[dict]:
     return [{"version": "v0.9",
@@ -173,6 +192,14 @@ CASOS_INVALIDOS = {
         {"id": "root", "component": "inv.OrderTicket", "order": {},
          "requiresConfirmation": True, "disclaimer": "x",
          "action": {"event": {"name": "simulate"}}}]),
+    "ticket de pago sin confirmacion": _solo_componentes([
+        {"id": "root", "component": "pay.PaymentTicket", "payment": {},
+         "requiresConfirmation": False, "disclaimer": "x",
+         "action": {"event": {"name": "confirm_payment"}}}]),
+    "ticket de pago con accion equivocada": _solo_componentes([
+        {"id": "root", "component": "pay.PaymentTicket", "payment": {},
+         "requiresConfirmation": True, "disclaimer": "x",
+         "action": {"event": {"name": "place_order"}}}]),
     "action con functionCall (no soportado)": _solo_componentes([
         {"id": "root", "component": "Button", "label": "Ir",
          "action": {"functionCall": {"call": "cerrarModal"}}}]),

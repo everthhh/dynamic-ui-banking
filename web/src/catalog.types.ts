@@ -20,7 +20,17 @@ export type ActionName =
   | "update_card_limit"
   | "set_card_alias"
   | "set_budget"
-  | "refine_search";
+  | "refine_search"
+  | "pay_bill"
+  | "add_service"
+  | "register_service"
+  | "prepare_transfer"
+  | "prepare_withdrawal"
+  | "request_deposit_reference"
+  | "confirm_payment"
+  | "cancel_payment"
+  | "filter_history"
+  | "filter_received";
 
 // Spec A2UI v0.9 (common_types.json#/$defs/Action): el prop `action` de un
 // componente dispara un evento de servidor. `functionCall` no aplica: este
@@ -236,6 +246,70 @@ export type PropsBankTransactionSearch = {
   resumen?: Record<string, unknown> | Binding;
 };
 
+/** Recibos por pagar: luz, agua, internet, teléfono. Para '¿qué tengo que pagar?' o 'paga mis servicios'. Cada recibo trae su botón de pagar, que solo inicia el paso 1. Nunca enlistes recibos en texto. */
+export type PropsPayBillsPanel = {
+  id: string;
+  component: "pay.BillsPanel";
+  servicios: unknown[] | Binding;
+  resumen?: Record<string, unknown> | Binding;
+};
+
+/** Dar de alta un servicio: el usuario elige la empresa y teclea la referencia de su recibo, que se revisa contra el formato del convenio antes de mandarla. */
+export type PropsPayServiceForm = {
+  id: string;
+  component: "pay.ServiceForm";
+  billers: unknown[] | Binding;
+  categoria?: "luz" | "agua" | "internet" | "telefonia" | "gas" | "television";
+};
+
+/** Armar una transferencia: cuenta de origen, destino (contacto guardado, CLABE nueva o cuenta propia), monto y concepto. La CLABE se revisa en pantalla con su dígito verificador. No transfiere: manda `prepare_transfer`. */
+export type PropsPayTransferForm = {
+  id: string;
+  component: "pay.TransferForm";
+  cuentas: unknown[] | Binding;
+  beneficiarios: unknown[] | Binding;
+  monto?: number | Binding;
+  concepto?: string | Binding;
+};
+
+/** Confirmar un pago de servicio, una transferencia o un retiro sin tarjeta, y después servir de comprobante. Es el único componente de pagos que mueve dinero y exige confirmación en dos pasos. Ya ejecutado muestra folio, clave de rastreo o el código de retiro. */
+export type PropsPayPaymentTicket = {
+  id: string;
+  component: "pay.PaymentTicket";
+  payment: Record<string, unknown> | Binding;
+  action: A2UIAction;
+  requiresConfirmation: boolean;
+  disclaimer: string;
+};
+
+/** Historial de lo que salió: servicios pagados, transferencias y retiros, con folio y estado. Para '¿qué he pagado?' o '¿ya pagué la luz?'. */
+export type PropsPayPaymentHistory = {
+  id: string;
+  component: "pay.PaymentHistory";
+  pagos: unknown[] | Binding;
+  resumen?: Record<string, unknown> | Binding;
+  filtro?: string | Binding;
+};
+
+/** Historial de lo que entró y quién lo mandó: nómina, SPEI, depósitos en efectivo y traspasos. Para '¿quién me depositó?' o '¿ya me pagaron?'. */
+export type PropsPayReceivedMoney = {
+  id: string;
+  component: "pay.ReceivedMoney";
+  movimientos: unknown[] | Binding;
+  resumen?: Record<string, unknown> | Binding;
+  filtro?: string | Binding;
+};
+
+/** Meter o sacar dinero: retiro sin tarjeta en cajero, la CLABE para que le depositen y dónde depositar efectivo con su comisión. Para 'necesito efectivo', 'no traigo tarjeta' o '¿cómo deposito?'. */
+export type PropsPayCashAccess = {
+  id: string;
+  component: "pay.CashAccess";
+  cuentas: unknown[] | Binding;
+  canales: unknown[] | Binding;
+  retiro: Record<string, unknown> | Binding;
+  referencia?: Record<string, unknown> | Binding;
+};
+
 export type AnyComponent =
   | PropsColumn
   | PropsRow
@@ -258,10 +332,17 @@ export type AnyComponent =
   | PropsBankAccountsOverview
   | PropsBankCardManager
   | PropsBankSpendingBudgets
-  | PropsBankTransactionSearch;
+  | PropsBankTransactionSearch
+  | PropsPayBillsPanel
+  | PropsPayServiceForm
+  | PropsPayTransferForm
+  | PropsPayPaymentTicket
+  | PropsPayPaymentHistory
+  | PropsPayReceivedMoney
+  | PropsPayCashAccess;
 
 export const COMPONENT_NAMES = [
-  "Column", "Row", "Card", "Text", "Divider", "Button", "Badge", "Stat", "inv.RiskProfiler", "inv.AllocationDonut", "inv.ProjectionChart", "inv.InstrumentTable", "inv.ComparePanel", "inv.AmountSlider", "inv.OrderTicket", "inv.FactSheet", "inv.PositionsTable", "inv.SpendingBreakdown", "bank.AccountsOverview", "bank.CardManager", "bank.SpendingBudgets", "bank.TransactionSearch"
+  "Column", "Row", "Card", "Text", "Divider", "Button", "Badge", "Stat", "inv.RiskProfiler", "inv.AllocationDonut", "inv.ProjectionChart", "inv.InstrumentTable", "inv.ComparePanel", "inv.AmountSlider", "inv.OrderTicket", "inv.FactSheet", "inv.PositionsTable", "inv.SpendingBreakdown", "bank.AccountsOverview", "bank.CardManager", "bank.SpendingBudgets", "bank.TransactionSearch", "pay.BillsPanel", "pay.ServiceForm", "pay.TransferForm", "pay.PaymentTicket", "pay.PaymentHistory", "pay.ReceivedMoney", "pay.CashAccess"
 ] as const;
 
 export type ComponentName = (typeof COMPONENT_NAMES)[number];

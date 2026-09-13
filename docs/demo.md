@@ -73,6 +73,25 @@ No intentes depurar en vivo. Cambias de pestaña y sigues hablando.
 
 ---
 
+## Guion alterno: pagos (1 minuto)
+
+Mismo cliente, **CLI-0001**. Su recibo de CFE vence en cuatro días: es lo que
+hace que el panel tenga algo urgente que mostrar.
+
+| # | Qué haces | Qué decir mientras carga | Qué se ve |
+|---|---|---|---|
+| 1 | Escribes «¿qué recibos tengo por pagar?» | «No es una lista en texto: cada recibo trae su fecha límite y su botón.» | `pay.BillsPanel` con CFE, agua, Telmex, Telcel y Naturgy |
+| 2 | Presionas «Pagar» en CFE | «Ese botón no pagó nada. Registró el pago y me dio un token: el dinero sale hasta que confirmas.» | `pay.PaymentTicket` por confirmar |
+| 3 | Marcas la casilla y confirmas | «El monto lo puso el convenio, no el modelo. Folio real, y el mismo ticket ya es el comprobante.» | Ticket en verde con folio; el recibo desaparece del panel |
+| 4 | Escribes «necesito sacar mil pesos y no traigo tarjeta» | «Otra vez dos pasos. El código se genera al confirmar, se muestra una vez, y en la base solo queda su hash.» | `pay.CashAccess` → ticket → código de 12 dígitos |
+
+Para mostrar un depósito en efectivo: pide «quiero depositar en OXXO», copia la
+referencia y, en otra terminal, `make deposito REF=<referencia> MONTO=2000`.
+Luego «¿ya llegó mi depósito?» → `pay.ReceivedMoney`. Si preguntan por qué hace
+falta un comando: **ninguna tool puede acreditar dinero**; eso lo hace la tienda.
+
+---
+
 ## Preguntas que van a hacer
 
 **«¿El modelo inventa los números?»**

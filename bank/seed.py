@@ -26,7 +26,7 @@ from pathlib import Path
 
 import numpy as np
 
-from bank import carteras, db, emisoras, mercado
+from bank import carteras, db, emisoras, mercado, pagos
 from bank.finance import fiscal
 from bank.instrumentos import (
     INSTRUMENTOS,
@@ -171,10 +171,164 @@ def generar_series(rng: np.random.Generator) -> dict[str, list[tuple[date, float
 
 
 # ---------------------------------------------------------------------------
+# pagos: servicios guardados, contactos y dinero que entra y sale
+# ---------------------------------------------------------------------------
+# Nada de lo que siembra pagos sale de `rng`: sale de `rng_pagos` (semilla
+# aparte) o de `pagos.digitos_deterministas`. Así abrir el dominio no movió ni
+# un número de las inversiones, que dependen de la secuencia de `rng`.
+CONTACTOS_SEMILLA = (
+    # (alias, titular, banco). NU se siembra como tarjeta; los demás, como CLABE.
+    ("Mamá", "María Guadalupe Torres", "012"),
+    ("Casero", "Inmobiliaria Cumbres (sim)", "014"),
+    ("Hermano", "Carlos Iván Ruiz", "638"),
+    ("Tanda", "Rosa Elena Garza", "002"),
+    ("Taller", "Refaccionaria El Pistón (sim)", "021"),
+    ("Colegio", "Colegio Montessori del Valle (sim)", "044"),
+)
+REMITENTES_SEMILLA = (
+    ("Laura Méndez Cantú", "012", "Reembolso de comida"),
+    ("Servicios Profesionales Norte (sim)", "014", "Pago de proyecto"),
+    ("Jorge Alberto Salinas", "002", "Tanda"),
+    ("Fernanda Ibarra", "638", "Préstamo"),
+    ("Tienda en línea (sim)", "722", "Venta en línea"),
+    ("Luis Ángel Treviño", "127", "Regalo"),
+)
+CONCEPTOS_ENVIO = ("Renta", "Cooperación", "Tanda", "Préstamo", "Regalo", "Mantenimiento")
+ALIAS_SERVICIO = {"luz": "Luz de la casa", "telefonia": "Mi celular"}
+SERVICIOS_CON_TELEFONO = ("TELMEX", "TELCEL", "ATT")
+
+
+def _clabe_de_cuenta(idx: int, inversion: bool) -> str:
+    """CLABE mock con dígito verificador válido: banco 072, plaza 180 o 181."""
+    return pagos.clabe_con_digito(pagos.BANCO_PROPIO, "181" if inversion else "180", f"{idx:011d}")
+
+
+def _convenios_de(idx: int, ciudad: str, segmento: str) -> list[str]:
+    ids = ["CFE", pagos.AGUA_POR_CIUDAD[ciudad],
+           ("TELMEX", "IZZI", "TOTALPLAY", "MEGACABLE")[idx % 4],
+           ("TELCEL", "ATT")[idx % 2]]
+    if segmento == "patrimonial":
+        ids.append("SKY")
+    if idx % 3 == 0:
+        ids.append("NATURGY")
+    return ids
+
+
+def _referencia_semilla(conv: pagos.Convenio, cid: str, ciudad: str) -> str:
+    semilla = f"ref-{cid}-{conv.biller_id}"
+    if conv.biller_id in SERVICIOS_CON_TELEFONO:
+        lada = pagos.LADAS[ciudad]
+        return lada + pagos.digitos_deterministas(semilla, 10 - len(lada))
+    return pagos.digitos_deterministas(semilla, conv.digitos_max)
+
+
+def _sembrar_servicios(conn: sqlite3.Connection, cid: str, idx: int, ciudad: str,
+                       segmento: str) -> list[tuple[str, pagos.Convenio]]:
+    alta = (FECHA_VALUACION - timedelta(days=31 * MESES_MOVIMIENTOS)).isoformat() + "T08:00:00"
+    servicios = []
+    for k, biller_id in enumerate(_convenios_de(idx, ciudad, segmento)):
+        conv = pagos.CONVENIO_POR_ID[biller_id]
+        service_id = f"SRV-{idx:04d}-{k}"
+        conn.execute(
+            "INSERT INTO saved_services (service_id, client_id, biller_id, referencia, alias,"
+            " creado_en) VALUES (?,?,?,?,?,?)",
+            (service_id, cid, biller_id, _referencia_semilla(conv, cid, ciudad),
+             ALIAS_SERVICIO.get(conv.categoria), alta))
+        servicios.append((service_id, conv))
+    return servicios
+
+
+def _sembrar_contactos(conn: sqlite3.Connection, cid: str, idx: int) -> list[dict]:
+    """Dos contactos de otros bancos y uno del mismo banco (la cuenta de uso del
+    siguiente cliente). Guardados hace meses: ya no cuentan como destino nuevo."""
+    creado = (FECHA_VALUACION - timedelta(days=200 + idx)).isoformat() + "T12:00:00"
+    contactos = []
+    for k in range(2):
+        alias, titular, banco = CONTACTOS_SEMILLA[(idx + k) % len(CONTACTOS_SEMILLA)]
+        semilla = f"contacto-{cid}-{k}"
+        if banco == "638":
+            tipo = "tarjeta"
+            numero = pagos.tarjeta_con_luhn("4" + pagos.digitos_deterministas(semilla, 14))
+        else:
+            tipo = "clabe"
+            numero = pagos.clabe_con_digito(banco, pagos.digitos_deterministas(semilla + "-plaza", 3),
+                                            pagos.digitos_deterministas(semilla, 11))
+        contactos.append({"beneficiary_id": f"BEN-{idx:04d}-{k}", "alias": alias,
+                          "titular": titular, "tipo_destino": tipo, "numero": numero,
+                          "banco_codigo": banco})
+    siguiente = (idx + 1) % len(CLIENTES)
+    contactos.append({"beneficiary_id": f"BEN-{idx:04d}-2",
+                      "alias": CLIENTES[siguiente][1].split()[0],
+                      "titular": CLIENTES[siguiente][1], "tipo_destino": "clabe",
+                      "numero": _clabe_de_cuenta(siguiente, inversion=False),
+                      "banco_codigo": pagos.BANCO_PROPIO})
+    for c in contactos:
+        conn.execute(
+            "INSERT INTO beneficiaries (beneficiary_id, client_id, alias, titular, tipo_destino,"
+            " numero, banco_codigo, creado_en) VALUES (?,?,?,?,?,?,?,?)",
+            (c["beneficiary_id"], cid, c["alias"], c["titular"], c["tipo_destino"],
+             c["numero"], c["banco_codigo"], creado))
+    return contactos
+
+
+def _momento_del_mes(base: date, rng_pagos: np.random.Generator) -> datetime:
+    dia = base + timedelta(days=int(rng_pagos.integers(1, 28)))
+    return datetime.combine(dia, datetime.min.time()) + timedelta(
+        hours=int(rng_pagos.integers(7, 22)), minutes=int(rng_pagos.integers(0, 60)))
+
+
+def _insertar_movimiento(conn: sqlite3.Connection, txn_id: str, account_id: str,
+                         momento: datetime, tipo: str, monto: float, categoria: str,
+                         descripcion: str, comercio: str | None, saldo: float) -> None:
+    conn.execute(
+        "INSERT INTO transactions (txn_id, account_id, fecha, tipo, monto,"
+        " categoria, descripcion, comercio, saldo_posterior) VALUES (?,?,?,?,?,?,?,?,?)",
+        (txn_id, account_id, momento.isoformat(), tipo, monto, categoria, descripcion,
+         comercio, round(saldo, 2)))
+
+
+def _insertar_pago_historico(conn: sqlite3.Connection, **columnas) -> None:
+    """Una operación ya ejecutada del historial. El token de semilla solo existe hasheado."""
+    folio = columnas["folio"]
+    columnas.update({
+        "estado": "ejecutada",
+        "idempotency_key": f"seed-{columnas['client_id']}-{folio}",
+        "confirmation_token_hash": hashlib.sha256(f"tok-{folio}-seed".encode("utf-8")).hexdigest(),
+    })
+    conn.execute(
+        f"INSERT INTO payments ({', '.join(columnas)}) VALUES ({', '.join('?' for _ in columnas)})",
+        tuple(columnas.values()))
+
+
+def _sembrar_recibos(conn: sqlite3.Connection, cid: str, idx: int, ciudad: str,
+                     servicios: list[tuple[str, pagos.Convenio]]) -> None:
+    """El recibo vigente de cada servicio, consultado igual que lo haría `register_service`.
+
+    Algunos quedan vencidos a propósito (el último servicio de un cliente de
+    cada tres) para que el panel tenga los dos casos. El CFE de CLI-0001 vence
+    en cuatro días: es el recibo del guion de pagos.
+    """
+    for k, (service_id, conv) in enumerate(servicios):
+        referencia = _referencia_semilla(conv, cid, ciudad)
+        recibo = pagos.recibo_simulado(conv, referencia, FECHA_VALUACION)
+        if idx % 3 == 1 and k == len(servicios) - 1:
+            recibo["fecha_limite"] = (FECHA_VALUACION - timedelta(days=2)).isoformat()
+        if cid == "CLI-0001" and conv.biller_id == "CFE":
+            recibo["fecha_limite"] = (FECHA_VALUACION + timedelta(days=4)).isoformat()
+        conn.execute(
+            "INSERT INTO bills (bill_id, service_id, periodo, monto, fecha_emision, fecha_limite)"
+            " VALUES (?,?,?,?,?,?)",
+            (f"BIL-{idx:04d}-{k}", service_id, recibo["periodo"], recibo["monto"],
+             recibo["fecha_emision"], recibo["fecha_limite"]))
+
+
+# ---------------------------------------------------------------------------
 # core bancario
 # ---------------------------------------------------------------------------
-def sembrar_core(conn: sqlite3.Connection, rng: np.random.Generator) -> None:
+def sembrar_core(conn: sqlite3.Connection, rng: np.random.Generator,
+                 rng_pagos: np.random.Generator) -> None:
     txn_n = 0
+    pago_n = 0
     for idx, (cid, nombre, segmento, ingreso, horizonte, _perfil) in enumerate(CLIENTES):
         alta = date(2017 + idx % 6, 1 + (idx * 3) % 12, 1 + (idx * 5) % 27)
         conn.execute(
@@ -192,7 +346,8 @@ def sembrar_core(conn: sqlite3.Connection, rng: np.random.Generator) -> None:
             "INSERT INTO accounts (account_id, client_id, tipo, clabe_mock, moneda,"
             " saldo_disponible, saldo_liquidado, abierta_en) VALUES (?,?,?,?,?,?,?,?)",
             (uso, cid, "nomina" if segmento == "nomina" else "cheques",
-             f"0721800000{idx:08d}", "MXN", saldo_uso, saldo_uso, alta.isoformat()),
+             _clabe_de_cuenta(idx, inversion=False), "MXN", saldo_uso, saldo_uso,
+             alta.isoformat()),
         )
         # Efectivo SIN invertir dentro de la cuenta de inversion. Lo que ya se
         # invirtio vive en `positions`, no aqui. Quien no tiene perfil tampoco
@@ -206,9 +361,14 @@ def sembrar_core(conn: sqlite3.Connection, rng: np.random.Generator) -> None:
         conn.execute(
             "INSERT INTO accounts (account_id, client_id, tipo, clabe_mock, moneda,"
             " saldo_disponible, saldo_liquidado, abierta_en) VALUES (?,?,?,?,?,?,?,?)",
-            (inv, cid, "inversion", f"0721810000{idx:08d}", "MXN",
+            (inv, cid, "inversion", _clabe_de_cuenta(idx, inversion=True), "MXN",
              saldo_inv, saldo_inv, alta.isoformat()),
         )
+
+        ciudad = CIUDADES[idx]
+        servicios = _sembrar_servicios(conn, cid, idx, ciudad, segmento)
+        contactos_externos = [c for c in _sembrar_contactos(conn, cid, idx)
+                              if c["banco_codigo"] != pagos.BANCO_PROPIO]
 
         # movimientos de los ultimos 18 meses en la cuenta de uso
         saldo = saldo_uso
@@ -234,18 +394,103 @@ def sembrar_core(conn: sqlite3.Connection, rng: np.random.Generator) -> None:
                 categoria, desc, lo, hi = CATEGORIAS_CARGO[int(rng.integers(0, len(CATEGORIAS_CARGO)))]
                 if categoria in ("renta", "educacion") and k > 0:
                     continue            # esos son una vez al mes
-                txn_n += 1
                 monto = round(float(rng.uniform(lo, hi)), 2)
+                fecha_cargo = ((base + timedelta(days=int(rng.integers(1, 28)))).isoformat() + "T"
+                               f"{int(rng.integers(8, 22)):02d}:{int(rng.integers(0, 60)):02d}:00")
+                if categoria == "servicios":
+                    # Los servicios ya no son un cargo genérico: son pagos a CFE,
+                    # al agua o al internet del cliente (abajo). Los números de
+                    # `rng` se consumen igual, para no mover su secuencia.
+                    continue
+                txn_n += 1
                 saldo -= monto
                 conn.execute(
                     "INSERT INTO transactions (txn_id, account_id, fecha, tipo, monto,"
                     " categoria, descripcion, comercio, saldo_posterior)"
                     " VALUES (?,?,?,?,?,?,?,?,?)",
-                    (f"TXN-{txn_n:06d}", uso,
-                     (base + timedelta(days=int(rng.integers(1, 28)))).isoformat() + "T"
-                     f"{int(rng.integers(8, 22)):02d}:{int(rng.integers(0, 60)):02d}:00",
+                    (f"TXN-{txn_n:06d}", uso, fecha_cargo,
                      "cargo", monto, categoria, desc, f"{desc} (sim)", round(saldo, 2)),
                 )
+
+            # pagos de servicios: los bimestrales, un mes sí y uno no
+            for service_id, conv in servicios:
+                if conv.periodicidad == "bimestral" and mes % 2:
+                    continue
+                txn_n += 1
+                pago_n += 1
+                momento = _momento_del_mes(base, rng_pagos)
+                minimo, maximo = conv.monto_tipico
+                monto = round(float(rng_pagos.uniform(minimo, maximo)), 2)
+                folio = f"PG-{momento.year}-{pago_n:06d}"
+                saldo -= monto
+                _insertar_movimiento(conn, f"TXN-{txn_n:06d}", uso, momento, "cargo", monto,
+                                     "servicios", f"Pago {conv.nombre} · folio {folio}",
+                                     conv.nombre, saldo)
+                _insertar_pago_historico(
+                    conn, payment_id=f"PAY-SEED-{pago_n:06d}", folio=folio, client_id=cid,
+                    account_id=uso, tipo="servicio", monto=monto, comision=0.0,
+                    concepto=f"Pago {conv.nombre}", service_id=service_id,
+                    creada_en=momento.isoformat(),
+                    ejecutada_en=(momento + timedelta(minutes=1)).isoformat())
+
+            # una transferencia a un contacto, algunos meses
+            if contactos_externos and rng_pagos.random() < 0.45:
+                contacto = contactos_externos[int(rng_pagos.integers(0, len(contactos_externos)))]
+                concepto = CONCEPTOS_ENVIO[int(rng_pagos.integers(0, len(CONCEPTOS_ENVIO)))]
+                momento = _momento_del_mes(base, rng_pagos)
+                tope = min(15_000.0, max(600.0, float(ingreso) * 0.12))
+                monto = round(float(rng_pagos.uniform(300, tope)), 2)
+                txn_n += 1
+                pago_n += 1
+                folio = f"PG-{momento.year}-{pago_n:06d}"
+                clave = f"BNTE{momento:%Y%m%d}{pago_n:010d}"
+                saldo -= monto
+                _insertar_movimiento(
+                    conn, f"TXN-{txn_n:06d}", uso, momento, "cargo", monto, "transferencia",
+                    f"SPEI enviado · {concepto} · rastreo {clave}",
+                    f"{contacto['titular']} ({pagos.BANCOS[contacto['banco_codigo']]})", saldo)
+                _insertar_pago_historico(
+                    conn, payment_id=f"PAY-SEED-{pago_n:06d}", folio=folio, client_id=cid,
+                    account_id=uso, tipo="transferencia", monto=monto, comision=0.0,
+                    concepto=concepto, destino_tipo=contacto["tipo_destino"],
+                    destino_numero=contacto["numero"], destino_banco=contacto["banco_codigo"],
+                    destino_titular=contacto["titular"],
+                    beneficiary_id=contacto["beneficiary_id"], clave_rastreo=clave,
+                    creada_en=momento.isoformat(),
+                    ejecutada_en=(momento + timedelta(minutes=1)).isoformat())
+
+            # dinero que entra además de la nómina: un SPEI o un depósito en tienda
+            if rng_pagos.random() < 0.40:
+                remitente, banco, concepto = REMITENTES_SEMILLA[
+                    int(rng_pagos.integers(0, len(REMITENTES_SEMILLA)))]
+                momento = _momento_del_mes(base, rng_pagos)
+                monto = round(float(rng_pagos.uniform(250, max(500.0, float(ingreso) * 0.15))), 2)
+                txn_n += 1
+                saldo += monto
+                _insertar_movimiento(conn, f"TXN-{txn_n:06d}", uso, momento, "abono", monto,
+                                     "transferencia", f"SPEI recibido · {concepto}", remitente, saldo)
+                conn.execute(
+                    "INSERT INTO incoming_transfers (txn_id, canal, remitente, banco_origen,"
+                    " cuenta_origen_mask, concepto, clave_rastreo) VALUES (?,?,?,?,?,?,?)",
+                    (f"TXN-{txn_n:06d}", "spei", remitente, banco,
+                     pagos.enmascarar(pagos.digitos_deterministas(f"origen-{remitente}", 18)),
+                     concepto, f"SPEI{momento:%Y%m%d}{txn_n:010d}"))
+            if rng_pagos.random() < 0.15:
+                tiendas = [c for c in pagos.CANALES_EFECTIVO if c.requiere_referencia]
+                tienda = tiendas[int(rng_pagos.integers(0, len(tiendas)))]
+                momento = _momento_del_mes(base, rng_pagos)
+                monto = round(float(rng_pagos.uniform(500, 4_000)), 2)
+                txn_n += 1
+                saldo += monto
+                _insertar_movimiento(conn, f"TXN-{txn_n:06d}", uso, momento, "abono", monto,
+                                     "deposito", f"Depósito en efectivo · {tienda.nombre}",
+                                     tienda.nombre, saldo)
+                conn.execute(
+                    "INSERT INTO incoming_transfers (txn_id, canal, remitente, banco_origen,"
+                    " cuenta_origen_mask, concepto, clave_rastreo) VALUES (?,?,?,?,?,?,?)",
+                    (f"TXN-{txn_n:06d}", "deposito_efectivo", "Depósito en efectivo", None,
+                     None, tienda.nombre, None))
+
             # Barrido de fin de mes: lo que sobra se va a la cuenta de inversion.
             # Sin esto la cuenta de uso acumula 18 meses de excedente y un
             # cliente de 48 mil de ingreso termina con un millon parado ahi,
@@ -266,6 +511,7 @@ def sembrar_core(conn: sqlite3.Connection, rng: np.random.Generator) -> None:
                 )
         conn.execute("UPDATE accounts SET saldo_disponible = ?, saldo_liquidado = ?"
                      " WHERE account_id = ?", (round(saldo, 2), round(saldo, 2), uso))
+        _sembrar_recibos(conn, cid, idx, ciudad, servicios)
 
         # tarjetas
         conn.execute(
@@ -492,7 +738,17 @@ def construir(path: Path | None = None) -> Path:
             " VALUES (?,?,?,?)",
             [(iid, f.isoformat(), v, r) for iid, filas in series.items() for f, v, r in filas],
         )
-        sembrar_core(conn, rng)
+        # Convenios de pago antes que el core: los servicios guardados los referencian.
+        conn.executemany(
+            "INSERT INTO billers (biller_id, nombre, categoria, referencia_etiqueta,"
+            " referencia_regex, fuente_formato, cobertura, periodicidad, comision)"
+            " VALUES (?,?,?,?,?,?,?,?,?)",
+            [(c.biller_id, c.nombre, c.categoria, c.referencia_etiqueta, c.referencia_regex,
+              c.fuente_formato, ",".join(c.cobertura) or "nacional", c.periodicidad, c.comision)
+             for c in pagos.CONVENIOS])
+        # Semilla aparte para pagos: `rng` sigue exactamente la misma secuencia
+        # que antes de abrir ese dominio, así que las inversiones no cambian.
+        sembrar_core(conn, rng, np.random.default_rng(db.SEED + 1))
         sembrar_inversiones(conn, rng, series)
 
     _exportar_parquet(series)
@@ -581,6 +837,42 @@ def verificar(path: Path | None = None) -> list[str]:
         ).fetchall()[0]["n"]
         if vigentes != 0:
             problemas.append("CLI-0001 no debe tener perfil vigente (rompe el guion del demo)")
+
+        # -------------------------------------------------------------- pagos
+        if (n := uno("SELECT COUNT(*) n FROM billers")) != len(pagos.CONVENIOS):
+            problemas.append(f"billers: esperaba {len(pagos.CONVENIOS)}, hay {n}")
+        for fila in conn.execute("SELECT account_id, clabe_mock FROM accounts").fetchall():
+            if (problema := pagos.problema_clabe(fila["clabe_mock"])) is not None:
+                problemas.append(f"{fila['account_id']}: CLABE inválida ({problema})")
+        for fila in conn.execute(
+                "SELECT beneficiary_id, tipo_destino, numero FROM beneficiaries").fetchall():
+            valido = (pagos.problema_clabe(fila["numero"]) is None
+                      if fila["tipo_destino"] == "clabe"
+                      else len(fila["numero"]) == 16 and pagos.luhn_valido(fila["numero"]))
+            if not valido:
+                problemas.append(f"{fila['beneficiary_id']}: número de destino inválido")
+        for fila in conn.execute(
+                "SELECT service_id, biller_id, referencia FROM saved_services").fetchall():
+            if not pagos.referencia_valida(pagos.CONVENIO_POR_ID[fila["biller_id"]],
+                                           fila["referencia"]):
+                problemas.append(
+                    f"{fila['service_id']}: referencia fuera del formato de {fila['biller_id']}")
+        sin_recibo = conn.execute(
+            "SELECT client_id FROM clients c WHERE NOT EXISTS (SELECT 1 FROM bills b"
+            " JOIN saved_services s USING (service_id)"
+            " WHERE s.client_id = c.client_id AND b.estado = 'pendiente')").fetchall()
+        if sin_recibo:
+            problemas.append("clientes sin recibo pendiente: "
+                             + ", ".join(f["client_id"] for f in sin_recibo))
+        cfe_guion = conn.execute(
+            "SELECT b.fecha_limite FROM bills b JOIN saved_services s USING (service_id)"
+            " WHERE s.client_id = 'CLI-0001' AND s.biller_id = 'CFE'"
+            " AND b.estado = 'pendiente'").fetchall()
+        if not cfe_guion or cfe_guion[0]["fecha_limite"] < FECHA_VALUACION.isoformat():
+            problemas.append("CLI-0001 debe tener su recibo de CFE pendiente y sin vencer "
+                             "(guion de pagos)")
+        if (n := uno("SELECT COUNT(*) n FROM accounts WHERE saldo_disponible < 0")):
+            problemas.append(f"{n} cuenta(s) con saldo negativo")
         for row in conn.execute("SELECT instrument_id, MIN(valor_unitario) m FROM"
                                 " instrument_series GROUP BY instrument_id").fetchall():
             if row["m"] <= 0:

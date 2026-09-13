@@ -1,4 +1,4 @@
-.PHONY: install seed test dev api web mcp clean catalog fixtures smoke check build
+.PHONY: install seed test dev api web mcp clean catalog fixtures smoke check build deposito
 
 PY := python3
 
@@ -21,6 +21,12 @@ fixtures:
 # Ciclo completo intencion -> tools -> UI -> accion -> UI, sin tocar la API.
 smoke:
 	$(PY) -m scripts.smoke
+
+# Simula que la tienda confirma un depósito en efectivo. No es una tool del
+# agente, a propósito: ninguna tool puede acreditar dinero.
+#   make deposito REF=1234567890123456 MONTO=2000
+deposito:
+	$(PY) -m scripts.simular_deposito $(REF) $(MONTO)
 
 test:
 	$(PY) -m pytest

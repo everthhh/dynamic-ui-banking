@@ -165,8 +165,8 @@ def _validar_componente(nodo: Any, idx: int, errores: list[str], avisos: list[st
 
     spec = COMPONENTES.get(nombre)
     if spec is None:
-        dominio = sorted(k for k in COMPONENTES if k.startswith("inv."))
-        primitivos = sorted(k for k in COMPONENTES if not k.startswith("inv."))
+        dominio = sorted(k for k in COMPONENTES if "." in k)
+        primitivos = sorted(k for k in COMPONENTES if "." not in k)
         errores.append(
             f"{ruta}: el componente {nombre!r} no está en el catálogo y el renderer lo "
             f"va a ignorar. Componentes de dominio: {', '.join(dominio)}. "
@@ -271,6 +271,19 @@ def _validar_componente(nodo: Any, idx: int, errores: list[str], avisos: list[st
             errores.append(
                 f"{ruta} (inv.OrderTicket): su `action.event.name` debe ser `place_order`, "
                 f"llegó {nombre_evento!r}."
+            )
+    if nombre == "pay.PaymentTicket":
+        if nodo.get("requiresConfirmation") is False:
+            errores.append(
+                f"{ruta} (pay.PaymentTicket): `requiresConfirmation` no puede ser false. "
+                "Todo pago, transferencia o retiro se confirma en dos pasos."
+            )
+        accion = nodo.get("action")
+        nombre_evento = _nombre_de_evento(accion)
+        if accion is not None and nombre_evento not in (None, "confirm_payment"):
+            errores.append(
+                f"{ruta} (pay.PaymentTicket): su `action.event.name` debe ser "
+                f"`confirm_payment`, llegó {nombre_evento!r}."
             )
 
     return cid if isinstance(cid, str) else None

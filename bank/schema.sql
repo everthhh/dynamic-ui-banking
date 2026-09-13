@@ -5,12 +5,14 @@
 -- No hay ni un dato real de cliente. Los campos tipo RFC/CLABE/ISIN son
 -- placeholders con formato valido pero contenido inventado, marcados *_mock.
 --
--- Dos mitades:
+-- Tres partes:
 --   core bancario  -> clientes, cuentas, movimientos, tarjetas, creditos
 --   inversiones    -> instrumentos, series historicas, posiciones, ordenes
+--   pagos          -> convenios, servicios y recibos, contactos, operaciones,
+--                     dinero recibido, referencias de deposito
 --
--- La mitad de inversiones es la que alimenta el demo; el core esta completo
--- para poder abrir los dominios de gasto y credito sin rehacer el esquema.
+-- Las CLABEs mock llevan digito verificador valido (algoritmo de Banxico): el
+-- dominio de pagos las valida igual que valida las que teclea el usuario.
 -- ============================================================================
 
 PRAGMA foreign_keys = ON;
@@ -285,6 +287,147 @@ CREATE TABLE order_legs (
     PRIMARY KEY (order_id, instrument_id),
     CHECK (peso >= 0 AND peso <= 1)
 );
+
+-- ===================================================================== pagos
+-- Tercer dominio. Catálogo de convenios, servicios guardados con su recibo,
+-- contactos para transferir, y UNA sola tabla de operaciones (`payments`) para
+-- todo lo que saca dinero de una cuenta fuera de inversiones: pago de
+-- servicios, transferencias y retiros sin tarjeta. Mismos candados que
+-- `orders`: nada se ejecuta sin `confirmation_token` (solo se guarda su hash)
+-- e `idempotency_key` es única por cliente.
+
+CREATE TABLE billers (
+    biller_id            TEXT PRIMARY KEY,          -- 'CFE', 'TELMEX', 'SACMEX'
+    nombre               TEXT    NOT NULL,
+    categoria            TEXT    NOT NULL,          -- luz | agua | internet | telefonia | gas | television
+    referencia_etiqueta  TEXT    NOT NULL,          -- 'Número de servicio (12 dígitos)'
+    referencia_regex     TEXT    NOT NULL,
+    fuente_formato       TEXT    NOT NULL,          -- publico | simulado
+    cobertura            TEXT    NOT NULL,          -- 'nacional' o ciudades separadas por coma
+    periodicidad         TEXT    NOT NULL,          -- mensual | bimestral
+    comision             REAL    NOT NULL DEFAULT 0,
+    CHECK (categoria IN ('luz','agua','internet','telefonia','gas','television')),
+    CHECK (fuente_formato IN ('publico','simulado')),
+    CHECK (periodicidad IN ('mensual','bimestral')),
+    CHECK (comision >= 0)
+);
+
+-- Un servicio que el cliente ya registró: convenio + su referencia.
+CREATE TABLE saved_services (
+    service_id           TEXT PRIMARY KEY,
+    client_id            TEXT    NOT NULL REFERENCES clients(client_id),
+    biller_id            TEXT    NOT NULL REFERENCES billers(biller_id),
+    referencia           TEXT    NOT NULL,          -- número de servicio / teléfono / cuenta (mock)
+    alias                TEXT,                      -- 'Luz de la casa'
+    creado_en            TEXT    NOT NULL,
+    UNIQUE (client_id, biller_id, referencia)
+);
+CREATE INDEX idx_saved_services_client ON saved_services(client_id);
+
+-- Recibos. El vencido no se guarda: se calcula contra la fecha de valuación,
+-- para que no exista un estado que envejezca sin que nadie lo actualice.
+CREATE TABLE bills (
+    bill_id              TEXT PRIMARY KEY,
+    service_id           TEXT    NOT NULL REFERENCES saved_services(service_id),
+    periodo              TEXT    NOT NULL,          -- 'ago 2026' | 'jul–ago 2026'
+    monto                REAL    NOT NULL,
+    fecha_emision        TEXT    NOT NULL,
+    fecha_limite         TEXT    NOT NULL,
+    estado               TEXT    NOT NULL DEFAULT 'pendiente',   -- pendiente | pagado
+    payment_id           TEXT    REFERENCES payments(payment_id),
+    CHECK (monto > 0),
+    CHECK (estado IN ('pendiente','pagado'))
+);
+CREATE INDEX idx_bills_service ON bills(service_id, estado);
+
+-- Contactos para transferir. `creado_en` importa: un destino registrado hace
+-- menos de 30 minutos se trata como nuevo y tiene tope por operación.
+CREATE TABLE beneficiaries (
+    beneficiary_id       TEXT PRIMARY KEY,
+    client_id            TEXT    NOT NULL REFERENCES clients(client_id),
+    alias                TEXT    NOT NULL,
+    titular              TEXT    NOT NULL,
+    tipo_destino         TEXT    NOT NULL,          -- clabe | tarjeta
+    numero               TEXT    NOT NULL,          -- CLABE (18) o tarjeta (16), mock con verificador válido
+    banco_codigo         TEXT    NOT NULL,
+    creado_en            TEXT    NOT NULL,
+    UNIQUE (client_id, numero),
+    CHECK (tipo_destino IN ('clabe','tarjeta'))
+);
+CREATE INDEX idx_beneficiaries_client ON beneficiaries(client_id);
+
+CREATE TABLE payments (
+    payment_id           TEXT PRIMARY KEY,
+    folio                TEXT    NOT NULL UNIQUE,   -- 'PG-2026-000123' (lo ve el cliente)
+    client_id            TEXT    NOT NULL REFERENCES clients(client_id),
+    account_id           TEXT    NOT NULL REFERENCES accounts(account_id),   -- de donde sale
+    tipo                 TEXT    NOT NULL,          -- servicio | transferencia | retiro_sin_tarjeta
+    estado               TEXT    NOT NULL,          -- pendiente | ejecutando | ejecutada | rechazada | cancelada
+    monto                REAL    NOT NULL,
+    comision             REAL    NOT NULL DEFAULT 0,
+    concepto             TEXT,
+    -- servicio
+    service_id           TEXT    REFERENCES saved_services(service_id),
+    bill_id              TEXT    REFERENCES bills(bill_id),
+    -- transferencia
+    destino_tipo         TEXT,                      -- clabe | tarjeta | cuenta_propia
+    destino_numero       TEXT,
+    destino_banco        TEXT,                      -- codigo SPEI
+    destino_titular      TEXT,
+    destino_account_id   TEXT    REFERENCES accounts(account_id),  -- solo si el destino es de este banco
+    beneficiary_id       TEXT    REFERENCES beneficiaries(beneficiary_id),
+    clave_rastreo        TEXT,
+    -- retiro sin tarjeta: el codigo se entrega una vez y aqui solo queda su hash
+    codigo_retiro_hash   TEXT,
+    codigo_vence_en      TEXT,
+    -- ciclo de vida
+    creada_en            TEXT    NOT NULL,
+    ejecutada_en         TEXT,
+    motivo_rechazo       TEXT,
+    idempotency_key      TEXT    NOT NULL,
+    confirmation_token_hash TEXT NOT NULL,
+    CHECK (tipo IN ('servicio','transferencia','retiro_sin_tarjeta')),
+    CHECK (estado IN ('pendiente','ejecutando','ejecutada','rechazada','cancelada')),
+    CHECK (destino_tipo IS NULL OR destino_tipo IN ('clabe','tarjeta','cuenta_propia')),
+    CHECK (monto > 0),
+    CHECK (comision >= 0),
+    UNIQUE (client_id, idempotency_key)
+);
+CREATE INDEX idx_payments_client ON payments(client_id, creada_en DESC);
+
+-- Dinero que entra. El abono ya esta en `transactions`; esto guarda de quien
+-- viene, para contestar "¿quien me deposito?" sin parsear descripciones.
+CREATE TABLE incoming_transfers (
+    txn_id               TEXT PRIMARY KEY REFERENCES transactions(txn_id),
+    canal                TEXT    NOT NULL,          -- spei | interna | deposito_efectivo
+    remitente            TEXT    NOT NULL,
+    banco_origen         TEXT,                      -- codigo SPEI
+    cuenta_origen_mask   TEXT,
+    concepto             TEXT,
+    clave_rastreo        TEXT,
+    CHECK (canal IN ('spei','interna','deposito_efectivo'))
+);
+
+-- Referencias para depositar efectivo en un corresponsal (OXXO, 7-Eleven...).
+-- Crear una no mueve dinero; el abono llega cuando el corresponsal liquida,
+-- y eso NO es una tool del agente (ver scripts/simular_deposito.py).
+CREATE TABLE deposit_references (
+    reference_id         TEXT PRIMARY KEY,
+    client_id            TEXT    NOT NULL REFERENCES clients(client_id),
+    account_id           TEXT    NOT NULL REFERENCES accounts(account_id),
+    canal_id             TEXT    NOT NULL,
+    referencia           TEXT    NOT NULL UNIQUE,
+    comision             REAL    NOT NULL,
+    monto_maximo         REAL    NOT NULL,
+    estado               TEXT    NOT NULL DEFAULT 'vigente',   -- vigente | liquidada | cancelada
+    creada_en            TEXT    NOT NULL,
+    vence_en             TEXT    NOT NULL,
+    liquidada_en         TEXT,
+    monto_liquidado      REAL,
+    txn_id               TEXT    REFERENCES transactions(txn_id),
+    CHECK (estado IN ('vigente','liquidada','cancelada'))
+);
+CREATE INDEX idx_deposit_refs_client ON deposit_references(client_id, estado);
 
 -- ----------------------------------------------------- bitacora del blueprint
 -- Cada superficie que el agente emite queda registrada con el turno y las

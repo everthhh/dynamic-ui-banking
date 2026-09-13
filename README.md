@@ -31,6 +31,9 @@ make web          # terminal 2 · front en :5173
 
 # sin API key ni backend: guion grabado con datos reales
 make web          # y abre http://localhost:5173/?mock=1
+
+# un depósito en efectivo lo acredita la tienda, no el agente:
+make deposito REF=<referencia de 16 dígitos> MONTO=2000
 ```
 
 **La clave nunca toca el repo.** `.env` está en `.gitignore`;
@@ -52,20 +55,21 @@ make check        # tests + smoke + catálogo alineado + invariantes + typecheck
 ```
 dynamic-ui-banking/
 ├─ bank/            simulación de la base del banco + motor financiero
-│  ├─ schema.sql       core bancario e inversiones
+│  ├─ schema.sql       core bancario, inversiones y pagos
 │  ├─ seed.py          generador determinista (semilla 20260912)
 │  ├─ mercado.py       parámetros de mercado CON su procedencia y fecha
 │  ├─ emisoras.py      15 emisoras BMV: fundamentales y riesgo derivado de ellos
 │  ├─ carteras.py      qué empresas hay DENTRO de cada fondo (look-through)
 │  ├─ instrumentos.py  24 instrumentos contratables, correlaciones y bloques
+│  ├─ pagos.py         bancos SPEI, CLABE, convenios de servicios y canales de efectivo
 │  └─ finance/         riesgo, idoneidad, origen de fondos, fiscal, Monte Carlo
-├─ services/        la única superficie que el agente puede tocar (17 servicios)
+├─ services/        la única superficie que el agente puede tocar (41 tools)
 ├─ mcp_server/      servidor MCP standalone que expone services/ por stdio
 ├─ a2ui/            catalog.json (fuente única de verdad) + validador + contrato
 ├─ agent/           loop propio sobre el SDK nativo de Anthropic + cliente MCP
 ├─ gateway/         FastAPI + SSE, sesiones, bitácora y ciclo de vida del MCP
-├─ web/             renderer A2UI, registry y componentes inv.*/bank.* (charts con Recharts)
-├─ scripts/         generadores de artefactos y smoke del ciclo completo
+├─ web/             renderer A2UI, registry y componentes inv.*/bank.*/pay.* (charts con Recharts)
+├─ scripts/         generadores de artefactos, smoke del ciclo completo y liquidación de depósitos
 └─ docs/            arquitectura, trade-offs y guion de la demo
 ```
 
@@ -115,9 +119,9 @@ una probabilidad sola no distingue perder 2% de perder 40%.
 
 ### 2. El catálogo es la fuente única de verdad
 
-`a2ui/catalog.json` define 22 componentes (8 primitivos, 14 de dominio — 10 de
-`inv.*` y 4 de `bank.*`) y las 15 acciones válidas. De ahí se generan, y nunca
-se escriben a mano:
+`a2ui/catalog.json` define 29 componentes (8 primitivos, 21 de dominio — 10 de
+`inv.*`, 4 de `bank.*` y 7 de `pay.*`) y las 25 acciones válidas. De ahí se
+generan, y nunca se escriben a mano:
 
 | Artefacto | Generado por | Consumido por |
 |---|---|---|
@@ -167,6 +171,11 @@ puede saltarse el paso porque no puede inventar el token, y `idempotency_key` es
 capas —componente, agente y banco— y `tests/test_agent_loop.py` prueba que un
 token inventado no ejecuta.
 
+Pagos usa el mismo candado con una variante: el paso 2 es una tool aparte,
+`confirm_payment(payment_id, confirmation_token)`, que no recibe ni destino ni
+monto. Todo eso quedó guardado en el paso 1, así que entre lo que el usuario
+revisó en pantalla y lo que se ejecuta no hay nada que el modelo pueda cambiar.
+
 ---
 
 ## El SDK nativo de Anthropic
@@ -190,8 +199,8 @@ Lo que el loop hace y un wrapper no haría igual de bien:
 - **Límites duros.** Máximo 12 vueltas de encadenado y 2 reintentos de render;
   después, plantilla estática. El usuario nunca se queda con la pantalla en
   blanco.
-- **Redacción en la traza.** Los `confirmation_token` no salen al panel de
-  depuración: en un demo la pantalla se proyecta.
+- **Redacción en la traza.** Los `confirmation_token` y los códigos de retiro
+  sin tarjeta no salen al panel de depuración: en un demo la pantalla se proyecta.
 
 ---
 
@@ -223,8 +232,10 @@ corre el ciclo completo de seis turnos contra ese mismo servidor real.
 Todo sintético, generado con semilla fija (`SEED = 20260912`). `make seed` es
 reproducible byte a byte.
 
-**Core bancario:** 8 clientes con cuentas, 18 meses de movimientos con barrido de
-fin de mes, tarjetas de débito y crédito, y créditos con amortización real.
+**Core bancario:** 8 clientes con cuentas (CLABE con dígito verificador válido),
+18 meses de movimientos con barrido de fin de mes, tarjetas de débito y crédito,
+créditos con amortización real, y el dominio de pagos (ver abajo): servicios
+con su recibo, contactos, pagos, transferencias y dinero recibido.
 
 **Inversiones:** 24 instrumentos contratables (CETES, bonos M, UDIBONOs,
 pagarés, fondos y ETFs), repreciados sobre la curva real de septiembre 2026:
@@ -320,6 +331,69 @@ mismo catálogo, mismo agente, prefijo `bank.*` en vez de `inv.*`:
 
 ---
 
+## Tercer dominio: pagos
+
+Mismo catálogo, mismo agente, prefijo `pay.*`. Es lo que un cliente hace más
+seguido con su banco:
+
+- **Pago de servicios con datos de México.** Convenios reales —CFE, Telmex
+  (Infinitum), izzi, Totalplay, Megacable, Telcel, AT&T, SKY, Naturgy— y el
+  organismo de agua de cada ciudad de los clientes (Agua y Drenaje de
+  Monterrey, SIAPA, SACMEX, CEA Querétaro, JAPAY, Agua de Puebla, CESPT,
+  SAPAL). Cada convenio valida su referencia: el número de servicio de CFE son
+  12 dígitos y la telefonía se paga con el número a 10 dígitos, como en los
+  recibos (`fuente_formato: publico`); el resto son longitudes plausibles y lo
+  declaran (`simulado`). `register_service` valida y consulta el adeudo;
+  `pay_service` paga el recibo completo —el monto lo pone el convenio, no el
+  modelo— y el pago cuenta contra el presupuesto de «servicios».
+- **Transferencias SPEI.** A un contacto guardado, a una CLABE nueva o entre
+  cuentas propias. La CLABE se valida con el dígito verificador de Banxico
+  (pesos 3-7-1) en el servidor —y como ayuda, en pantalla— y el código de banco
+  tiene que ser un participante de SPEI. Si la CLABE es de otro cliente del
+  mismo banco, el dinero le llega en el acto y aparece en su historial con el
+  nombre de quien lo mandó.
+- **Efectivo.** Retiro sin tarjeta en cajero (múltiplos de $100, hasta $9,000,
+  con un código de 12 dígitos que se entrega una sola vez y en la base solo
+  queda hasheado) y depósito en corresponsales (OXXO, 7-Eleven, Walmart,
+  Farmacias del Ahorro, Telecomm) con referencia y comisión estimada. La CLABE
+  propia sale completa, lista para compartir.
+- **Historiales.** Lo que salió (`get_payment_history`: servicios,
+  transferencias y retiros con folio y clave de rastreo) y lo que entró
+  (`get_received_money`: nómina, SPEI, depósitos y traspasos, con remitente y
+  totales por canal; `total_recibido` no cuenta traspasos propios).
+
+Los candados viven en `services/movements.py`:
+
+| Candado | Qué evita |
+|---|---|
+| Dos pasos: `pay_service`, `transfer_money` y `withdraw_cash` solo registran; `confirm_payment` ejecuta con el token | Que el modelo mueva dinero sin que el usuario confirme en `pay.PaymentTicket` |
+| El paso 2 no recibe destino ni monto: salen de lo guardado en el paso 1 | Que cambie algo entre lo que el usuario vio y lo que se ejecuta |
+| Saldo y tope diario por segmento, en el paso 1 **y** otra vez al ejecutar | Que dos operaciones pendientes juntas rebasen lo permitido |
+| Tope por operación a un destino nuevo, aunque se acabe de guardar (30 minutos) | El fraude «agrega esta cuenta y mándame todo» |
+| `liquidar_deposito_en_efectivo` fuera de `services.REGISTRO` | Que alguna tool pueda crear saldo de la nada |
+| Números enmascarados en las respuestas y `codigo_retiro` redactado en la traza | Que un número completo salga en una pantalla proyectada |
+
+Un rechazo al ejecutar (recibo que ya se pagó, SPEI devuelto, tope rebasado)
+se **persiste** antes de lanzar el error: sin eso, el rollback de la sesión lo
+borraría y la operación volvería a quedar pendiente.
+
+**Componentes** (`pay.*`): `BillsPanel` (recibos con vencimiento y botón de
+pagar), `ServiceForm` (alta con el formato validado en pantalla),
+`TransferForm` (contactos, CLABE nueva con verificador en vivo y cuentas
+propias), `PaymentTicket` (confirmación y comprobante: folio, clave de rastreo
+o código de retiro), `PaymentHistory`, `ReceivedMoney` (barras por canal) y
+`CashAccess` (retiro sin tarjeta, CLABE para compartir y corresponsales).
+
+**Datos sembrados.** Cada cliente tiene 4 o 5 servicios con su recibo vigente
+(algunos vencidos a propósito; el CFE de CLI-0001 vence en cuatro días), tres
+contactos —dos de otros bancos y uno del mismo banco— y 18 meses de historia:
+pagos a sus convenios, transferencias enviadas y dinero recibido por SPEI y en
+efectivo. Los cargos genéricos de «servicios» del seed anterior se
+reemplazaron por esos pagos, y todo sale de una semilla aparte: posiciones,
+órdenes, perfiles y series de inversiones quedaron idénticos.
+
+---
+
 ## La simulación del sistema de componentes
 
 `web/src/fixtures/demo.json` es el guion completo —los seis turnos, los mismos
@@ -337,8 +411,8 @@ si el catálogo cambia, el guion se rompe y nos enteramos.
 ## Verificación
 
 ```
-331 tests
-  a2ui/tests/test_contract.py    catálogo bien formado (22 componentes, 15 acciones),
+443 tests
+  a2ui/tests/test_contract.py    catálogo bien formado (29 componentes, 25 acciones),
                                  artefactos alineados, casos inválidos (incl. spec A2UI
                                  real: action anidado, deleteSurface) y accionables
   tests/test_finance.py          monotonía del score, tope por horizonte, pesos que
@@ -348,11 +422,16 @@ si el catálogo cambia, el guion se rompe y nos enteramos.
                                  pasos de la orden, idempotencia, token nunca expuesto
   tests/test_banking.py          ownership de cuenta/tarjeta, límites con techo y piso,
                                  bloqueo idempotente, alias saneado, presupuestos
+  tests/test_payments.py         CLABE y Luhn, dos pasos, token ajeno o inventado, tope
+                                 a destino nuevo y diario (también al ejecutar), rechazo
+                                 que persiste, transferencia interna que llega, código de
+                                 retiro de una sola vez, depósito que ninguna tool acredita
   tests/test_riesgo_emisoras.py  look-through a empresas dentro de fondos, idoneidad
                                  (perfil/concentración/plazo), origen de fondos y
                                  arbitraje con crédito, fiscal, curva de tasas
   tests/test_agent_loop.py       encadenado de tools (vía MCP falso), validación con
-                                 reintento, fallback, bitácora, límites
+                                 reintento, fallback, bitácora, límites, token inventado
+                                 en place_order y en confirm_payment
   tests/test_mcp_server.py       el servidor MCP real por stdio: list_tools,
                                  llamada exitosa, tool desconocida, error de servicio
 
@@ -376,5 +455,6 @@ consola limpia, y sin desbordamiento horizontal a 400 px.
 ## Aviso
 
 Todos los datos son sintéticos. No hay información real de ningún cliente, los
-instrumentos son inventados y las operaciones no mueven dinero. Esto no es
-asesoría de inversión.
+instrumentos son inventados y las operaciones no mueven dinero. Los convenios
+de pago llevan el nombre de empresas reales, pero las referencias, los adeudos
+y las comisiones son simulados. Esto no es asesoría de inversión.

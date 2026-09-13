@@ -293,7 +293,7 @@
      "type": "tool_result",
      "name": "get_spending_summary",
      "ok": true,
-     "resumen": "capacidad de ahorro 38,397/mes"
+     "resumen": "capacidad de ahorro 37,776/mes"
     },
     {
      "type": "tool_call",
@@ -2769,7 +2769,7 @@
      "type": "tool_result",
      "name": "compare_allocations",
      "ok": true,
-     "resumen": "marcador 3-6"
+     "resumen": "marcador 4-5"
     },
     {
      "type": "text",
@@ -2829,7 +2829,7 @@
           "prob_perdida_vs_origen": 0.0104,
           "perdida_esperada_pct": 0.0004,
           "cvar_95_pct": -0.0283,
-          "indice_riesgo": 11.62,
+          "indice_riesgo": 28.64,
           "impuestos_p50": 7634.07,
           "total_aportado": 230000.0
          },
@@ -3778,7 +3778,7 @@
           "prob_perdida_vs_origen": 0.0,
           "perdida_esperada_pct": 0.0,
           "cvar_95_pct": -0.1226,
-          "indice_riesgo": 6.95,
+          "indice_riesgo": 48.0,
           "impuestos_p50": 7933.64,
           "total_aportado": 230000.0
          },
@@ -4783,15 +4783,15 @@
           "metrica": "indice_riesgo",
           "etiqueta": "Índice de riesgo (0-100)",
           "formato": "numero",
-          "izquierda": 11.62,
-          "derecha": 6.95,
-          "delta": -4.67,
-          "mejor": "derecha"
+          "izquierda": 28.64,
+          "derecha": 48.0,
+          "delta": 19.36,
+          "mejor": "izquierda"
          }
         ],
         "marcador": {
-         "izquierda": 3,
-         "derecha": 6
+         "izquierda": 4,
+         "derecha": 5
         },
         "disclaimer": "Comparación sobre datos sintéticos y mismos supuestos. Ganar en más métricas no la hace la opción correcta para ti."
        }
@@ -4926,7 +4926,7 @@
        "surfaceId": "inv-main",
        "path": "/orden",
        "value": {
-        "order_id": "3ada7645-6620-4731-8d01-919079643449",
+        "order_id": "9ce95df5-3fa4-40c8-841c-0d201a576295",
         "folio": "BN-2026-100006",
         "estado": "pendiente",
         "client_id": "CLI-0001",
@@ -5072,7 +5072,7 @@
          "resumen": "Asignación apta para el perfil."
         },
         "requiere_confirmacion": true,
-        "confirmation_token": "88QhnSo-OPF67mDmaxsSb1GL",
+        "confirmation_token": "NG5Lyqkx2zhFiFKZHs8T4Ek5",
         "vence_en_minutos": 15,
         "mensaje": "Orden registrada sin ejecutar. Muestra el resumen al usuario y vuelve a llamar `place_order` con el mismo `idempotency_key` y este `confirmation_token` solo cuando el usuario confirme.",
         "disclaimer": "Operación simulada sobre datos sintéticos. No mueve dinero real."
@@ -5178,17 +5178,17 @@
        "surfaceId": "inv-main",
        "path": "/orden",
        "value": {
-        "order_id": "3ada7645-6620-4731-8d01-919079643449",
+        "order_id": "9ce95df5-3fa4-40c8-841c-0d201a576295",
         "folio": "BN-2026-100006",
         "client_id": "CLI-0001",
         "account_id": "ACC-0002",
         "estado": "ejecutada",
         "monto": 80000.0,
         "motivo_rechazo": null,
-        "creada_en": "2026-09-01T16:28:35.181461",
-        "ejecutada_en": "2026-09-01T16:28:35.202154",
+        "creada_en": "2026-09-01T18:02:22.863251",
+        "ejecutada_en": "2026-09-01T18:02:22.868739",
         "idempotency_key": "CLI-0001-fixture-1",
-        "confirmation_token_hash": "4d8cc928b8d535b6163f3b888d14aa52d2277de9518177c967fb994fa9e791ea",
+        "confirmation_token_hash": "990362c91c4d9a2eeccb9b3932b63b85f773f9447d52d07ae29dc8e39e68e158",
         "legs": [
          {
           "instrument_id": "BONOSM-10A",
@@ -5244,37 +5244,37 @@
         "saldo_despues": 91085.96,
         "posiciones": [
          {
-          "position_id": "POS-e38d9dba7a",
+          "position_id": "POS-9fab4a453e",
           "instrument_id": "BONOSM-10A",
           "titulos": 82.629949,
           "monto_aplicado": 17600.0
          },
          {
-          "position_id": "POS-5e067d5595",
+          "position_id": "POS-bb9565d8ac",
           "instrument_id": "CETES-364",
           "titulos": 81.849428,
           "monto_aplicado": 16000.0
          },
          {
-          "position_id": "POS-e4bac9a530",
+          "position_id": "POS-5167a0fc20",
           "instrument_id": "FND-CORP-AAA",
           "titulos": 50.161135,
           "monto_aplicado": 10400.0
          },
          {
-          "position_id": "POS-82d390a63a",
+          "position_id": "POS-7a85bf135b",
           "instrument_id": "FND-GUB-CP",
           "titulos": 43.244631,
           "monto_aplicado": 8000.0
          },
          {
-          "position_id": "POS-3c6eacc966",
+          "position_id": "POS-6949d40dcf",
           "instrument_id": "NAFTRAC",
           "titulos": 53.349816,
           "monto_aplicado": 14400.0
          },
          {
-          "position_id": "POS-680a4b5d5a",
+          "position_id": "POS-2c7d91aefa",
           "instrument_id": "TRACK-SP500",
           "titulos": 53.359458,
           "monto_aplicado": 13600.0
@@ -5488,17 +5488,17 @@
        "surfaceId": "inv-estado",
        "path": "/orden",
        "value": {
-        "order_id": "3ada7645-6620-4731-8d01-919079643449",
+        "order_id": "9ce95df5-3fa4-40c8-841c-0d201a576295",
         "folio": "BN-2026-100006",
         "client_id": "CLI-0001",
         "account_id": "ACC-0002",
         "estado": "ejecutada",
         "monto": 80000.0,
         "motivo_rechazo": null,
-        "creada_en": "2026-09-01T16:28:35.181461",
-        "ejecutada_en": "2026-09-01T16:28:35.202154",
+        "creada_en": "2026-09-01T18:02:22.863251",
+        "ejecutada_en": "2026-09-01T18:02:22.868739",
         "idempotency_key": "CLI-0001-fixture-1",
-        "confirmation_token_hash": "4d8cc928b8d535b6163f3b888d14aa52d2277de9518177c967fb994fa9e791ea",
+        "confirmation_token_hash": "990362c91c4d9a2eeccb9b3932b63b85f773f9447d52d07ae29dc8e39e68e158",
         "legs": [
          {
           "instrument_id": "BONOSM-10A",
@@ -5554,37 +5554,37 @@
         "saldo_despues": 91085.96,
         "posiciones": [
          {
-          "position_id": "POS-e38d9dba7a",
+          "position_id": "POS-9fab4a453e",
           "instrument_id": "BONOSM-10A",
           "titulos": 82.629949,
           "monto_aplicado": 17600.0
          },
          {
-          "position_id": "POS-5e067d5595",
+          "position_id": "POS-bb9565d8ac",
           "instrument_id": "CETES-364",
           "titulos": 81.849428,
           "monto_aplicado": 16000.0
          },
          {
-          "position_id": "POS-e4bac9a530",
+          "position_id": "POS-5167a0fc20",
           "instrument_id": "FND-CORP-AAA",
           "titulos": 50.161135,
           "monto_aplicado": 10400.0
          },
          {
-          "position_id": "POS-82d390a63a",
+          "position_id": "POS-7a85bf135b",
           "instrument_id": "FND-GUB-CP",
           "titulos": 43.244631,
           "monto_aplicado": 8000.0
          },
          {
-          "position_id": "POS-3c6eacc966",
+          "position_id": "POS-6949d40dcf",
           "instrument_id": "NAFTRAC",
           "titulos": 53.349816,
           "monto_aplicado": 14400.0
          },
          {
-          "position_id": "POS-680a4b5d5a",
+          "position_id": "POS-2c7d91aefa",
           "instrument_id": "TRACK-SP500",
           "titulos": 53.359458,
           "monto_aplicado": 13600.0

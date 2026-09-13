@@ -33,6 +33,8 @@ const SUGERENCIAS = [
   "¿en qué se me va el dinero cada mes?",
   "¿me conviene más pagar mi crédito o invertir?",
   "muéstrame los instrumentos de riesgo bajo",
+  "¿qué recibos tengo por pagar?",
+  "necesito sacar mil pesos y no traigo tarjeta",
 ];
 
 export default function App() {
