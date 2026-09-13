@@ -151,6 +151,29 @@ def test_blueprint_invalido_se_devuelve_al_modelo_y_se_corrige():
     assert eventos[-1].datos["render_ok"] is True
 
 
+def test_render_truncado_por_max_tokens_dice_que_se_cortó_no_nonetype():
+    """Un blueprint grande puede cortar la respuesta antes de mandar `messages`:
+    el content_block de render_surface llega vacío (no inválido). El error que
+    vuelve al modelo tiene que decir eso, no `validate_a2ui(None)` a secas
+    ("llegó NoneType"), que no explica qué pasó ni cómo corregirlo."""
+    cliente = FakeAnthropic([
+        ([BloqueTexto("Aquí está tu propuesta:"), BloqueToolUse("render_surface", {})],
+         "max_tokens"),
+        [BloqueToolUse("render_surface", {"messages": blueprint_perfilador()})],
+        [BloqueTexto("Listo.")],
+    ])
+    eventos, _ = correr(cliente, "hola")
+
+    rechazos = [e for e in eventos if e.tipo == "render_rechazado"]
+    assert len(rechazos) == 1
+    assert rechazos[0].datos.get("truncado") is True
+    error = rechazos[0].datos["errores"][0]
+    assert "NoneType" not in error
+    assert "se cortó" in error
+
+    assert eventos[-1].datos["render_ok"] is True
+
+
 def test_tras_agotar_reintentos_monta_la_plantilla_de_respaldo():
     malo = [{"version": "v0.9", "updateComponents": {
         "surfaceId": "inv-main", "components": [{"id": "x", "component": "Nope"}]}}]

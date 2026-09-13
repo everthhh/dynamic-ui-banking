@@ -71,17 +71,25 @@ class _Messages:
                 "El guion del modelo falso se acabó y el loop pidió otra llamada. "
                 "Agrega un turno o revisa por qué el loop no terminó."
             )
-        bloques = self._padre.guion.pop(0)
-        stop = "tool_use" if any(getattr(b, "type", "") == "tool_use" for b in bloques) \
-            else "end_turn"
+        turno = self._padre.guion.pop(0)
+        # Un turno normal es solo la lista de bloques; para forzar un
+        # `stop_reason` explícito (ej. "max_tokens" al simular un corte a
+        # media respuesta) se pasa la tupla (bloques, stop_reason).
+        if isinstance(turno, tuple):
+            bloques, stop = turno
+        else:
+            bloques = turno
+            stop = "tool_use" if any(getattr(b, "type", "") == "tool_use" for b in bloques) \
+                else "end_turn"
         return _Stream(MensajeFinal(content=list(bloques), stop_reason=stop))
 
 
 class FakeAnthropic:
-    """`guion`: lista de turnos; cada turno es una lista de bloques."""
+    """`guion`: lista de turnos; cada turno es una lista de bloques, o la tupla
+    `(bloques, stop_reason)` para forzar un `stop_reason` explícito."""
 
     def __init__(self, guion: list[list[Any]]) -> None:
-        self.guion = [list(t) for t in guion]
+        self.guion = [tuple(t) if isinstance(t, tuple) else list(t) for t in guion]
         self.llamadas: list[dict[str, Any]] = []
         self.messages = _Messages(self)
 

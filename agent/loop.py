@@ -84,7 +84,14 @@ def _avisos_de_rutas_bank(mensajes: list[dict[str, Any]]) -> list[str]:
 
 
 MODELO_DEFAULT = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-5")
-MAX_TOKENS = 8192
+# Un blueprint grande (propuesta con dona + proyección + tabla + series de
+# simulación, todo en un solo `render_surface`) puede pasar de 8192 tokens de
+# salida. Si el modelo se corta a la mitad del tool_use, el content_block
+# queda con `input` vacío o a medio parsear y `messages` llega a
+# `validate_a2ui` como None — no es un blueprint invalido, es uno incompleto.
+# 32000 le da margen de sobra sin requerir el beta de "long requests" (ya
+# streameamos, así que la API lo acepta sin más).
+MAX_TOKENS = 32000
 MAX_REINTENTOS_RENDER = 2
 MAX_VUELTAS = 12                 # corta un encadenado de tools que se fue de las manos
 TIMEOUT_TOOL_S = 20.0
@@ -203,6 +210,10 @@ class AgenteUIGenerativa:
 
         for vuelta in range(MAX_VUELTAS):
             bloques, stop_reason = await self._una_llamada(sesion)
+            truncado = stop_reason == "max_tokens"
+            if truncado:
+                log.warning("turno %s: la respuesta del modelo se cortó por max_tokens",
+                            sesion.turno)
 
             for bloque in bloques:
                 if bloque["type"] == "text" and bloque["text"].strip():
@@ -220,7 +231,7 @@ class AgenteUIGenerativa:
 
                 if nombre == NOMBRE_RENDER:
                     resultado, eventos, ok = self._procesar_render(
-                        sesion, args, reintentos_render)
+                        sesion, args, reintentos_render, truncado=truncado)
                     for ev in eventos:
                         yield ev
                     if ok:
@@ -331,10 +342,38 @@ class AgenteUIGenerativa:
         return bloques, getattr(final, "stop_reason", None)
 
     def _procesar_render(
-        self, sesion: Sesion, args: dict[str, Any], reintentos: int
+        self, sesion: Sesion, args: dict[str, Any], reintentos: int, *,
+        truncado: bool = False,
     ) -> tuple[dict[str, Any], list[Evento], bool]:
         """Valida el blueprint y, si pasa, lo emite mensaje por mensaje."""
         mensajes = args.get("messages")
+
+        if truncado and not mensajes:
+            # La respuesta se cortó por `max_tokens` antes de que el modelo
+            # terminara de mandar `messages`: el content_block de
+            # `render_surface` queda vacío, no con un blueprint mal formado.
+            # `validate_a2ui(None)` diría "llegó NoneType", que no le explica
+            # al modelo qué pasó de verdad ni cómo corregirlo — se lo decimos
+            # directo para que la próxima vuelta mande algo más chico en vez
+            # de repetir el mismo blueprint y cortarse otra vez igual.
+            mensaje = (
+                "Tu respuesta se cortó por el límite de tokens de salida antes de "
+                "terminar de mandar `messages` a `render_surface` (no es un blueprint "
+                "inválido: no llegó ninguno). No repitas el mismo blueprint completo de "
+                "un jalón: mándalo en varias llamadas más chicas — `createSurface` + lo "
+                "esencial primero, agrega detalle después con `updateComponents`, y separa "
+                "arreglos largos (series de simulación, tablas grandes) en su propio "
+                "`updateDataModel` en vez de inlinearlos todos juntos."
+            )
+            log.warning("turno %s: render_surface se truncó por max_tokens (intento %s)",
+                        sesion.turno, reintentos + 1)
+            return (
+                {"content": mensaje},
+                [Evento("render_rechazado", {"intento": reintentos + 1,
+                                             "errores": [mensaje], "truncado": True})],
+                False,
+            )
+
         res = validate_a2ui(mensajes)
 
         if not res.ok:
