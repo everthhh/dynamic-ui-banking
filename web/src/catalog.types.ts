@@ -1,6 +1,6 @@
 // GENERADO por scripts/gen_catalog_artifacts.py desde a2ui/catalog.json. No editar a mano.
 
-export const CATALOG_ID = "https://solemn-banking-ai.local/a2ui/inv/v1/catalog.json";
+export const CATALOG_ID = "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json";
 export const A2UI_VERSION = "v0.9";
 
 export type Binding = { path: string };

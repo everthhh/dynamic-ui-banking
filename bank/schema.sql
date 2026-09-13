@@ -1,5 +1,5 @@
 -- ============================================================================
--- Solemn Banking AI · simulacion de la base de datos del banco
+-- dynamic-ui-banking · simulacion de la base de datos del banco
 -- ----------------------------------------------------------------------------
 -- SQLite. Todo sintetico y generado con semilla fija (ver bank/seed.py).
 -- No hay ni un dato real de cliente. Los campos tipo RFC/CLABE/ISIN son

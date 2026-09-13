@@ -64,7 +64,7 @@ async def _lifespan(_app: FastAPI):
         _mcp = None
 
 
-app = FastAPI(title="Solemn Banking AI · gateway", version="0.1.0", lifespan=_lifespan)
+app = FastAPI(title="dynamic-ui-banking · gateway", version="0.1.0", lifespan=_lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.environ.get("CORS_ORIGINS", "http://localhost:5173").split(","),

@@ -72,7 +72,7 @@
      "version": "v0.9",
      "createSurface": {
       "surfaceId": "inicio",
-      "catalogId": "https://solemn-banking-ai.local/a2ui/inv/v1/catalog.json"
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
      }
     }
    },
@@ -835,7 +835,6 @@
          "saludo",
          "perfil",
          "recomendaciones",
-         "ver_catalogo",
          "aviso"
         ]
        },
@@ -860,20 +859,6 @@
         },
         "titulo": "Lo que te recomendamos hoy",
         "max": 3
-       },
-       {
-        "id": "ver_catalogo",
-        "component": "Button",
-        "variant": "ghost",
-        "label": "Ver todas las funcionalidades del banco",
-        "action": {
-         "event": {
-          "name": "ask",
-          "context": {
-           "prompt": "Muéstrame todas las funcionalidades que ofrece el banco, no solo las recomendadas para mí."
-          }
-         }
-        }
        },
        {
         "id": "aviso",
@@ -916,7 +901,7 @@
      "version": "v0.9",
      "createSurface": {
       "surfaceId": "inicio",
-      "catalogId": "https://solemn-banking-ai.local/a2ui/inv/v1/catalog.json"
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
      }
     }
    },
@@ -1606,7 +1591,6 @@
          "saludo",
          "perfil",
          "recomendaciones",
-         "ver_catalogo",
          "aviso"
         ]
        },
@@ -1631,20 +1615,6 @@
         },
         "titulo": "Lo que te recomendamos hoy",
         "max": 3
-       },
-       {
-        "id": "ver_catalogo",
-        "component": "Button",
-        "variant": "ghost",
-        "label": "Ver todas las funcionalidades del banco",
-        "action": {
-         "event": {
-          "name": "ask",
-          "context": {
-           "prompt": "Muéstrame todas las funcionalidades que ofrece el banco, no solo las recomendadas para mí."
-          }
-         }
-        }
        },
        {
         "id": "aviso",
@@ -1687,7 +1657,7 @@
      "version": "v0.9",
      "createSurface": {
       "surfaceId": "inicio",
-      "catalogId": "https://solemn-banking-ai.local/a2ui/inv/v1/catalog.json"
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
      }
     }
    },
@@ -2436,7 +2406,6 @@
          "saludo",
          "perfil",
          "recomendaciones",
-         "ver_catalogo",
          "aviso"
         ]
        },
@@ -2461,20 +2430,6 @@
         },
         "titulo": "Lo que te recomendamos hoy",
         "max": 3
-       },
-       {
-        "id": "ver_catalogo",
-        "component": "Button",
-        "variant": "ghost",
-        "label": "Ver todas las funcionalidades del banco",
-        "action": {
-         "event": {
-          "name": "ask",
-          "context": {
-           "prompt": "Muéstrame todas las funcionalidades que ofrece el banco, no solo las recomendadas para mí."
-          }
-         }
-        }
        },
        {
         "id": "aviso",
@@ -2517,7 +2472,7 @@
      "version": "v0.9",
      "createSurface": {
       "surfaceId": "inicio",
-      "catalogId": "https://solemn-banking-ai.local/a2ui/inv/v1/catalog.json"
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
      }
     }
    },
@@ -3139,7 +3094,6 @@
          "saludo",
          "perfil",
          "recomendaciones",
-         "ver_catalogo",
          "aviso"
         ]
        },
@@ -3164,20 +3118,6 @@
         },
         "titulo": "Lo que te recomendamos hoy",
         "max": 3
-       },
-       {
-        "id": "ver_catalogo",
-        "component": "Button",
-        "variant": "ghost",
-        "label": "Ver todas las funcionalidades del banco",
-        "action": {
-         "event": {
-          "name": "ask",
-          "context": {
-           "prompt": "Muéstrame todas las funcionalidades que ofrece el banco, no solo las recomendadas para mí."
-          }
-         }
-        }
        },
        {
         "id": "aviso",
@@ -3220,7 +3160,7 @@
      "version": "v0.9",
      "createSurface": {
       "surfaceId": "inicio",
-      "catalogId": "https://solemn-banking-ai.local/a2ui/inv/v1/catalog.json"
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
      }
     }
    },
@@ -4067,7 +4007,6 @@
          "saludo",
          "perfil",
          "recomendaciones",
-         "ver_catalogo",
          "aviso"
         ]
        },
@@ -4092,20 +4031,6 @@
         },
         "titulo": "Lo que te recomendamos hoy",
         "max": 3
-       },
-       {
-        "id": "ver_catalogo",
-        "component": "Button",
-        "variant": "ghost",
-        "label": "Ver todas las funcionalidades del banco",
-        "action": {
-         "event": {
-          "name": "ask",
-          "context": {
-           "prompt": "Muéstrame todas las funcionalidades que ofrece el banco, no solo las recomendadas para mí."
-          }
-         }
-        }
        },
        {
         "id": "aviso",
@@ -4148,7 +4073,7 @@
      "version": "v0.9",
      "createSurface": {
       "surfaceId": "inicio",
-      "catalogId": "https://solemn-banking-ai.local/a2ui/inv/v1/catalog.json"
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
      }
     }
    },
@@ -4760,7 +4685,6 @@
          "saludo",
          "perfil",
          "recomendaciones",
-         "ver_catalogo",
          "aviso"
         ]
        },
@@ -4785,20 +4709,6 @@
         },
         "titulo": "Lo que te recomendamos hoy",
         "max": 3
-       },
-       {
-        "id": "ver_catalogo",
-        "component": "Button",
-        "variant": "ghost",
-        "label": "Ver todas las funcionalidades del banco",
-        "action": {
-         "event": {
-          "name": "ask",
-          "context": {
-           "prompt": "Muéstrame todas las funcionalidades que ofrece el banco, no solo las recomendadas para mí."
-          }
-         }
-        }
        },
        {
         "id": "aviso",
@@ -4841,7 +4751,7 @@
      "version": "v0.9",
      "createSurface": {
       "surfaceId": "inicio",
-      "catalogId": "https://solemn-banking-ai.local/a2ui/inv/v1/catalog.json"
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
      }
     }
    },
@@ -5414,7 +5324,6 @@
          "saludo",
          "perfil",
          "recomendaciones",
-         "ver_catalogo",
          "aviso"
         ]
        },
@@ -5439,20 +5348,6 @@
         },
         "titulo": "Lo que te recomendamos hoy",
         "max": 3
-       },
-       {
-        "id": "ver_catalogo",
-        "component": "Button",
-        "variant": "ghost",
-        "label": "Ver todas las funcionalidades del banco",
-        "action": {
-         "event": {
-          "name": "ask",
-          "context": {
-           "prompt": "Muéstrame todas las funcionalidades que ofrece el banco, no solo las recomendadas para mí."
-          }
-         }
-        }
        },
        {
         "id": "aviso",
@@ -5495,7 +5390,7 @@
      "version": "v0.9",
      "createSurface": {
       "surfaceId": "inicio",
-      "catalogId": "https://solemn-banking-ai.local/a2ui/inv/v1/catalog.json"
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
      }
     }
    },
@@ -6265,7 +6160,6 @@
          "saludo",
          "perfil",
          "recomendaciones",
-         "ver_catalogo",
          "aviso"
         ]
        },
@@ -6290,20 +6184,6 @@
         },
         "titulo": "Lo que te recomendamos hoy",
         "max": 3
-       },
-       {
-        "id": "ver_catalogo",
-        "component": "Button",
-        "variant": "ghost",
-        "label": "Ver todas las funcionalidades del banco",
-        "action": {
-         "event": {
-          "name": "ask",
-          "context": {
-           "prompt": "Muéstrame todas las funcionalidades que ofrece el banco, no solo las recomendadas para mí."
-          }
-         }
-        }
        },
        {
         "id": "aviso",
@@ -6375,7 +6255,7 @@
       "version": "v0.9",
       "createSurface": {
        "surfaceId": "inv-main",
-       "catalogId": "https://solemn-banking-ai.local/a2ui/inv/v1/catalog.json",
+       "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json",
        "theme": {
         "primaryColor": "#EB0029"
        }
@@ -11202,7 +11082,7 @@
        "surfaceId": "inv-main",
        "path": "/orden",
        "value": {
-        "order_id": "63ca2889-20bd-468d-b1c5-2ab36b5f03bb",
+        "order_id": "a4da3fae-a555-4149-aa70-44be1c70c259",
         "folio": "BN-2026-100007",
         "estado": "pendiente",
         "client_id": "CLI-0001",
@@ -11348,7 +11228,7 @@
          "resumen": "Asignación apta para el perfil."
         },
         "requiere_confirmacion": true,
-        "confirmation_token": "eMJxBwXA1mBiYsx1UyGjPggB",
+        "confirmation_token": "QUE2uN179wAqgiElpf734TCt",
         "vence_en_minutos": 15,
         "mensaje": "Orden registrada sin ejecutar. Muestra el resumen al usuario y vuelve a llamar `place_order` con el mismo `idempotency_key` y este `confirmation_token` solo cuando el usuario confirme.",
         "disclaimer": "Operación simulada sobre datos sintéticos. No mueve dinero real."
@@ -11454,17 +11334,17 @@
        "surfaceId": "inv-main",
        "path": "/orden",
        "value": {
-        "order_id": "63ca2889-20bd-468d-b1c5-2ab36b5f03bb",
+        "order_id": "a4da3fae-a555-4149-aa70-44be1c70c259",
         "folio": "BN-2026-100007",
         "client_id": "CLI-0001",
         "account_id": "ACC-0002",
         "estado": "ejecutada",
         "monto": 80000.0,
         "motivo_rechazo": null,
-        "creada_en": "2026-09-01T02:43:19.808691",
-        "ejecutada_en": "2026-09-01T02:43:19.817704",
+        "creada_en": "2026-09-01T00:06:29.897980",
+        "ejecutada_en": "2026-09-01T00:06:29.902835",
         "idempotency_key": "CLI-0001-fixture-1",
-        "confirmation_token_hash": "40f7687cbd7205df504b7c7d0c7e800e6d3c3ca28f71de2d761d7d2f1369e709",
+        "confirmation_token_hash": "90c90eaa24c7cb6007df11c2fc81d3b89cbcf000c363b66b087aa96471e1ced9",
         "legs": [
          {
           "instrument_id": "BONOSM-10A",
@@ -11520,37 +11400,37 @@
         "saldo_despues": 197469.33,
         "posiciones": [
          {
-          "position_id": "POS-28fed9fff9",
+          "position_id": "POS-40fb474063",
           "instrument_id": "BONOSM-10A",
           "titulos": 82.629949,
           "monto_aplicado": 17600.0
          },
          {
-          "position_id": "POS-3eb82be64c",
+          "position_id": "POS-825b603dbf",
           "instrument_id": "CETES-364",
           "titulos": 81.849428,
           "monto_aplicado": 16000.0
          },
          {
-          "position_id": "POS-ce6a1e8756",
+          "position_id": "POS-f16fe5bc85",
           "instrument_id": "FND-CORP-AAA",
           "titulos": 50.161135,
           "monto_aplicado": 10400.0
          },
          {
-          "position_id": "POS-6de2872293",
+          "position_id": "POS-689baef0dd",
           "instrument_id": "FND-GUB-CP",
           "titulos": 43.244631,
           "monto_aplicado": 8000.0
          },
          {
-          "position_id": "POS-7c6ecc246c",
+          "position_id": "POS-15f5fcc704",
           "instrument_id": "NAFTRAC",
           "titulos": 53.349816,
           "monto_aplicado": 14400.0
          },
          {
-          "position_id": "POS-7c4045e535",
+          "position_id": "POS-7e6b3f660b",
           "instrument_id": "TRACK-SP500",
           "titulos": 53.359458,
           "monto_aplicado": 13600.0
@@ -11660,7 +11540,7 @@
       "version": "v0.9",
       "createSurface": {
        "surfaceId": "inv-estado",
-       "catalogId": "https://solemn-banking-ai.local/a2ui/inv/v1/catalog.json"
+       "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
       }
      }
     },
@@ -11764,17 +11644,17 @@
        "surfaceId": "inv-estado",
        "path": "/orden",
        "value": {
-        "order_id": "63ca2889-20bd-468d-b1c5-2ab36b5f03bb",
+        "order_id": "a4da3fae-a555-4149-aa70-44be1c70c259",
         "folio": "BN-2026-100007",
         "client_id": "CLI-0001",
         "account_id": "ACC-0002",
         "estado": "ejecutada",
         "monto": 80000.0,
         "motivo_rechazo": null,
-        "creada_en": "2026-09-01T02:43:19.808691",
-        "ejecutada_en": "2026-09-01T02:43:19.817704",
+        "creada_en": "2026-09-01T00:06:29.897980",
+        "ejecutada_en": "2026-09-01T00:06:29.902835",
         "idempotency_key": "CLI-0001-fixture-1",
-        "confirmation_token_hash": "40f7687cbd7205df504b7c7d0c7e800e6d3c3ca28f71de2d761d7d2f1369e709",
+        "confirmation_token_hash": "90c90eaa24c7cb6007df11c2fc81d3b89cbcf000c363b66b087aa96471e1ced9",
         "legs": [
          {
           "instrument_id": "BONOSM-10A",
@@ -11830,37 +11710,37 @@
         "saldo_despues": 197469.33,
         "posiciones": [
          {
-          "position_id": "POS-28fed9fff9",
+          "position_id": "POS-40fb474063",
           "instrument_id": "BONOSM-10A",
           "titulos": 82.629949,
           "monto_aplicado": 17600.0
          },
          {
-          "position_id": "POS-3eb82be64c",
+          "position_id": "POS-825b603dbf",
           "instrument_id": "CETES-364",
           "titulos": 81.849428,
           "monto_aplicado": 16000.0
          },
          {
-          "position_id": "POS-ce6a1e8756",
+          "position_id": "POS-f16fe5bc85",
           "instrument_id": "FND-CORP-AAA",
           "titulos": 50.161135,
           "monto_aplicado": 10400.0
          },
          {
-          "position_id": "POS-6de2872293",
+          "position_id": "POS-689baef0dd",
           "instrument_id": "FND-GUB-CP",
           "titulos": 43.244631,
           "monto_aplicado": 8000.0
          },
          {
-          "position_id": "POS-7c6ecc246c",
+          "position_id": "POS-15f5fcc704",
           "instrument_id": "NAFTRAC",
           "titulos": 53.349816,
           "monto_aplicado": 14400.0
          },
          {
-          "position_id": "POS-7c4045e535",
+          "position_id": "POS-7e6b3f660b",
           "instrument_id": "TRACK-SP500",
           "titulos": 53.359458,
           "monto_aplicado": 13600.0
