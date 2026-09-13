@@ -15,7 +15,8 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from services import accounts, banking, credit, instruments, orders, portfolio, profile
+from services import (accounts, banking, credit, instruments, movements, orders,
+                      payments, portfolio, profile)
 from services.errors import ServiceError
 
 REGISTRO: dict[str, Callable[..., Any]] = {
@@ -56,16 +57,41 @@ REGISTRO: dict[str, Callable[..., Any]] = {
     # efecto real: inversiones
     "place_order": orders.place_order,
     "get_orders": orders.get_orders,
+    # lectura: pagos
+    "get_bills": payments.get_bills,
+    "get_billers": payments.get_billers,
+    "get_beneficiaries": payments.get_beneficiaries,
+    "get_payment_history": payments.get_payment_history,
+    "get_received_money": payments.get_received_money,
+    "get_deposit_options": payments.get_deposit_options,
+    # efecto: pagos que preparan pero no mueven dinero
+    "register_service": movements.register_service,
+    "save_beneficiary": movements.save_beneficiary,
+    "create_deposit_reference": movements.create_deposit_reference,
+    # efecto real: pagos. Los tres primeros solo registran (paso 1); el dinero
+    # se mueve en `confirm_payment` (paso 2) o regresa en `cancel_payment`.
+    "pay_service": movements.pay_service,
+    "transfer_money": movements.transfer_money,
+    "withdraw_cash": movements.withdraw_cash,
+    "confirm_payment": movements.confirm_payment,
+    "cancel_payment": movements.cancel_payment,
 }
+# `movements.liquidar_deposito_en_efectivo` NO va aquí, a propósito: acreditar
+# un depósito en efectivo lo dispara el corresponsal, no el agente (ver
+# scripts/simular_deposito.py). Ninguna tool puede crear dinero.
 
-# Tools que modifican estado. El agente las puede llamar directo (no llevan el
-# candado de dos pasos de `place_order`, que es exclusivo de mover dinero),
-# pero el front las marca distinto en la traza y quedan en `card_events`.
+# Tools que modifican estado. Solo `place_order` y los pagos mueven dinero y
+# llevan el candado de dos pasos; las demás (tarjetas, alias, presupuestos,
+# servicios, contactos, referencias) se llaman directo, pero el front las marca
+# distinto en la traza.
 CON_EFECTO: frozenset[str] = frozenset({
     "place_order",
     "block_card", "unblock_card", "set_card_limit", "set_card_alias",
     "set_account_alias", "set_budget",
+    "register_service", "save_beneficiary", "create_deposit_reference",
+    "pay_service", "transfer_money", "withdraw_cash", "confirm_payment", "cancel_payment",
 })
 
 __all__ = ["REGISTRO", "CON_EFECTO", "ServiceError",
-           "accounts", "banking", "credit", "instruments", "orders", "portfolio", "profile"]
+           "accounts", "banking", "credit", "instruments", "movements", "orders",
+           "payments", "portfolio", "profile"]

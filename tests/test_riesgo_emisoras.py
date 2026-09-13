@@ -462,6 +462,42 @@ def test_el_indice_de_riesgo_trae_su_desglose():
         ind["score"], abs=0.05)
 
 
+def test_el_indice_no_dice_muy_bajo_si_se_pierde_contra_la_deuda():
+    """CETES con tarjeta al 42%: volatilidad casi cero, pero pierde contra la
+    deuda en todas las trayectorias. Antes el indice decia "muy bajo"."""
+    sim = montecarlo.simular({"CETES-28": 1.0}, 100_000, 1, origen="tarjeta_credito")
+    ind = sim["indice_riesgo"]
+    assert sim["prob_perdida_vs_origen"] > 0.9
+    assert ind["referencia_perdida"] == "vs_origen"
+    assert ind["banda"] == "muy alto"
+    assert sum(f["aporte"] for f in ind["desglose"]) == pytest.approx(
+        ind["score"], abs=0.05)
+
+
+def test_con_dinero_propio_el_indice_usa_la_peor_entre_nominal_y_real():
+    sim = montecarlo.simular({"CETES-28": 0.6, "NAFTRAC": 0.4}, 100_000, 1)
+    ind = sim["indice_riesgo"]
+    assert ind["prob_perdida"] == pytest.approx(
+        max(sim["prob_perdida_nominal"], sim["prob_perdida_real"]))
+
+
+@pytest.mark.parametrize("asignacion,horizonte,origen", [
+    ({"CETES-28": 1.0}, 1, "tarjeta_credito"),
+    ({"PAGARE-360": 1.0}, 5, "credito_personal"),
+    ({"CETES-28": 0.6, "NAFTRAC": 0.4}, 1, None),
+    ({"BONOSM-10A": 1.0}, 5, None),
+    ({"NAFTRAC": 1.0}, 1, None),
+    ({"FND-RV-TEC": 1.0}, 1, None),
+])
+def test_la_banda_no_contradice_la_probabilidad_de_perder(asignacion, horizonte, origen):
+    """Con 25% o mas de probabilidad de perder, la banda no puede ser baja."""
+    ind = montecarlo.simular(asignacion, 100_000, horizonte, origen=origen)["indice_riesgo"]
+    if ind["prob_perdida"] >= 0.25:
+        assert ind["banda"] not in ("muy bajo", "bajo")
+    if ind["prob_perdida"] >= 0.50:
+        assert ind["banda"] in ("alto", "muy alto")
+
+
 def test_la_simulacion_sigue_siendo_determinista_con_todo_lo_nuevo():
     kwargs = dict(asignacion={"NAFTRAC": 0.3, "CETES-364": 0.7}, monto=150_000,
                   horizonte_anios=7, aportacion_mensual=1_500, origen="ahorro")

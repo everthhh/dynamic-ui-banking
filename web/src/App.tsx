@@ -45,6 +45,8 @@ const SUGERENCIAS = [
   "tengo 80 mil pesos parados y los podría dejar 5 años, ¿qué hago?",
   "¿en qué se me va el dinero cada mes?",
   "¿me conviene más pagar mi tarjeta o invertir?",
+  "¿qué recibos tengo por pagar?",
+  "necesito sacar mil pesos y no traigo tarjeta",
 ];
 
 export default function App() {

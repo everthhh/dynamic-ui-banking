@@ -49,6 +49,14 @@ Lo que se decidió, contra qué, y qué costó.
 | **Un solo libro de movimientos** (`transactions.card_id`) | Tabla aparte para compras con tarjeta | Es como el cliente ve su dinero en la app, y `search_transactions` y los presupuestos ya contaban las compras con tarjeta sin tocar sus consultas | `saldo_posterior` depende del producto que se movió (cuenta o tarjeta); está documentado en el esquema |
 | **Tendencia por medianas de 3 meses** | Promedios | Con promedios, un solo pago de agencia de viajes salía como «+169% en entretenimiento». La mediana ignora el mes atípico | Tarda un mes más en detectar un cambio de hábito real |
 | **Capacidad de ahorro neta de deuda** | Ingreso menos consumo (decisión original) | Un cliente con un auto financiado se veía con capacidad de ahorro de sobra, y ese número era el tope del slider de aportación | Cambió un test que codificaba la versión anterior |
+| **Pagos: el paso 2 es una tool aparte** (`confirm_payment(payment_id, token)`) | Repetir todos los argumentos en la segunda llamada, como `place_order` | Destino y monto quedan guardados en el paso 1: el modelo no puede cambiar nada entre lo que el usuario revisó y lo que se ejecuta, y no hay argumentos que desalinear entre las dos llamadas | Una tool más en el catálogo del modelo |
+| **Ninguna tool acredita dinero** (`liquidar_deposito_en_efectivo` fuera de `REGISTRO`) | Una tool `deposit_cash` | Un depósito en efectivo es dinero que llega de fuera. Si el modelo lo pudiera pedir, podría crear saldo de la nada. La liquidación la dispara el corresponsal; en el demo, `make deposito` | El ciclo del depósito no se cierra solo: hay que correr un comando fuera de la conversación |
+| **Tope por operación a destinos nuevos, también a los recién guardados** | Solo tope diario | «Agrega esta cuenta y mándame todo» es el fraude más común. Guardar el contacto no salta el tope: cuenta como nuevo durante 30 minutos | Una transferencia grande a alguien nuevo exige dos momentos |
+| **Revisar saldo y tope otra vez al ejecutar, y persistir el rechazo** | Revisar solo en el paso 1 | Dos operaciones pendientes pasan el paso 1 por separado y juntas rebasan el tope. El rechazo se guarda con `commit` antes de lanzar el error: si no, el rollback de la sesión lo borra y la operación vuelve a quedar pendiente | Una consulta más por ejecución |
+| **Dígito verificador de CLABE en el servidor y en pantalla** | Validar solo que sean 18 dígitos | Un dígito mal tecleado es el error más probable y el más caro. En pantalla es ayuda (el usuario ve el banco mientras teclea); el candado es el del servidor | La lista de bancos SPEI existe dos veces: `bank/pagos.py` y un espejo marcado como tal en `web/src/format.ts` |
+| **Formatos de referencia marcados `publico` o `simulado`** | Presentar todos los formatos como reales | CFE (12 dígitos) y telefonía (número a 10 dígitos) salen de los recibos; para los demás no hay fuente pública confiable y se declara, igual que los precios `anclado`/`estimado` de las emisoras | Un formato simulado puede no coincidir con el recibo real de ese convenio |
+| **Historial de pagos derivado de la simulación, sin movimientos nuevos** | Sembrar pagos con su propio generador encima de la simulación (primera versión de la rama de pagos) | La simulación por hábitos ya produce los cargos de luz, internet, telefonía y agua; sembrar pagos encima los habría contado dos veces y habría movido el perfil financiero y las recomendaciones. Cada cargo de servicio que sale de la cuenta se vuelve una operación `ejecutada` del convenio que le corresponde | No hay SPEI ni depósitos sembrados: el dinero recibido arranca con nómina y honorarios, y las transferencias aparecen cuando el cliente las hace |
+| **Números enmascarados en las respuestas** (`•••• 1234`) | Devolver CLABEs y referencias completas | La pantalla se proyecta y el modelo no necesita el número para operar: usa `service_id` y `beneficiary_id`. La única CLABE completa es la propia, que es la que se comparte | Para ver un número completo hay que ir a la base |
 
 ## Lo que se decidió NO hacer
 
@@ -64,11 +72,22 @@ cuanto cierra el JSON requiere un parser tolerante y complica la validación —
 ganancia percibida es de décimas, porque el cuello de botella es el
 encadenado de tools, no el render.
 
-**Los 4 dominios que faltan** (Crédito más allá de `get_credit_overview`,
-Pagos, Seguros, Educación financiera). El criterio de corte del proyecto se
-respeta a propósito: Inversiones se cerró y se ensayó, luego Banca personal
-(el segundo), y cada dominio nuevo espera a que el anterior esté completo.
-Media demo de cuatro dominios es peor que dos completos.
+**Los 3 dominios que faltan** (Crédito más allá de `get_credit_overview`,
+Seguros, Educación financiera). El criterio de corte se respeta a propósito:
+Inversiones se cerró y se ensayó, luego Banca personal, y Pagos se abrió como
+tercero a pedido del equipo. Media demo de cinco dominios es peor que tres
+completos.
+
+**En pagos: DiMo, CoDi y cobros con QR.** Transferir a un número de celular o
+cobrar con un código QR necesita un directorio de celulares y un flujo de
+solicitud de pago que la simulación no tiene. Se transfiere a CLABE, a una
+tarjeta guardada o entre cuentas propias.
+
+**En pagos: vencimientos que corren solos.** El reloj del banco simulado es la
+fecha de valuación más la hora real, así que durante un demo un código de
+retiro o una referencia de depósito no llegan a vencer, y no hay proceso batch
+que los expire. Cancelar un retiro sí reembolsa; en la simulación ningún cajero
+cobra el código, así que cancelar siempre devuelve el dinero.
 
 ## Lo que el modelo financiero sigue sin capturar
 

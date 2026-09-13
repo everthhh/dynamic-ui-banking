@@ -324,14 +324,62 @@ def test_las_tools_con_efecto_estan_declaradas():
         "place_order",
         "block_card", "unblock_card", "set_card_limit", "set_card_alias",
         "set_account_alias", "set_budget",
+        "register_service", "save_beneficiary", "create_deposit_reference",
+        "pay_service", "transfer_money", "withdraw_cash", "confirm_payment", "cancel_payment",
     }
     assert CON_EFECTO <= set(REGISTRO)
+
+
+def _argumentos_de_pagos(nombre: str) -> dict:
+    """Las tools de pagos necesitan objetos vivos (un servicio con recibo, una
+    operación pendiente con su token), así que se arman solo cuando toca."""
+    import uuid
+
+    from bank import pagos
+
+    cid = "CLI-0006"
+    unico = uuid.uuid4().hex[:8]
+    if nombre == "pay_service":
+        referencia = pagos.digitos_deterministas(f"serial-{unico}", 10)
+        servicio = REGISTRO["register_service"](cid, "TELMEX", referencia)
+        return {"client_id": cid, "service_id": servicio["service_id"],
+                "idempotency_key": f"t-serial-{unico}"}
+    if nombre in ("confirm_payment", "cancel_payment"):
+        pendiente = REGISTRO["withdraw_cash"](cid, 100, f"t-serial-{unico}")
+        argumentos = {"client_id": cid, "payment_id": pendiente["payment_id"]}
+        if nombre == "confirm_payment":
+            argumentos["confirmation_token"] = pendiente["confirmation_token"]
+        return argumentos
+    clabe = pagos.clabe_con_digito("014", "180", pagos.digitos_deterministas(unico, 11))
+    return {
+        "get_bills": {"client_id": cid},
+        "get_billers": {"categoria": "internet", "client_id": cid},
+        "get_beneficiaries": {"client_id": cid},
+        "get_payment_history": {"client_id": cid, "meses": 2},
+        "get_received_money": {"client_id": cid, "meses": 2},
+        "get_deposit_options": {"client_id": cid},
+        "register_service": {"client_id": cid, "biller_id": "CFE",
+                             "referencia": pagos.digitos_deterministas(unico, 12)},
+        "save_beneficiary": {"client_id": cid, "alias": "Serial", "titular": "Prueba",
+                             "clabe": clabe},
+        "create_deposit_reference": {"client_id": cid, "canal_id": "OXXO"},
+        "transfer_money": {"client_id": cid, "monto": 100, "idempotency_key": f"t-serial-{unico}",
+                           "clabe": clabe, "titular": "Prueba"},
+        "withdraw_cash": {"client_id": cid, "monto": 100, "idempotency_key": f"t-serial-{unico}"},
+    }[nombre]
 
 
 @pytest.mark.parametrize("nombre", sorted(REGISTRO))
 def test_todo_servicio_devuelve_algo_serializable(nombre):
     """Si un servicio devuelve algo que json no puede escribir, el turno se cae."""
     from services import accounts as accounts_mod
+    from services import movements, payments
+
+    if getattr(REGISTRO[nombre], "__module__", "") in (movements.__name__, payments.__name__):
+        salida = REGISTRO[nombre](**_argumentos_de_pagos(nombre))
+        json.dumps(salida)
+        assert isinstance(salida, dict)
+        return
 
     cuentas_0002 = accounts_mod.get_accounts("CLI-0002")
     account_id = cuentas_0002["cuentas"][0]["account_id"]

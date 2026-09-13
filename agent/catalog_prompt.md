@@ -31,6 +31,16 @@ Reglas del catálogo:
 | `set_budget` | El usuario definió o cambió el presupuesto mensual de una categoría. **(mueve dinero)** | `categoria`, `monto_mensual` |
 | `refine_search` | El usuario ajustó un filtro rápido sobre resultados de búsqueda de movimientos. | `filtro` |
 | `follow_recommendation` | El usuario tocó una recomendación y quiere seguirla. Atiéndela como si hubiera escrito `prompt`, con las tools y los componentes de su herramienta. | `recomendacion_id`, `herramienta_id`, `prompt` |
+| `pay_bill` | El usuario tocó «Pagar» en un recibo pendiente. Sigue `pay_service` (paso 1), nunca `confirm_payment`. | `service_id` |
+| `add_service` | El usuario quiere dar de alta un servicio nuevo. Monta `pay.ServiceForm` con los convenios de `get_billers`. | `categoria` |
+| `register_service` | El usuario llenó el formulario de servicio. Sigue `register_service` y, si trae adeudo, ofrece pagarlo. | `biller_id`, `referencia`, `alias` |
+| `prepare_transfer` | El usuario llenó el formulario de transferencia. Si pidió guardar el contacto, `save_beneficiary` primero; luego `transfer_money` (paso 1). | `account_id`, `destino`, `beneficiary_id`, `clabe`, `titular`, `cuenta_destino_id`, `monto`, `concepto`, `guardar_contacto`, `alias` |
+| `prepare_withdrawal` | El usuario eligió cuánto sacar sin tarjeta. Sigue `withdraw_cash` (paso 1). | `account_id`, `monto` |
+| `request_deposit_reference` | El usuario quiere depositar efectivo en una tienda. Sigue `create_deposit_reference`. | `canal_id`, `account_id` |
+| `confirm_payment` | El usuario confirmó un pago, transferencia o retiro en el ticket. Paso 2: `confirm_payment` con el `payment_id` y el token del contexto. **(mueve dinero)** | `payment_id`, `confirmation_token` |
+| `cancel_payment` | El usuario canceló una operación pendiente o un retiro sin tarjeta ya emitido (el dinero del retiro regresa). **(mueve dinero)** | `payment_id` |
+| `filter_history` | El usuario filtró el historial de pagos por tipo. | `tipo` |
+| `filter_received` | El usuario filtró el dinero recibido por canal. | `canal` |
 
 ### Componentes de dominio
 
@@ -185,6 +195,70 @@ Reglas del catálogo:
 | `recomendaciones` | array | sí | sí | `recomendaciones` de get_recommendations, en el orden en que llegan. Enlázalo a /recomendaciones. |
 | `titulo` | string | — | — | Encabezado de la lista. |
 | `max` | number | — | — | Cuántas se muestran antes de 'ver más'. |
+
+#### `pay.BillsPanel`
+*Cuándo:* Recibos por pagar: luz, agua, internet, teléfono. Para '¿qué tengo que pagar?' o 'paga mis servicios'. Cada recibo trae su botón de pagar, que solo inicia el paso 1. Nunca enlistes recibos en texto.
+
+| prop | tipo | obl. | enlazable | nota |
+|---|---|---|---|---|
+| `servicios` | array | sí | sí | `servicios` de get_bills: [{service_id, nombre, convenio, categoria, referencia_mask, recibo: {periodo, total, fecha_limite, dias_para_vencer, vencido} | null}]. |
+| `resumen` | object | — | sí | {total_por_pagar, recibos_pendientes, vencidos} de get_bills. |
+
+#### `pay.ServiceForm`
+*Cuándo:* Dar de alta un servicio: el usuario elige la empresa y teclea la referencia de su recibo, que se revisa contra el formato del convenio antes de mandarla.
+
+| prop | tipo | obl. | enlazable | nota |
+|---|---|---|---|---|
+| `billers` | array | sí | sí | `convenios` de get_billers: [{biller_id, nombre, categoria, referencia_etiqueta, referencia_regex}]. |
+| `categoria` | luz|agua|internet|telefonia|gas|television | — | — | Categoría preseleccionada, si el usuario ya la dijo. |
+
+#### `pay.TransferForm`
+*Cuándo:* Armar una transferencia: cuenta de origen, destino (contacto guardado, CLABE nueva o cuenta propia), monto y concepto. La CLABE se revisa en pantalla con su dígito verificador. No transfiere: manda `prepare_transfer`.
+
+| prop | tipo | obl. | enlazable | nota |
+|---|---|---|---|---|
+| `cuentas` | array | sí | sí | `cuentas` de get_deposit_options: [{account_id, tipo, alias, saldo_disponible, transaccional}]. |
+| `beneficiarios` | array | sí | sí | `beneficiarios` de get_beneficiaries. |
+| `monto` | number | — | sí | Monto sugerido, si el usuario ya lo dijo. |
+| `concepto` | string | — | sí |  |
+
+#### `pay.PaymentTicket`
+*Cuándo:* Confirmar un pago de servicio, una transferencia o un retiro sin tarjeta, y después servir de comprobante. Es el único componente de pagos que mueve dinero y exige confirmación en dos pasos. Ya ejecutado muestra folio, clave de rastreo o el código de retiro.
+
+| prop | tipo | obl. | enlazable | nota |
+|---|---|---|---|---|
+| `payment` | object | sí | sí | Respuesta de pay_service / transfer_money / withdraw_cash (pendiente) o de confirm_payment / cancel_payment. |
+| `action` | action | sí | — | Debe ser confirm_payment. |
+| `requiresConfirmation` | boolean | sí | — | Siempre true. El renderer rechaza el ticket si viene en false. |
+| `disclaimer` | string | sí | — |  |
+
+#### `pay.PaymentHistory`
+*Cuándo:* Historial de lo que salió: servicios pagados, transferencias y retiros, con folio y estado. Para '¿qué he pagado?' o '¿ya pagué la luz?'.
+
+| prop | tipo | obl. | enlazable | nota |
+|---|---|---|---|---|
+| `pagos` | array | sí | sí | `pagos` de get_payment_history. |
+| `resumen` | object | — | sí | {total_pagado, por_tipo} de get_payment_history. |
+| `filtro` | string | — | sí | Tipo filtrado, si hay: servicio | transferencia | retiro_sin_tarjeta. |
+
+#### `pay.ReceivedMoney`
+*Cuándo:* Historial de lo que entró y quién lo mandó: nómina, SPEI, depósitos en efectivo y traspasos. Para '¿quién me depositó?' o '¿ya me pagaron?'.
+
+| prop | tipo | obl. | enlazable | nota |
+|---|---|---|---|---|
+| `movimientos` | array | sí | sí | `movimientos` de get_received_money. |
+| `resumen` | object | — | sí | {total_recibido, por_canal} de get_received_money. |
+| `filtro` | string | — | sí | Canal filtrado, si hay. |
+
+#### `pay.CashAccess`
+*Cuándo:* Meter o sacar dinero: retiro sin tarjeta en cajero, la CLABE para que le depositen y dónde depositar efectivo con su comisión. Para 'necesito efectivo', 'no traigo tarjeta' o '¿cómo deposito?'.
+
+| prop | tipo | obl. | enlazable | nota |
+|---|---|---|---|---|
+| `cuentas` | array | sí | sí | `cuentas` de get_deposit_options. |
+| `canales` | array | sí | sí | `canales_efectivo` de get_deposit_options. |
+| `retiro` | object | sí | sí | `retiro_sin_tarjeta` de get_deposit_options. |
+| `referencia` | object | — | sí | Resultado de create_deposit_reference, para mostrar la referencia recién generada. |
 
 
 ### Primitivos

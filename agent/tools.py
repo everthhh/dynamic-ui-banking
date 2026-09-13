@@ -497,7 +497,10 @@ TOOLS_DATOS: list[dict[str, Any]] = [
         "description": (
             "Monte Carlo de 5000 trayectorias, NETO de impuestos y de costo de "
             "financiamiento. Devuelve escenarios p10/p50/p90 mes a mes, TIR, "
-            "volatilidad, peor caída, `indice_riesgo` (0-100) y tres probabilidades de "
+            "volatilidad, peor caída, `indice_riesgo` (0-100, con `banda`; se calcula "
+            "con la probabilidad de perder que aplica a ese dinero, indicada en "
+            "`referencia_perdida`, y nunca sale bajo si esa probabilidad es alta) y "
+            "tres probabilidades de "
             "perder distintas: `prob_perdida_nominal` (no recuperar lo aportado), "
             "`prob_perdida_real` (no ganarle a la inflación) y `prob_perdida_vs_origen` "
             "(no ganarle a la deuda o al rendimiento que ya tenía ese dinero). Cuando "
@@ -607,6 +610,270 @@ TOOLS_DATOS: list[dict[str, Any]] = [
                 "limite": {"type": "integer", "minimum": 1, "maximum": 100, "default": 20},
             },
             "required": ["client_id"],
+        },
+    },
+    # ------------------------------------------------------------------- pagos
+    {
+        "name": "get_bills",
+        "description": (
+            "Recibos por pagar: los servicios que el cliente tiene guardados (luz, agua, "
+            "internet, teléfono...) con su recibo pendiente, fecha límite y si ya venció. "
+            "Úsala para «¿qué tengo que pagar?» y antes de `pay_service`: el `service_id` sale "
+            "de aquí. Píntala con `pay.BillsPanel`."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"client_id": {"type": "string"}},
+            "required": ["client_id"],
+        },
+    },
+    {
+        "name": "get_billers",
+        "description": (
+            "Convenios con los que se puede pagar (CFE, Telmex, izzi, Totalplay, Telcel, "
+            "AT&T, SKY, Naturgy y el organismo de agua de cada ciudad) con el formato de "
+            "referencia que pide cada uno. Con `client_id`, el agua se filtra a la ciudad del "
+            "cliente. Úsala para `pay.ServiceForm` o para saber el `biller_id` antes de "
+            "`register_service`."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "categoria": {"type": "string",
+                              "enum": ["luz", "agua", "internet", "telefonia", "gas", "television"]},
+                "client_id": {"type": "string"},
+            },
+        },
+    },
+    {
+        "name": "register_service",
+        "description": (
+            "Da de alta un servicio del cliente (convenio + referencia del recibo) y consulta su "
+            "adeudo. Valida el formato de la referencia: si no cuadra, el error dice qué pide el "
+            "convenio. No mueve dinero y es idempotente. Después llama `pay_service` con el "
+            "`service_id` que devuelve."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "biller_id": {"type": "string", "description": "Ej. 'CFE', 'TELMEX', 'AYD_MTY'."},
+                "referencia": {"type": "string",
+                               "description": "Tal cual la dio el usuario; no completes dígitos."},
+                "alias": {"type": ["string", "null"], "maxLength": 40,
+                          "description": "Ej. 'Luz de la casa'."},
+            },
+            "required": ["client_id", "biller_id", "referencia"],
+        },
+    },
+    {
+        "name": "pay_service",
+        "description": (
+            "PASO 1 de pagar un recibo: NO mueve dinero. Valida saldo y topes, deja el pago "
+            "pendiente y devuelve `payment_id` + `confirmation_token`. Pinta el resultado en "
+            "`pay.PaymentTicket` y espera la acción `confirm_payment` del usuario. Se paga el "
+            "recibo completo: el monto lo pone el convenio, no tú."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "service_id": {"type": "string", "description": "De `get_bills` o `register_service`."},
+                "idempotency_key": {"type": "string"},
+                "account_id": {"type": "string",
+                               "description": "Opcional: por omisión, su cuenta de cheques o nómina."},
+            },
+            "required": ["client_id", "service_id", "idempotency_key"],
+        },
+    },
+    {
+        "name": "get_beneficiaries",
+        "description": (
+            "Contactos guardados para transferir (CLABE o tarjeta, enmascaradas), con su banco y "
+            "si todavía cuentan como destino nuevo (con tope por operación). Úsala antes de "
+            "`transfer_money` y para llenar `pay.TransferForm`."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"client_id": {"type": "string"}},
+            "required": ["client_id"],
+        },
+    },
+    {
+        "name": "save_beneficiary",
+        "description": (
+            "Guarda un contacto para transferir. Valida el dígito verificador de la CLABE, o el "
+            "de la tarjeta junto con `banco_codigo`. No mueve dinero. Un contacto recién "
+            "guardado sigue con tope de destino nuevo durante 30 minutos: guardarlo no es un "
+            "atajo para mandar más."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "alias": {"type": "string", "maxLength": 40, "description": "Ej. 'Mamá', 'Casero'."},
+                "titular": {"type": "string", "maxLength": 60},
+                "clabe": {"type": "string", "description": "18 dígitos. Manda esto o `tarjeta`."},
+                "tarjeta": {"type": "string", "description": "16 dígitos, con `banco_codigo`."},
+                "banco_codigo": {"type": "string", "description": "Código SPEI, ej. '012' BBVA."},
+            },
+            "required": ["client_id", "alias", "titular"],
+        },
+    },
+    {
+        "name": "transfer_money",
+        "description": (
+            "PASO 1 de una transferencia: NO mueve dinero. Destino, exactamente uno: "
+            "`beneficiary_id` (contacto guardado), `clabe` + `titular` (cuenta que no está "
+            "guardada) o `cuenta_destino_id` (otra cuenta del mismo cliente, sin topes). A un "
+            "destino nuevo se mandan hasta $20,000 por operación. Devuelve `payment_id` + "
+            "`confirmation_token`: píntalo en `pay.PaymentTicket` y espera `confirm_payment`. "
+            "Nunca completes ni corrijas dígitos de una CLABE."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "monto": {"type": "number", "exclusiveMinimum": 0},
+                "idempotency_key": {"type": "string"},
+                "concepto": {"type": "string", "maxLength": 40},
+                "account_id": {"type": "string", "description": "Cuenta de origen (opcional)."},
+                "beneficiary_id": {"type": "string"},
+                "clabe": {"type": "string"},
+                "titular": {"type": "string", "maxLength": 60,
+                            "description": "Obligatorio con una `clabe` que no está guardada."},
+                "cuenta_destino_id": {"type": "string"},
+            },
+            "required": ["client_id", "monto", "idempotency_key"],
+        },
+    },
+    {
+        "name": "withdraw_cash",
+        "description": (
+            "PASO 1 de un retiro sin tarjeta en cajero: NO mueve dinero ni genera el código. "
+            "Monto en múltiplos de $100, hasta $9,000. Píntalo en `pay.PaymentTicket` y espera "
+            "`confirm_payment`: el código sale al confirmar y se muestra una sola vez."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "monto": {"type": "number", "exclusiveMinimum": 0},
+                "idempotency_key": {"type": "string"},
+                "account_id": {"type": "string"},
+            },
+            "required": ["client_id", "monto", "idempotency_key"],
+        },
+    },
+    {
+        "name": "confirm_payment",
+        "description": (
+            "PASO 2 de `pay_service`, `transfer_money` o `withdraw_cash`: EJECUTA Y MUEVE "
+            "DINERO. Llámala SOLO cuando llegue la acción `confirm_payment` del usuario, con el "
+            "`payment_id` y el `confirmation_token` exactos de su `context`; nunca por iniciativa "
+            "propia ni en el mismo turno que el paso 1. Si ya se había ejecutado, devuelve el "
+            "mismo folio con `duplicado: true`. En un retiro devuelve `codigo_retiro`: va solo "
+            "dentro de `pay.PaymentTicket`, no lo escribas en texto."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "payment_id": {"type": "string"},
+                "confirmation_token": {"type": "string",
+                                       "description": "El valor exacto que devolvió el paso 1."},
+            },
+            "required": ["client_id", "payment_id", "confirmation_token"],
+        },
+    },
+    {
+        "name": "cancel_payment",
+        "description": (
+            "Cancela una operación pendiente (no se había movido nada) o un retiro sin tarjeta "
+            "ya emitido (el código deja de servir y el dinero regresa a la cuenta). Un pago de "
+            "servicio o una transferencia ya ejecutados no se cancelan. Úsala con la acción "
+            "`cancel_payment` del ticket."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"client_id": {"type": "string"}, "payment_id": {"type": "string"}},
+            "required": ["client_id", "payment_id"],
+        },
+    },
+    {
+        "name": "get_payment_history",
+        "description": (
+            "Historial de lo que SALIÓ: pagos de servicios, transferencias y retiros sin tarjeta, "
+            "con folio, destino enmascarado, estado y clave de rastreo. Sin `estado` no incluye "
+            "pendientes. Úsala para «¿qué he pagado?» y píntala con `pay.PaymentHistory`."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "tipo": {"type": "string",
+                         "enum": ["servicio", "transferencia", "retiro_sin_tarjeta"]},
+                "estado": {"type": "string",
+                           "enum": ["pendiente", "ejecutada", "rechazada", "cancelada"]},
+                "meses": {"type": "integer", "minimum": 1, "maximum": 18, "default": 3},
+                "limite": {"type": "integer", "minimum": 1, "maximum": 200, "default": 50},
+            },
+            "required": ["client_id"],
+        },
+    },
+    {
+        "name": "get_received_money",
+        "description": (
+            "Historial de lo que ENTRÓ: nómina, SPEI recibidos, transferencias del mismo banco, "
+            "depósitos en efectivo y traspasos entre sus cuentas, con remitente, concepto y "
+            "totales por canal. `total_recibido` no cuenta traspasos propios ni reembolsos. "
+            "Úsala para «¿quién me depositó?» y píntala con `pay.ReceivedMoney`."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "canal": {"type": "string",
+                          "enum": ["nomina", "honorarios", "spei", "interna", "deposito_efectivo",
+                                   "traspaso_propio", "reembolso", "otro"]},
+                "meses": {"type": "integer", "minimum": 1, "maximum": 18, "default": 3},
+                "limite": {"type": "integer", "minimum": 1, "maximum": 200, "default": 50},
+            },
+            "required": ["client_id"],
+        },
+    },
+    {
+        "name": "get_deposit_options",
+        "description": (
+            "Cómo meter y sacar dinero: la CLABE de cada cuenta para que le depositen, dónde "
+            "depositar efectivo (cajeros, OXXO, 7-Eleven...) con comisión estimada y monto "
+            "máximo, las reglas del retiro sin tarjeta y las referencias de depósito vigentes. "
+            "Úsala para `pay.CashAccess`."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"client_id": {"type": "string"}},
+            "required": ["client_id"],
+        },
+    },
+    {
+        "name": "create_deposit_reference",
+        "description": (
+            "Genera una referencia para depositar efectivo en un corresponsal (OXXO, 7-Eleven, "
+            "Walmart, Farmacias del Ahorro, Telecomm). No mueve dinero: el abono llega cuando la "
+            "tienda confirma el pago, y ninguna tool puede acreditarlo. En cajero o sucursal no "
+            "hace falta referencia."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "canal_id": {"type": "string",
+                             "enum": ["OXXO", "SEVEN_ELEVEN", "WALMART", "FARMACIAS_AHORRO",
+                                      "TELECOMM"]},
+                "account_id": {"type": "string"},
+            },
+            "required": ["client_id", "canal_id"],
         },
     },
 ]

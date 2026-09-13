@@ -125,8 +125,9 @@ class Sesion:
 # El panel de traza del front muestra estos resúmenes en pantalla, y en un demo
 # la pantalla se proyecta. Un `confirmation_token` a la vista invita a que
 # alguien pregunte si el modelo pudo haberlo copiado, que es justo la duda que
-# el diseño quiere cerrar.
-CLAVES_SENSIBLES = ("confirmation_token", "idempotency_key")
+# el diseño quiere cerrar. El código de un retiro sin tarjeta es peor: con él
+# se saca efectivo de un cajero.
+CLAVES_SENSIBLES = ("confirmation_token", "idempotency_key", "codigo_retiro")
 
 
 def _redactar(valor: Any) -> Any:

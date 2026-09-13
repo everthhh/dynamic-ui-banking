@@ -258,7 +258,10 @@ def get_spending_summary(client_id: str, meses: int = 6) -> dict[str, Any]:
     costo_financiero = 0.0
     for f in filas:
         if f["tipo"] == "abono":
-            ingreso_observado += f["total"]
+            # Un traspaso entre cuentas propias no es ingreso: el abono de una
+            # cuenta es el cargo de la otra.
+            if f["categoria"] not in CATEGORIAS_NO_GASTO:
+                ingreso_observado += f["total"]
             continue
         if f["categoria"] == PAGO_CREDITO:
             pagos_credito += f["total"]

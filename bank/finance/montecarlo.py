@@ -37,6 +37,7 @@ perdida. Ver `docs/trade-offs.md`.
 from __future__ import annotations
 
 import hashlib
+import math
 from typing import Any, Mapping
 
 import numpy as np
@@ -187,14 +188,36 @@ def _metricas_perdida(
     }
 
 
+# Limite superior (exclusivo) del score de cada banda.
+BANDAS_INDICE: tuple[tuple[float, str], ...] = (
+    (12.0, "muy bajo"), (28.0, "bajo"), (48.0, "medio"), (70.0, "alto"),
+    (math.inf, "muy alto"),
+)
+
+# Piso del score segun la probabilidad de perder. Sin esto, un portafolio 100%
+# CETES financiado con tarjeta al 42% salia "muy bajo" por tener volatilidad
+# casi cero, aunque pierde contra la deuda en el 100% de las trayectorias.
+# Una etiqueta de riesgo no puede contradecir la probabilidad que va al lado.
+PISO_POR_PROBABILIDAD: tuple[tuple[float, float], ...] = (
+    (0.75, 70.0), (0.50, 48.0), (0.25, 28.0), (0.10, 12.0),
+)
+
+
 def _indice_riesgo(
-    volatilidad: float, max_dd: float, prob_perdida: float, concentracion: float
+    volatilidad: float, max_dd: float, prob_perdida: float, concentracion: float,
+    referencia_perdida: str,
 ) -> dict[str, Any]:
     """Un solo numero 0-100 para el riesgo del portafolio, con su desglose.
 
     No sustituye a las metricas de abajo: las resume para poder ponerlas en
     una tarjeta. Los cortes estan calibrados al catalogo: 100% en CETES da
     cerca de 0 y 100% en el fondo de tecnologia se acerca a 100.
+
+    `prob_perdida` es la probabilidad que importa para este dinero (ver
+    `simular`): contra la deuda si es prestado, y la peor entre nominal y real
+    si es propio. Si esa probabilidad es alta, el score no baja del piso de
+    `PISO_POR_PROBABILIDAD`; lo que se sube aparece como su propio renglon en
+    el desglose, para que los aportes sigan sumando el score.
     """
     def escala(v: float, bueno: float, malo: float) -> float:
         return float(min(100.0, max(0.0, (v - bueno) / (malo - bueno) * 100.0)))
@@ -207,25 +230,26 @@ def _indice_riesgo(
     }
     pesos = {"volatilidad": 0.35, "peor_caida": 0.30,
              "prob_perdida": 0.25, "concentracion": 0.10}
-    score = sum(pesos[k] * v for k, v in factores.items())
-    if score < 12:
-        banda = "muy bajo"
-    elif score < 28:
-        banda = "bajo"
-    elif score < 48:
-        banda = "medio"
-    elif score < 70:
-        banda = "alto"
-    else:
-        banda = "muy alto"
+    desglose = [
+        {"factor": k, "valor": round(factores[k], 2), "peso": pesos[k],
+         "aporte": round(pesos[k] * factores[k], 2)}
+        for k in pesos
+    ]
+    score = sum(d["aporte"] for d in desglose)
+
+    piso = next((p for umbral, p in PISO_POR_PROBABILIDAD if prob_perdida >= umbral), 0.0)
+    if score < piso:
+        desglose.append({"factor": "piso_por_probabilidad", "valor": piso, "peso": None,
+                         "aporte": round(piso - score, 2)})
+        score = piso
+
+    banda = next(nombre for limite, nombre in BANDAS_INDICE if score < limite)
     return {
         "score": round(score, 2),
         "banda": banda,
-        "desglose": [
-            {"factor": k, "valor": round(factores[k], 2), "peso": pesos[k],
-             "aporte": round(pesos[k] * factores[k], 2)}
-            for k in pesos
-        ],
+        "prob_perdida": round(prob_perdida, 4),
+        "referencia_perdida": referencia_perdida,
+        "desglose": desglose,
     }
 
 
@@ -353,6 +377,19 @@ def simular(
     volatilidad = float(ret_portafolio.std(axis=1).mean() * np.sqrt(12))
     concentracion = float((w**2).sum())          # Herfindahl: 1 = un solo activo
 
+    # La probabilidad que resume el indice es la honesta para este dinero:
+    # con deuda, no ganarle a la deuda; con dinero propio, la peor entre no
+    # recuperar lo aportado y no ganarle a la inflacion. Decision de producto:
+    # la meta es que el cliente GANE, no solo que recupere. Una cartera que
+    # devuelve lo aportado pero pierde poder de compra es riesgo alto, aunque
+    # sea "conservadora" por volatilidad.
+    if fuente.apalancado:
+        prob_indice, referencia_indice = perdida_origen["prob"], "vs_origen"
+    elif perdida_real["prob"] > perdida_nominal["prob"]:
+        prob_indice, referencia_indice = perdida_real["prob"], "real"
+    else:
+        prob_indice, referencia_indice = perdida_nominal["prob"], "nominal"
+
     def serie(arr: np.ndarray) -> list[dict[str, float]]:
         return [{"mes": t, "anios": round(t / 12, 4), "valor": round(float(arr[t]), 2)}
                 for t in range(meses + 1)]
@@ -382,7 +419,7 @@ def simular(
 
         # --- riesgo resumido
         "indice_riesgo": _indice_riesgo(
-            volatilidad, max_dd, perdida_nominal["prob"], concentracion),
+            volatilidad, max_dd, prob_indice, concentracion, referencia_indice),
 
         # --- tasas de perdida, tres referencias distintas
         "prob_perdida_nominal": perdida_nominal["prob"],
