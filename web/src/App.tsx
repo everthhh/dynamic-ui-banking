@@ -8,6 +8,8 @@
 // cualquier animación.
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Logo } from "./components/Logo";
+import { copiaAmigable } from "./progressCopy";
 import { Superficie } from "./renderer/Renderer";
 import { manejarEvento, useStore } from "./store";
 import { enviarMensaje, getModo, listarClientes, type ClienteDemo } from "./transport";
@@ -55,6 +57,12 @@ export default function App() {
 
   const finChat = useRef<HTMLDivElement>(null);
   const finTraza = useRef<HTMLDivElement>(null);
+  const [copiaProgreso, setCopiaProgreso] = useState<string | null>(null);
+
+  useEffect(() => {
+    const copia = copiaAmigable(traza[traza.length - 1]);
+    if (copia !== undefined) setCopiaProgreso(copia);
+  }, [traza]);
 
   useEffect(() => {
     verificarRegistry();
@@ -91,13 +99,10 @@ export default function App() {
     <div className="app">
       <header className="app-header">
         <div className="app-marca">
-          <span className="app-punto" />
-          <div>
-            <strong>Banca · interfaz generativa</strong>
-            <span className="app-sub">
-              El agente no escribe la respuesta: la construye.
-            </span>
-          </div>
+          <Logo />
+          <span className="app-sub">
+            El agente no escribe la respuesta: la construye.
+          </span>
         </div>
 
         <div className="app-controles">
@@ -166,9 +171,16 @@ export default function App() {
             )}
             {estado === "pensando" ? (
               <p className="conv-msg conv-agente conv-pensando">
-                <span />
-                <span />
-                <span />
+                <span className="conv-pensando-puntos">
+                  <span />
+                  <span />
+                  <span />
+                </span>
+                {copiaProgreso ? (
+                  <span key={copiaProgreso} className="conv-pensando-texto">
+                    {copiaProgreso}
+                  </span>
+                ) : null}
               </p>
             ) : null}
             <div ref={finChat} />

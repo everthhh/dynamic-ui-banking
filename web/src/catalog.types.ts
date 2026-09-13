@@ -234,6 +234,7 @@ export type PropsBankTransactionSearch = {
   movimientos: unknown[] | Binding;
   filtros?: Record<string, unknown> | Binding;
   resumen?: Record<string, unknown> | Binding;
+  movimientosCompletos?: unknown[] | Binding;
 };
 
 export type AnyComponent =

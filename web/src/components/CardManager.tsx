@@ -8,18 +8,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { EditorAlias } from "./AccountsOverview";
+import { CardVisual, type Tarjeta } from "./CardVisual";
 import { moneda } from "../format";
 import { useStore } from "../store";
-
-type Tarjeta = {
-  card_id?: string;
-  tipo?: string;
-  alias?: string | null;
-  last4?: string;
-  estado?: string;
-  limite_credito?: number | null;
-  saldo_utilizado?: number;
-};
 
 export type CardManagerProps = {
   card?: unknown;
@@ -62,6 +53,8 @@ export function CardManager({ card, ingresoMensual }: CardManagerProps) {
 
   return (
     <section className="cm">
+      <CardVisual tarjeta={t} big />
+
       <header className="cm-cabeza">
         <div>
           <EditorAlias
@@ -81,7 +74,7 @@ export function CardManager({ card, ingresoMensual }: CardManagerProps) {
         type="button"
         className={"c-button " + (bloqueada ? "c-button-primary" : "c-button-ghost")}
         disabled={pensando}
-        onClick={() => void emitir("toggle_card_block", { card_id: t.card_id })}
+        onClick={() => void emitir("toggle_card_block", { card_id: t.card_id, estado: t.estado })}
       >
         {bloqueada ? "Desbloquear tarjeta" : "Bloquear tarjeta"}
       </button>

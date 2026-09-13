@@ -4,7 +4,7 @@
 // inv.AmountSlider).
 
 import { useEffect, useRef, useState } from "react";
-import { Bar, BarChart, CartesianGrid, Tooltip, XAxis, YAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { ETIQUETA_CATEGORIA, compacto, moneda, porcentaje } from "../format";
 import { useStore } from "../store";
 
@@ -106,33 +106,33 @@ export function SpendingBudgets({ alertas }: SpendingBudgetsProps) {
 
   return (
     <section className="sb2">
-      <BarChart
-        width={560}
-        height={Math.max(140, datos.length * 46)}
-        data={datos}
-        layout="vertical"
-        margin={{ top: 4, right: 16, bottom: 4, left: 8 }}
-      >
-        <CartesianGrid stroke="var(--linea)" horizontal={false} />
-        <XAxis
-          type="number"
-          tickFormatter={(v: number) => compacto(v)}
-          tick={{ fontSize: 10, fill: "var(--apagado)" }}
-          tickLine={false}
-          axisLine={false}
-        />
-        <YAxis
-          type="category"
-          dataKey="categoria"
-          width={110}
-          tick={{ fontSize: 12, fill: "var(--tinta)" }}
-          tickLine={false}
-          axisLine={false}
-        />
-        <Tooltip formatter={(v: number) => moneda(v)} cursor={{ fill: "var(--fondo)" }} />
-        <Bar dataKey="presupuesto" fill="var(--linea)" radius={4} barSize={12} name="Presupuesto" />
-        <Bar dataKey="gastado" fill="var(--rojo)" radius={4} barSize={12} name="Gastado" />
-      </BarChart>
+      <ResponsiveContainer width="100%" height={Math.max(140, datos.length * 46)}>
+        <BarChart
+          data={datos}
+          layout="vertical"
+          margin={{ top: 4, right: 16, bottom: 4, left: 8 }}
+        >
+          <CartesianGrid stroke="var(--linea)" horizontal={false} />
+          <XAxis
+            type="number"
+            tickFormatter={(v: number) => compacto(v)}
+            tick={{ fontSize: 10, fill: "var(--apagado)" }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <YAxis
+            type="category"
+            dataKey="categoria"
+            width={84}
+            tick={{ fontSize: 12, fill: "var(--tinta)" }}
+            tickLine={false}
+            axisLine={false}
+          />
+          <Tooltip formatter={(v: number) => moneda(v)} cursor={{ fill: "var(--fondo)" }} />
+          <Bar dataKey="presupuesto" fill="var(--linea)" radius={4} barSize={10} name="Presupuesto" />
+          <Bar dataKey="gastado" fill="var(--rojo)" radius={4} barSize={10} name="Gastado" />
+        </BarChart>
+      </ResponsiveContainer>
 
       <ul className="sb2-lista">
         {lista.map((a) => (

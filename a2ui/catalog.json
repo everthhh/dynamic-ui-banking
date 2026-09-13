@@ -64,8 +64,8 @@
       "emitida_por": ["Button"]
     },
     "manage_card": {
-      "descripcion": "El usuario tocó una tarjeta en el panorama de cuentas y quiere administrarla.",
-      "contexto": ["card_id"],
+      "descripcion": "El usuario tocó una tarjeta en el panorama de cuentas y quiere administrarla. El servidor la resuelve directo (sin LLM): manda la tarjeta completa que ya está en pantalla, no solo el id.",
+      "contexto": ["card_id", "card"],
       "emitida_por": ["bank.AccountsOverview"]
     },
     "set_account_alias": {
@@ -74,8 +74,8 @@
       "emitida_por": ["bank.AccountsOverview"]
     },
     "toggle_card_block": {
-      "descripcion": "El usuario bloqueó o desbloqueó una tarjeta. Efecto inmediato, sin confirmación en dos pasos.",
-      "contexto": ["card_id"],
+      "descripcion": "El usuario bloqueó o desbloqueó una tarjeta. Efecto inmediato, sin confirmación en dos pasos. El servidor la resuelve directo (sin LLM): necesita el `estado` actual para decidir la dirección.",
+      "contexto": ["card_id", "estado"],
       "emitida_por": ["bank.CardManager"],
       "efecto": true
     },
@@ -339,7 +339,8 @@
       "props": {
         "movimientos": { "tipo": "array", "requerido": true, "bindable": true, "descripcion": "`movimientos` de search_transactions o get_transactions." },
         "filtros": { "tipo": "object", "bindable": true, "descripcion": "`filtros` de search_transactions, para mostrar qué se está filtrando." },
-        "resumen": { "tipo": "object", "bindable": true, "descripcion": "{total_cargos, total_abonos, total} de search_transactions." }
+        "resumen": { "tipo": "object", "bindable": true, "descripcion": "{total_cargos, total_abonos, total} de search_transactions." },
+        "movimientosCompletos": { "tipo": "array", "bindable": true, "descripcion": "Caché completo para filtrar sin volver a llamarte (regla 8c). Escríbelo UNA sola vez, al montar el componente por primera vez, con el mismo arreglo que mandas a `movimientos`." }
       }
     }
   }

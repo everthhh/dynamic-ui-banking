@@ -30,10 +30,12 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 from sse_starlette.sse import EventSourceResponse
 
-from a2ui.models import CATALOG, CATALOG_PATH
+from a2ui.models import CATALOG, CATALOG_PATH, validate_a2ui
 from agent.loop import AgenteUIGenerativa, Sesion
 from agent.mcp_client import ClienteMCP
 from bank import db
+from gateway.direct_actions import DIRECT_HANDLERS
+from services.errors import ServiceError
 from services.orders import registrar_superficie
 
 # .env NUNCA se commitea (está en .gitignore); load_dotenv no pisa una
@@ -127,6 +129,65 @@ async def _stream(ses: Sesion, entrada: str | dict[str, Any]) -> AsyncIterator[d
             {"type": "error", "mensaje": f"{type(exc).__name__}: {exc}"}, ensure_ascii=False)}
 
 
+async def _stream_directo(
+    ses: Sesion, nombre: str, contexto: dict[str, Any]
+) -> AsyncIterator[dict[str, str]]:
+    """Resuelve una acción determinista SIN llamar al LLM.
+
+    Mismo contrato de eventos SSE que `_stream` (session/a2ui/tool_call/
+    tool_result/done/error) a propósito: el front no sabe ni le importa por
+    cuál camino vino la respuesta.
+    """
+    yield {"event": "session", "data": json.dumps({"session_id": ses.session_id})}
+    try:
+        resultado = DIRECT_HANDLERS[nombre](ses, contexto)
+    except ServiceError as exc:
+        log.info("accion directa %s rechazada: %s", nombre, exc)
+        yield {"event": "error", "data": json.dumps(
+            {"type": "error", "mensaje": str(exc)}, ensure_ascii=False)}
+        return
+    except Exception as exc:                       # noqa: BLE001 - nunca tumbar el turno
+        log.exception("accion directa %s falló de forma inesperada", nombre)
+        yield {"event": "error", "data": json.dumps(
+            {"type": "error", "mensaje": f"{type(exc).__name__}: {exc}"}, ensure_ascii=False)}
+        return
+
+    for m in resultado.mensajes:
+        m.setdefault("version", "v0.9")
+
+    # Mismo validador que el camino del LLM, sin excepción: un handler
+    # directo mal escrito no se salta la allowlist del catálogo.
+    validacion = validate_a2ui(resultado.mensajes)
+    if not validacion.ok:
+        log.error("accion directa %s produjo un blueprint inválido: %s", nombre, validacion.errores)
+        yield {"event": "error", "data": json.dumps(
+            {"type": "error", "mensaje": "Falla interna montando la pantalla."}, ensure_ascii=False)}
+        return
+
+    ses.turno += 1
+    for m in resultado.mensajes:
+        yield {"event": "a2ui", "data": json.dumps({"type": "a2ui", "message": m}, ensure_ascii=False)}
+    yield {"event": "tool_call", "data": json.dumps(
+        {"type": "tool_call", "name": nombre, "input": contexto, "efecto": True, "directo": True},
+        ensure_ascii=False)}
+    yield {"event": "tool_result", "data": json.dumps(
+        {"type": "tool_result", "name": nombre, "ok": True, "resumen": resultado.resumen, "directo": True},
+        ensure_ascii=False)}
+
+    try:
+        registrar_superficie(
+            ses.session_id, ses.turno, ses.surface_id, resultado.mensajes,
+            [{"name": nombre, "input": contexto, "ok": True,
+              "output_resumen": resultado.resumen, "directo": True}],
+        )
+    except Exception:                              # noqa: BLE001 - la bitacora no tumba el turno
+        log.exception("no pude escribir la bitácora (camino directo)")
+
+    yield {"event": "done", "data": json.dumps(
+        {"type": "done", "turno": ses.turno, "render_ok": True, "uso": dict(ses.uso)},
+        ensure_ascii=False)}
+
+
 @app.post("/chat")
 async def chat(cuerpo: ChatIn):
     ses = sesion(cuerpo.session_id, cuerpo.client_id)
@@ -135,10 +196,20 @@ async def chat(cuerpo: ChatIn):
 
 @app.post("/action")
 async def accion(cuerpo: AccionIn):
-    """La interaccion del usuario NUNCA actualiza la UI por su cuenta: vuelve aqui."""
+    """La interaccion del usuario NUNCA actualiza la UI por su cuenta: vuelve aqui.
+
+    La mayoría de las acciones son un mapeo determinista a una sola función
+    de `services/` (bloquear tarjeta, cambiar un límite, ponerle apodo a
+    algo) — no necesitan que el modelo decida nada, así que ni siquiera lo
+    llaman: `gateway/direct_actions.py` las resuelve directo. Solo lo que de
+    verdad requiere interpretación (`profile_done`, `compare`, `ask`, ...)
+    sigue pasando por el agente.
+    """
     if cuerpo.session_id not in SESIONES:
         raise HTTPException(404, f"sesión desconocida: {cuerpo.session_id}")
     ses = SESIONES[cuerpo.session_id]
+    if cuerpo.action.name in DIRECT_HANDLERS:
+        return EventSourceResponse(_stream_directo(ses, cuerpo.action.name, cuerpo.action.context))
     return EventSourceResponse(_stream(ses, {
         "name": cuerpo.action.name,
         "surfaceId": cuerpo.action.surfaceId or ses.surface_id,

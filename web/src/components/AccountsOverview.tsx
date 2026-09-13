@@ -6,6 +6,7 @@
 // ida y vuelta con el agente para confirmarse antes de mostrarse.
 
 import { useState } from "react";
+import { CardVisual, type Tarjeta } from "./CardVisual";
 import { ETIQUETA_TIPO_CUENTA, moneda } from "../format";
 import { useStore } from "../store";
 
@@ -15,16 +16,6 @@ type Cuenta = {
   alias?: string | null;
   moneda?: string;
   saldo_disponible?: number;
-};
-
-type Tarjeta = {
-  card_id?: string;
-  tipo?: string;
-  alias?: string | null;
-  last4?: string;
-  estado?: string;
-  limite_credito?: number | null;
-  saldo_utilizado?: number;
 };
 
 export type AccountsOverviewProps = {
@@ -114,30 +105,15 @@ export function AccountsOverview({ cuentas, tarjetas }: AccountsOverviewProps) {
       {listaTarjetas.length ? (
         <div className="ao-bloque">
           <h4 className="ao-titulo">Tarjetas</h4>
-          <ul className="ao-lista">
+          <div className="ao-cards-grid">
             {listaTarjetas.map((t) => (
-              <li
+              <CardVisual
                 key={t.card_id}
-                className="ao-item ao-item-clickable"
-                onClick={() => void emitirAccion("manage_card", { card_id: t.card_id })}
-              >
-                <div className="ao-item-info">
-                  <span className="ao-item-tipo">
-                    {t.alias || (t.tipo === "credito" ? "Tarjeta de crédito" : "Tarjeta de débito")}
-                  </span>
-                  <span className="ao-item-sub">•••• {t.last4}</span>
-                </div>
-                <span className={"ao-estado" + (t.estado === "bloqueada" ? " bloqueada" : "")}>
-                  {t.estado === "bloqueada" ? "Bloqueada" : "Activa"}
-                </span>
-                {t.tipo === "credito" ? (
-                  <span className="ao-item-sub ao-item-uso">
-                    {moneda(t.saldo_utilizado)} de {moneda(t.limite_credito)}
-                  </span>
-                ) : null}
-              </li>
+                tarjeta={t}
+                onClick={() => void emitirAccion("manage_card", { card_id: t.card_id, card: t })}
+              />
             ))}
-          </ul>
+          </div>
         </div>
       ) : null}
     </section>

@@ -23,9 +23,9 @@ Reglas del catálogo:
 | `place_order` | El usuario confirmó la orden. Requiere confirmación en dos pasos. **(mueve dinero)** | `order`, `confirmation_token` |
 | `cancel_order` | El usuario abortó el ticket. | `order_id` |
 | `ask` | Botón que manda una pregunta en texto de vuelta al agente. | `prompt` |
-| `manage_card` | El usuario tocó una tarjeta en el panorama de cuentas y quiere administrarla. | `card_id` |
+| `manage_card` | El usuario tocó una tarjeta en el panorama de cuentas y quiere administrarla. El servidor la resuelve directo (sin LLM): manda la tarjeta completa que ya está en pantalla, no solo el id. | `card_id`, `card` |
 | `set_account_alias` | El usuario le puso o quitó apodo a una cuenta. | `account_id`, `alias` |
-| `toggle_card_block` | El usuario bloqueó o desbloqueó una tarjeta. Efecto inmediato, sin confirmación en dos pasos. **(mueve dinero)** | `card_id` |
+| `toggle_card_block` | El usuario bloqueó o desbloqueó una tarjeta. Efecto inmediato, sin confirmación en dos pasos. El servidor la resuelve directo (sin LLM): necesita el `estado` actual para decidir la dirección. **(mueve dinero)** | `card_id`, `estado` |
 | `update_card_limit` | El usuario movió el slider de límite de una tarjeta de crédito y lo soltó. **(mueve dinero)** | `card_id`, `nuevo_limite` |
 | `set_card_alias` | El usuario le puso o quitó apodo a una tarjeta. | `card_id`, `alias` |
 | `set_budget` | El usuario definió o cambió el presupuesto mensual de una categoría. **(mueve dinero)** | `categoria`, `monto_mensual` |
@@ -166,6 +166,7 @@ Reglas del catálogo:
 | `movimientos` | array | sí | sí | `movimientos` de search_transactions o get_transactions. |
 | `filtros` | object | — | sí | `filtros` de search_transactions, para mostrar qué se está filtrando. |
 | `resumen` | object | — | sí | {total_cargos, total_abonos, total} de search_transactions. |
+| `movimientosCompletos` | array | — | sí | Caché completo para filtrar sin volver a llamarte (regla 8c). Escríbelo UNA sola vez, al montar el componente por primera vez, con el mismo arreglo que mandas a `movimientos`. |
 
 
 ### Primitivos

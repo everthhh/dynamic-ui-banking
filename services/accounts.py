@@ -182,7 +182,7 @@ def get_accounts(client_id: str) -> dict[str, Any]:
         cuentas = db.query(
             conn, "SELECT * FROM accounts WHERE client_id = ? ORDER BY tipo", (client_id,))
         tarjetas = db.query(
-            conn, "SELECT card_id, tipo, last4, limite_credito, saldo_utilizado,"
+            conn, "SELECT card_id, tipo, alias, last4, estado, limite_credito, saldo_utilizado,"
                   " dia_corte, dia_pago FROM cards WHERE client_id = ?", (client_id,))
     return {
         "client_id": client_id,

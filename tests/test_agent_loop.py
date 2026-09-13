@@ -13,7 +13,7 @@ from typing import Any
 import pytest
 
 from a2ui.models import CATALOG_ID
-from agent.loop import AgenteUIGenerativa, Sesion
+from agent.loop import AgenteUIGenerativa, Sesion, _avisos_de_rutas_bank
 from tests.fake_anthropic import BloqueTexto, BloqueToolUse, FakeAnthropic
 from tests.fake_mcp import FakeClienteMCP
 
@@ -164,6 +164,49 @@ def test_tras_agotar_reintentos_monta_la_plantilla_de_respaldo():
     componentes = a2ui[1]["updateComponents"]["components"]
     assert componentes[0]["component"] == "Card"
     assert componentes[0]["tone"] == "warning"
+
+
+# ------------------------------------------- convencion de rutas fijas (bank.*)
+def test_ruta_bank_correcta_no_genera_aviso():
+    mensajes = [{"version": "v0.9", "updateComponents": {"surfaceId": "s", "components": [
+        {"id": "root", "component": "bank.AccountsOverview",
+         "cuentas": {"path": "/cuentas"}, "tarjetas": {"path": "/tarjetas"}},
+    ]}}]
+    assert _avisos_de_rutas_bank(mensajes) == []
+
+
+def test_ruta_bank_desviada_genera_aviso():
+    mensajes = [{"version": "v0.9", "updateComponents": {"surfaceId": "s", "components": [
+        {"id": "root", "component": "bank.AccountsOverview",
+         "cuentas": {"path": "/datos/cuentas"}, "tarjetas": {"path": "/tarjetas"}},
+    ]}}]
+    avisos = _avisos_de_rutas_bank(mensajes)
+    assert len(avisos) == 1
+    assert "/datos/cuentas" in avisos[0] and "/cuentas" in avisos[0]
+
+
+def test_ruta_bank_literal_no_genera_aviso():
+    """Un valor literal (no un binding) no es "la ruta equivocada": es otro caso."""
+    mensajes = [{"version": "v0.9", "updateComponents": {"surfaceId": "s", "components": [
+        {"id": "root", "component": "bank.SpendingBudgets", "alertas": []},
+    ]}}]
+    assert _avisos_de_rutas_bank(mensajes) == []
+
+
+def test_render_con_ruta_bank_desviada_emite_warning_pero_no_rechaza():
+    blueprint = [
+        {"version": "v0.9", "createSurface": {"surfaceId": "bank-main", "catalogId": CATALOG_ID}},
+        {"version": "v0.9", "updateDataModel": {"surfaceId": "bank-main", "path": "/alertas", "value": []}},
+        {"version": "v0.9", "updateComponents": {"surfaceId": "bank-main", "components": [
+            {"id": "root", "component": "bank.SpendingBudgets", "alertas": {"path": "/otra/ruta"}},
+        ]}},
+    ]
+    cliente = FakeAnthropic([[BloqueToolUse("render_surface", {"messages": blueprint})],
+                             [BloqueTexto("Listo.")]])
+    eventos, _ = correr(cliente, "muéstrame mi control de gasto")
+    assert eventos[-1].datos["render_ok"] is True   # no se rechaza, solo se avisa
+    avisos = [e for e in eventos if e.tipo == "warning" and "avisos" in e.datos]
+    assert any("bank.SpendingBudgets.alertas" in a for ev in avisos for a in ev.datos["avisos"])
 
 
 # --------------------------------------------------------- errores de los servicios

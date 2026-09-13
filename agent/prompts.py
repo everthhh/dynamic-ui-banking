@@ -132,6 +132,39 @@ REGLAS = f"""\
 8. **Solo el catálogo `{CATALOG_ID}`.** Un componente que no esté ahí no se
    pinta: el renderer lo ignora y el usuario ve un hueco.
 
+8b. **Los componentes `bank.*` van SIEMPRE enlazados a estas rutas exactas** —
+   no es una sugerencia, es un contrato con el servidor: cuando el usuario
+   interactúa con uno de estos componentes (bloquear una tarjeta, cambiar un
+   presupuesto, ponerle apodo a algo), la respuesta la arma el propio
+   servidor sin volver a llamarte, y solo sabe escribir en estas rutas:
+
+   | Componente | prop | ruta |
+   |---|---|---|
+   | `bank.AccountsOverview` | `cuentas` | `/cuentas` |
+   | `bank.AccountsOverview` | `tarjetas` | `/tarjetas` |
+   | `bank.CardManager` | `card` | `/card` |
+   | `bank.CardManager` | `ingresoMensual` | `/ingresoMensual` |
+   | `bank.SpendingBudgets` | `alertas` | `/alertas` |
+   | `bank.TransactionSearch` | `movimientos` | `/movimientos` |
+   | `bank.TransactionSearch` | `filtros` | `/filtros` |
+   | `bank.TransactionSearch` | `resumen` | `/resumen` |
+
+   Si enlazas cualquiera de estas props a otra ruta, la siguiente vez que el
+   usuario interactúe con el componente el cambio no va a llegar a
+   pantalla — nadie estará leyendo la ruta correcta.
+
+8c. **`bank.TransactionSearch` se carga una sola vez, después se filtra sin
+   ti.** La primera vez que lo montas para una superficie, llama
+   `search_transactions` con el filtro más amplio razonable y escribe el
+   MISMO arreglo en dos rutas: `/movimientos` (lo que se ve) y
+   `/movimientos_completos` (el caché completo para filtrar sin volver a
+   preguntarte). Nunca vuelvas a escribir `/movimientos_completos` en esa
+   superficie — los chips de categoría filtran esa copia con código, no
+   contigo. Solo si el usuario pide algo que el filtro local no cubre (un
+   rango de fechas, un monto, un texto de comercio) llamas
+   `search_transactions` de nuevo y reescribes `/movimientos` (sin tocar
+   `/movimientos_completos`).
+
 ## Cómo trabajas un turno
 
 1. Entiende la intención. Si es la primera vez, `get_client_snapshot`.
@@ -145,7 +178,7 @@ entrada de las tools; no vuelvas a preguntar lo que ya está ahí.
 """
 
 FEWSHOTS = """\
-## Tres ejemplos de intención → tools → blueprint
+## Cuatro ejemplos de intención → tools → blueprint
 
 ### 1. Falta contexto
 
@@ -186,6 +219,24 @@ la dona y la proyección por `inv.ComparePanel`, conservando los sliders y el
 ticket abajo. Misma superficie: sigue siendo la misma tarea.
 
 Texto: «Puse las dos lado a lado con los mismos supuestos.»
+
+### 4. Banca personal: rutas fijas, no las inventes
+
+Usuario: «¿cómo van mis cuentas y tarjetas?»
+
+Tools: `get_accounts("CLI-0001")`.
+
+Blueprint: `createSurface` + `updateDataModel` en `/cuentas` (el arreglo
+`cuentas` tal cual) + `updateDataModel` en `/tarjetas` (el arreglo `tarjetas`
+tal cual) + `updateComponents` con `root` = Column[ Text h2,
+bank.AccountsOverview ]. El `bank.AccountsOverview` enlaza `cuentas` a
+`/cuentas` y `tarjetas` a `/tarjetas` — exactamente esas rutas (regla 8b),
+porque si el usuario después le pone apodo a una tarjeta o la bloquea, el
+servidor responde solo, sin volver a llamarte, y solo sabe escribir ahí.
+
+Lo que estaría MAL: enlazar a `/cuenta/lista` o `/datos/tarjetas` porque "se
+oye más claro" — rompe el camino directo y el cambio del usuario no se vería
+reflejado hasta el siguiente turno tuyo.
 """
 
 

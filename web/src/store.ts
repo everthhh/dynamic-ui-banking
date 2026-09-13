@@ -272,10 +272,16 @@ export function manejarEvento(tipo: string, datos: Record<string, unknown>): voi
       s.aplicar(datos.message as A2UIMessage);
       break;
     case "tool_call":
-      s.trazar(datos.efecto ? "tool (mueve dinero)" : "tool", String(datos.name));
+      s.trazar(
+        datos.directo ? "tool directa (sin LLM)" : datos.efecto ? "tool (mueve dinero)" : "tool",
+        String(datos.name),
+      );
       break;
     case "tool_result":
-      s.trazar(datos.ok ? "tool ok" : "tool error", `${datos.name}: ${datos.resumen ?? ""}`);
+      s.trazar(
+        datos.directo ? "tool directa ok" : datos.ok ? "tool ok" : "tool error",
+        `${datos.name}: ${datos.resumen ?? ""}`,
+      );
       break;
     case "render_rechazado":
       s.trazar(

@@ -44,6 +44,45 @@ from services import CON_EFECTO
 
 log = logging.getLogger("agent.loop")
 
+# Convención de rutas fijas para los componentes bank.* (regla 8b del prompt):
+# gateway/direct_actions.py escribe SIEMPRE a estas rutas cuando resuelve una
+# acción sin el LLM. Si el modelo enlaza a otra ruta, esas acciones directas
+# van a patchear un lugar que nadie lee — no es un error de validación (la
+# ruta sigue siendo sintácticamente válida), así que solo se avisa por la
+# traza en vez de rechazar el blueprint.
+RUTAS_FIJAS_BANK: dict[str, dict[str, str]] = {
+    "bank.AccountsOverview": {"cuentas": "/cuentas", "tarjetas": "/tarjetas"},
+    "bank.CardManager": {"card": "/card", "ingresoMensual": "/ingresoMensual"},
+    "bank.SpendingBudgets": {"alertas": "/alertas"},
+    "bank.TransactionSearch": {
+        "movimientos": "/movimientos", "filtros": "/filtros", "resumen": "/resumen",
+    },
+}
+
+
+def _avisos_de_rutas_bank(mensajes: list[dict[str, Any]]) -> list[str]:
+    avisos: list[str] = []
+    for msg in mensajes:
+        cuerpo = msg.get("updateComponents")
+        if not isinstance(cuerpo, dict):
+            continue
+        for nodo in cuerpo.get("components") or []:
+            if not isinstance(nodo, dict):
+                continue
+            rutas = RUTAS_FIJAS_BANK.get(nodo.get("component"))
+            if not rutas:
+                continue
+            for prop, esperada in rutas.items():
+                valor = nodo.get(prop)
+                if isinstance(valor, dict) and set(valor) == {"path"} and valor["path"] != esperada:
+                    avisos.append(
+                        f"{nodo['component']}.{prop} está enlazado a {valor['path']!r}, "
+                        f"se esperaba {esperada!r} (regla 8b): las acciones directas de "
+                        "este componente no van a poder actualizar la pantalla."
+                    )
+    return avisos
+
+
 MODELO_DEFAULT = os.environ.get("ANTHROPIC_MODEL", "claude-sonnet-4-5")
 MAX_TOKENS = 8192
 MAX_REINTENTOS_RENDER = 2
@@ -304,6 +343,11 @@ class AgenteUIGenerativa:
 
         if res.avisos:
             eventos.append(Evento("warning", {"avisos": res.avisos}))
+
+        avisos_bank = _avisos_de_rutas_bank(mensajes)
+        if avisos_bank:
+            log.warning("turno %s: rutas bank.* desalineadas: %s", sesion.turno, avisos_bank)
+            eventos.append(Evento("warning", {"avisos": avisos_bank}))
 
         resumen = {
             "ok": True,

@@ -121,6 +121,22 @@ def test_alias_demasiado_largo_se_rechaza():
         banking.set_account_alias(CLIENTE, cuenta["account_id"], "x" * 41)
 
 
+def test_get_accounts_refleja_el_alias_y_estado_de_la_tarjeta():
+    """Regresión: get_accounts no traía `alias`/`estado` en el SELECT de
+    tarjetas, así que un apodo recién puesto (o un bloqueo) desaparecía en
+    la siguiente lectura — aunque el UPDATE en la base sí hubiera pegado.
+    """
+    tarjeta = _tarjeta_debito()
+    banking.set_card_alias(CLIENTE, tarjeta["card_id"], "Diario")
+    banking.block_card(CLIENTE, tarjeta["card_id"])
+
+    releida = next(t for t in _tarjetas() if t["card_id"] == tarjeta["card_id"])
+    assert releida["alias"] == "Diario"
+    assert releida["estado"] == "bloqueada"
+
+    banking.unblock_card(CLIENTE, tarjeta["card_id"])  # deja la tarjeta como estaba para otros tests
+
+
 # ------------------------------------------------------------------- budgets
 def test_set_budget_categoria_invalida():
     with pytest.raises(ServiceError):

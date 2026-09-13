@@ -42,12 +42,17 @@ button, input, select { font: inherit; color: inherit; }
   gap: 16px; padding: 12px 20px;
   background: var(--superficie); border-bottom: 1px solid var(--linea);
 }
-.app-marca { display: flex; align-items: center; gap: 10px; }
-.app-marca strong { display: block; font-size: 15px; }
-.app-punto {
-  width: 10px; height: 28px; border-radius: 3px; background: var(--rojo);
-}
+.app-marca { display: flex; align-items: center; gap: 12px; }
 .app-sub { font-size: 12.5px; color: var(--apagado); }
+
+/* --------------------------------------------------------------------- logo */
+.logo { display: inline-flex; align-items: center; gap: 8px; }
+.logo-icono { flex: 0 0 auto; }
+.logo-texto {
+  font-weight: 800; letter-spacing: .03em; font-stretch: condensed;
+  font-size: 17px; line-height: 1;
+}
+.logo-sm .logo-texto { font-size: 10px; }
 
 .app-controles { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-width: 0; }
 .app-modo {
@@ -107,13 +112,18 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--fondo); border: 1px solid var(--linea);
   border-bottom-left-radius: 4px;
 }
-.conv-pensando { display: inline-flex; gap: 5px; align-items: center; }
-.conv-pensando span {
+.conv-pensando { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.conv-pensando-puntos { display: inline-flex; gap: 5px; align-items: center; }
+.conv-pensando-puntos span {
   width: 6px; height: 6px; border-radius: 50%; background: var(--apagado);
   animation: latido 1.1s infinite;
 }
-.conv-pensando span:nth-child(2) { animation-delay: .15s; }
-.conv-pensando span:nth-child(3) { animation-delay: .3s; }
+.conv-pensando-puntos span:nth-child(2) { animation-delay: .15s; }
+.conv-pensando-puntos span:nth-child(3) { animation-delay: .3s; }
+.conv-pensando-texto {
+  font-size: 12.5px; color: var(--apagado);
+  animation: entrada .2s ease-out;
+}
 @keyframes latido { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
 
 .conv-entrada {
@@ -131,7 +141,11 @@ button, input, select { font: inherit; color: inherit; }
 
 /* ----------------------------------------------------------------- renderer */
 .app-superficie { overflow-y: auto; padding: 24px; min-height: 0; }
-.rndr-superficie { max-width: 760px; margin: 0 auto; }
+.rndr-superficie { max-width: 760px; margin: 0 auto; animation: entrada .25s ease-out; }
+@keyframes entrada {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 .rndr-vacio {
   max-width: 520px; margin: 56px auto; text-align: center; color: var(--apagado);
 }
@@ -170,11 +184,13 @@ button, input, select { font: inherit; color: inherit; }
 .c-button {
   padding: 9px 15px; border-radius: 10px; cursor: pointer; font-weight: 600;
   border: 1px solid var(--linea); background: var(--superficie);
+  transition: transform .1s, background-color .15s, border-color .15s;
 }
 .c-button-primary { background: var(--rojo); border-color: var(--rojo); color: #fff; }
 .c-button-primary:hover:not(:disabled) { background: var(--rojo-oscuro); }
 .c-button-ghost { border-color: transparent; background: transparent; color: var(--apagado); }
 .c-button:disabled { opacity: .5; cursor: default; }
+.c-button:active:not(:disabled) { transform: scale(.97); }
 
 .c-badge {
   display: inline-block; padding: 3px 10px; border-radius: 999px;
@@ -445,7 +461,10 @@ button, input, select { font: inherit; color: inherit; }
   color: var(--apagado); letter-spacing: .04em;
 }
 .sb-barra { height: 8px; background: var(--fondo); border-radius: 4px; overflow: hidden; }
-.sb-barra span { display: block; height: 100%; background: var(--rojo); opacity: .75; }
+.sb-barra span {
+  display: block; height: 100%; background: var(--rojo); opacity: .75;
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+}
 .sb-monto { text-align: right; font-variant-numeric: tabular-nums; color: var(--tinta-2); }
 .sb-nota { margin: 0; font-size: 11.5px; color: var(--apagado); }
 
@@ -502,8 +521,13 @@ button, input, select { font: inherit; color: inherit; }
   background: rgb(6 118 71 / 12%);
   color: var(--positivo);
   white-space: nowrap;
+  transition: background-color .2s, color .2s;
 }
-.ao-estado.bloqueada { background: rgb(180 35 24 / 12%); color: var(--negativo); }
+.ao-estado.bloqueada { background: rgb(180 35 24 / 12%); color: var(--negativo); animation: destello .4s ease-out; }
+@keyframes destello {
+  0% { box-shadow: 0 0 0 0 rgb(180 35 24 / 40%); }
+  100% { box-shadow: 0 0 0 8px rgb(180 35 24 / 0%); }
+}
 .ao-alias-editar {
   border: none;
   background: none;
@@ -525,6 +549,50 @@ button, input, select { font: inherit; color: inherit; }
   padding: 2px 6px;
   width: 160px;
 }
+
+/* --------------------------------------------------- banca personal: la tarjeta como tarjeta */
+.ao-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+.cv {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  aspect-ratio: 344 / 216;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--sombra);
+  cursor: default;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+a.cv, .cv[role="button"] { cursor: pointer; }
+.cv[role="button"]:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgb(16 24 40 / 18%); }
+.cv[role="button"]:active { transform: scale(.98); }
+.cv-grande { max-width: 100%; }
+.cv-bg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cv-overlay {
+  position: absolute; inset: 0; padding: 14px 16px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  color: #fff; pointer-events: none;
+}
+.cv-fila-arriba { display: flex; align-items: center; justify-content: space-between; }
+.cv-etiqueta {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .06em;
+  background: rgb(255 255 255 / 18%); padding: 3px 8px; border-radius: 999px;
+}
+.cv-badge-bloqueada {
+  align-self: flex-start; font-size: 10.5px; font-weight: 700;
+  background: rgb(0 0 0 / 55%); padding: 3px 8px; border-radius: 999px;
+}
+.cv-fila-abajo { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px; }
+.cv-identidad { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cv-alias { font-size: 13px; font-weight: 600; text-shadow: 0 1px 2px rgb(0 0 0 / 25%); }
+.cv-numero { font-size: 12px; opacity: .9; letter-spacing: .04em; }
+.cv-saldo { display: flex; flex-direction: column; align-items: flex-end; font-size: 11px; opacity: .9; }
+.cv-saldo strong { font-size: 13px; }
+.cv-bloqueada .cv-alias, .cv-bloqueada .cv-numero { opacity: .75; }
 
 /* -------------------------------------------------- banca personal: tarjeta */
 .cm { display: flex; flex-direction: column; gap: 14px; }
@@ -554,7 +622,10 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--fondo);
   overflow: hidden;
 }
-.sb2-barra span { display: block; height: 100%; background: var(--rojo); border-radius: 999px; }
+.sb2-barra span {
+  display: block; height: 100%; background: var(--rojo); border-radius: 999px;
+  transition: width .5s cubic-bezier(.4,0,.2,1);
+}
 .sb2-cifras { display: flex; justify-content: space-between; font-size: 12px; color: var(--apagado); }
 .sb2-slider { margin-top: 2px; }
 
@@ -569,8 +640,10 @@ button, input, select { font: inherit; color: inherit; }
   font-size: 12.5px;
   cursor: pointer;
   color: var(--tinta-2);
+  transition: background-color .15s, color .15s, border-color .15s, transform .1s;
 }
 .ts-chip.activo { background: var(--rojo); border-color: var(--rojo); color: #fff; }
+.ts-chip:active { transform: scale(.95); }
 .ts-resumen { display: flex; gap: 16px; font-size: 12.5px; color: var(--apagado); align-items: center; }
 
 /* ------------------------------------------------------------- responsivo */
@@ -590,4 +663,14 @@ button, input, select { font: inherit; color: inherit; }
   .sb-barras li { grid-template-columns: 110px 1fr 48px; }
   .cm-cabeza { flex-direction: column; }
   .ts-resumen { flex-wrap: wrap; }
+}
+
+@media (max-width: 480px) {
+  .logo-texto { font-size: 14px; }
+  .app-sub { display: none; }
+  .ao-cards-grid { grid-template-columns: 1fr; }
+  .cv { max-width: none; }
+  .ts-chips { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  .ts-chip { flex: 0 0 auto; }
+  .sb2-fila { padding: 10px; }
 }
