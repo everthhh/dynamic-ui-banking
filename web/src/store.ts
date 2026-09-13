@@ -23,6 +23,9 @@ import { enviarAccion } from "./transport";
 
 const PERMITIDOS = new Set<string>(COMPONENT_NAMES);
 
+/** La superficie del tablero inicial. Mismo id que `gateway/tablero.py`. */
+export const SURFACE_TABLERO = "inicio";
+
 export type Estado = "inactivo" | "pensando" | "esperando_confirmacion" | "error";
 
 export type EntradaTraza = {
@@ -59,6 +62,8 @@ type Store = {
   reset: () => void;
 
   aplicar: (msg: A2UIMessage) => void;
+  /** Volver a una superficie que el servidor ya mandó (p. ej. el tablero). No crea ni cambia layout. */
+  activarSuperficie: (surfaceId: string) => void;
   /** Escritura local optimista: el control se siente inmediato. */
   escribirLocal: (path: string, valor: unknown) => void;
   leerRuta: (path: string) => unknown;
@@ -202,6 +207,9 @@ export const useStore = create<Store>((set, get) => ({
       get().trazar("deleteSurface", surfaceId);
     }
   },
+
+  activarSuperficie: (surfaceId) =>
+    set((s) => (s.superficies[surfaceId] ? { superficieActiva: surfaceId } : s)),
 
   escribirLocal: (path, valor) => {
     const sid = get().superficieActiva;

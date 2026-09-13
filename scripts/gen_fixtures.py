@@ -51,8 +51,32 @@ def _tool_ok(nombre: str, resumen: str) -> dict[str, Any]:
     return {"type": "tool_result", "name": nombre, "ok": True, "resumen": resumen}
 
 
+def _eventos_tablero(client_id: str) -> list[dict[str, Any]]:
+    """El tablero inicial con el mismo contrato de eventos que `POST /session/start`."""
+    from gateway.tablero import construir_tablero
+
+    t = construir_tablero(client_id)
+    mensajes = [v(m) for m in t.mensajes]
+    res = validate_a2ui(mensajes)
+    if not res.ok:
+        raise SystemExit(f"El tablero de {client_id} no valida:\n"
+                         + "\n".join(f"  - {e}" for e in res.errores))
+    return [
+        {"type": "text", "text": t.texto},
+        *({"type": "a2ui", "message": m} for m in mensajes),
+        {"type": "tool_call", "name": "get_recommendations", "efecto": False, "directo": True},
+        {"type": "tool_result", "name": "get_recommendations", "ok": True,
+         "resumen": t.resumen, "directo": True},
+        {"type": "done", "turno": 1, "render_ok": True},
+    ]
+
+
 def construir() -> dict[str, Any]:
     from services import REGISTRO
+
+    # El tablero va PRIMERO: el guion guarda el perfil y ejecuta una orden, y
+    # el tablero tiene que mostrar a cada cliente como entra, no como sale.
+    inicio = {c["client_id"]: _eventos_tablero(c["client_id"]) for c in _clientes()}
 
     snapshot = REGISTRO["get_client_snapshot"](CLIENT_ID)
     preguntas = REGISTRO["get_risk_questions"]()
@@ -402,6 +426,7 @@ def construir() -> dict[str, Any]:
                 "No editar a mano: corre `python -m scripts.gen_fixtures`.",
         "client_id": CLIENT_ID,
         "clientes": _clientes(),
+        "inicio": inicio,
         "turnos": turnos,
     }
 

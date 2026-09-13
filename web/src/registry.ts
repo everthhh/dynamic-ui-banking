@@ -12,8 +12,10 @@ import { AmountSlider } from "./components/AmountSlider";
 import { CardManager } from "./components/CardManager";
 import { ComparePanel } from "./components/ComparePanel";
 import { FactSheet, SpendingBreakdown } from "./components/FactSheet";
+import { FinancialProfile } from "./components/FinancialProfile";
 import { OrderTicket } from "./components/OrderTicket";
 import { ProjectionChart } from "./components/ProjectionChart";
+import { Recommendations } from "./components/Recommendations";
 import { RiskProfiler } from "./components/RiskProfiler";
 import { SpendingBudgets } from "./components/SpendingBudgets";
 import { TransactionSearch } from "./components/TransactionSearch";
@@ -58,4 +60,7 @@ export const REGISTRY: Record<string, ComponenteDelCatalogo> = {
   "bank.CardManager": CardManager,
   "bank.SpendingBudgets": SpendingBudgets,
   "bank.TransactionSearch": TransactionSearch,
+  // perfil financiero y recomendaciones (tablero inicial)
+  "bank.FinancialProfile": FinancialProfile,
+  "bank.Recommendations": Recommendations,
 };

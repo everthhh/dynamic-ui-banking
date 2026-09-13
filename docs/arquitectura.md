@@ -34,6 +34,39 @@
 subproceso al arrancar (`lifespan` en `gateway/main.py`) y le habla por stdio.
 `agent/loop.py` no importa `services` — solo conoce `agent/mcp_client.py`.
 
+## Al entrar: el tablero inicial
+
+```
+  navegador                      gateway                         services/profile.py
+      │ POST /session/start          │                                  │
+      ├─────────────────────────────►│ construir_tablero(client_id) ───►│ perfil_y_recomendaciones
+      │                              │                                  │  ├ bank/finance/perfil.py
+      │                              │ ◄────────────────────────────────┤  └ bank/finance/recomendaciones.py
+      │                              │ validate_a2ui  (el mismo validador)
+      │ ◄── session · text · a2ui ×4 · tool_call · tool_result · done
+      │                              │ Sesion.contexto_tablero ─► system prompt del siguiente turno
+```
+
+Sin LLM, mismo contrato de eventos SSE que `/chat` y `/action`, y queda en la
+bitácora igual que cualquier turno. El agente no ve el tablero en su historial
+—no hubo turno suyo—, pero sí en el contexto de sesión: qué recomendaciones
+tiene el cliente enfrente y con qué herramienta. Tocar una emite
+`follow_recommendation`, que va al agente.
+
+### El catálogo de herramientas: tres capas, un contrato
+
+| Capa | Archivo | Qué dice de cada herramienta |
+|---|---|---|
+| Negocio | `bank/finance/recomendaciones.py::HERRAMIENTAS` | qué es, de qué dominio y si ya existe |
+| Servicios | `services/profile.py::TOOLS_POR_HERRAMIENTA` | con qué tools se resuelve |
+| Agente | `agent/prompts.py::COMPONENTES_POR_HERRAMIENTA` | con qué componentes se pinta (va al system prompt) |
+
+Cada capa conoce solo lo suyo —`bank/` no sabe de tools ni de A2UI—, y
+`tests/test_perfil.py` falla si las tres listas se desalinean, si una
+herramienta disponible usa una tool o un componente inexistente, o si una no
+disponible declara tools. Agregar una herramienta nueva es tocar las tres y
+dejar que el test diga qué faltó.
+
 **Regla dura:** la interacción del usuario nunca actualiza la UI por su cuenta.
 Mover un slider escribe el valor local para que el control se sienta inmediato,
 pero la pantalla solo cambia cuando el agente lo decide. Por eso `emitirAccion`
@@ -44,7 +77,7 @@ vive en el store y no dentro de cada componente.
 | Capa | Hace | No hace |
 |---|---|---|
 | `web/` | Aplicar mensajes A2UI, montar componentes, mantener el data model, emitir acciones | No decide layout, no calcula, no sabe qué significa ningún prop |
-| `gateway/` | Sesiones, historial, streaming SSE, `/action`, bitácora, levantar/cerrar el subproceso MCP | No habla con el modelo, no calcula |
+| `gateway/` | Sesiones, historial, streaming SSE, `/action`, tablero inicial y acciones directas (sin LLM), bitácora, levantar/cerrar el subproceso MCP | No habla con el modelo, no calcula |
 | `agent/` | Interpretar, encadenar tools (vía el cliente MCP), emitir y validar el blueprint | No hace aritmética financiera, no toca la base, no importa `services` |
 | `mcp_server/` | Exponer `services.REGISTRO` como tools MCP (`list_tools`/`call_tool`) por stdio | No sabe nada de A2UI, de prompts ni de qué modelo lo está llamando |
 | `services/` | Validar entradas, orquestar dominio, devolver JSON | No sabe nada de A2UI, de componentes ni de prompts |

@@ -100,6 +100,11 @@
       "descripcion": "El usuario ajustó un filtro rápido sobre resultados de búsqueda de movimientos.",
       "contexto": ["filtro"],
       "emitida_por": ["bank.TransactionSearch"]
+    },
+    "follow_recommendation": {
+      "descripcion": "El usuario tocó una recomendación y quiere seguirla. Atiéndela como si hubiera escrito `prompt`, con las tools y los componentes de su herramienta.",
+      "contexto": ["recomendacion_id", "herramienta_id", "prompt"],
+      "emitida_por": ["bank.Recommendations"]
     }
   },
   "components": {
@@ -341,6 +346,26 @@
         "filtros": { "tipo": "object", "bindable": true, "descripcion": "`filtros` de search_transactions, para mostrar qué se está filtrando." },
         "resumen": { "tipo": "object", "bindable": true, "descripcion": "{total_cargos, total_abonos, total} de search_transactions." },
         "movimientosCompletos": { "tipo": "array", "bindable": true, "descripcion": "Caché completo para filtrar sin volver a llamarte (regla 8c). Escríbelo UNA sola vez, al montar el componente por primera vez, con el mismo arreglo que mandas a `movimientos`." }
+      }
+    },
+    "bank.FinancialProfile": {
+      "tipo": "dominio",
+      "cuando": "Radiografía financiera del cliente: salud financiera con su desglose, ingreso contra gasto, a dónde se va el ingreso, hábitos de consumo y de tarjeta, rasgos y productos. Es la cabecera del tablero inicial; úsalo también para '¿cómo estoy?' o '¿cómo me ve el banco?'. Nunca describas el perfil en texto.",
+      "children": false,
+      "props": {
+        "perfil": { "tipo": "object", "requerido": true, "bindable": true, "descripcion": "Respuesta completa de get_financial_profile. Enlázalo a /perfil_financiero." },
+        "compacto": { "tipo": "boolean", "default": false, "descripcion": "Si true, solo salud financiera, cifras clave y rasgos." }
+      }
+    },
+    "bank.Recommendations": {
+      "tipo": "dominio",
+      "cuando": "Recomendaciones priorizadas, cada una con su evidencia, su impacto en pesos y la herramienta que la resuelve. Nunca enlistes recomendaciones en texto. Tocar una emite follow_recommendation.",
+      "children": false,
+      "emite": ["follow_recommendation"],
+      "props": {
+        "recomendaciones": { "tipo": "array", "requerido": true, "bindable": true, "descripcion": "`recomendaciones` de get_recommendations, en el orden en que llegan. Enlázalo a /recomendaciones." },
+        "titulo": { "tipo": "string", "descripcion": "Encabezado de la lista." },
+        "max": { "tipo": "number", "default": 3, "descripcion": "Cuántas se muestran antes de 'ver más'." }
       }
     }
   }

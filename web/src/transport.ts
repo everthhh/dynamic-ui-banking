@@ -92,6 +92,22 @@ export async function enviarMensaje(cuerpo: ChatIn, onEvento: ManejadorDeEvento)
   return leerSSE(r, onEvento);
 }
 
+export type InicioIn = { client_id: string };
+
+/** Abre sesión y recibe el tablero inicial (perfil + recomendaciones), sin LLM. */
+export async function iniciarSesion(cuerpo: InicioIn, onEvento: ManejadorDeEvento): Promise<void> {
+  if (modo === "simulado") {
+    const { reproducirInicioSimulado } = await import("./fixtures/simulado");
+    return reproducirInicioSimulado(cuerpo, onEvento);
+  }
+  const r = await fetch("/session/start", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(cuerpo),
+  });
+  return leerSSE(r, onEvento);
+}
+
 export async function enviarAccion(cuerpo: AccionIn, onEvento: ManejadorDeEvento): Promise<void> {
   if (modo === "simulado") {
     const { reproducirAccionSimulada } = await import("./fixtures/simulado");

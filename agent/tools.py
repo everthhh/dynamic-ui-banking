@@ -86,6 +86,65 @@ TOOLS_DATOS: list[dict[str, Any]] = [
         },
     },
     {
+        "name": "get_financial_profile",
+        "description": (
+            "Perfil financiero CALCULADO del cliente con 12 meses de datos: ingreso (fijo o "
+            "variable), consumo por categoría con tendencia, suscripciones y gasto hormiga "
+            "detectados, hábito de pago de cada tarjeta (totalero, revolvente, paga el mínimo, "
+            "paga tarde) leído de sus estados de cuenta, carga de deuda, colchón de liquidez, "
+            "efectivo sin invertir, mezcla del portafolio, productos que usa, rasgos y un score "
+            "de salud financiera con su desglose. Úsala para «¿cómo estoy?», «¿en qué se me va "
+            "el dinero?» o para justificar una recomendación. Las cifras son del banco: no las "
+            "recalcules. Se pinta con `bank.FinancialProfile`."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"client_id": {"type": "string"}},
+            "required": ["client_id"],
+        },
+    },
+    {
+        "name": "get_recommendations",
+        "description": (
+            "Recomendaciones priorizadas derivadas del perfil financiero. Cada una trae "
+            "`evidencia` (las cifras que la disparan), `impacto` en pesos con su supuesto, "
+            "`prioridad` 0-100 (la fórmula viene en `criterio_prioridad`), la `herramienta` del "
+            "catálogo que la resuelve con sus `tools`, `parametros` sugeridos para esas tools y "
+            "un `prompt`. Es la BASE de toda recomendación: no recomiendes nada que no esté aquí "
+            "o que no puedas respaldar con `get_financial_profile`. Se pinta con "
+            "`bank.Recommendations`."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "limite": {"type": "integer", "minimum": 1, "maximum": 20, "default": 5},
+            },
+            "required": ["client_id"],
+        },
+    },
+    {
+        "name": "simulate_debt_payoff",
+        "description": (
+            "Plan para liquidar una tarjeta de crédito sobre su saldo y tasa reales. Con "
+            "`meses_objetivo` calcula el pago mensual; con `pago_mensual`, en cuántos meses se "
+            "liquida (pasa uno, no los dos; sin ninguno, 12 meses). Compara contra pagar solo el "
+            "mínimo: meses, intereses totales y `ahorro_intereses`. Sin `card_id` usa la tarjeta "
+            "con más saldo. Si el pago no cubre ni los intereses, la rechaza y sugiere uno que sí "
+            "liquida. Es la herramienta `plan_pago_tarjeta`."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "client_id": {"type": "string"},
+                "card_id": {"type": "string"},
+                "pago_mensual": {"type": "number", "exclusiveMinimum": 0},
+                "meses_objetivo": {"type": "integer", "minimum": 1, "maximum": 120},
+            },
+            "required": ["client_id"],
+        },
+    },
+    {
         "name": "search_transactions",
         "description": (
             "Busca movimientos con filtros combinables: fechas, categoría, texto libre de "

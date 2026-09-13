@@ -60,6 +60,6162 @@
    "perfil_vigente": true
   }
  ],
+ "inicio": {
+  "CLI-0001": [
+   {
+    "type": "text",
+    "text": "Hola Ana. Revisé tus últimos 12 meses: tu salud financiera es estable (68/100). Te dejo lo que más te conviene atender, con los números que lo respaldan; toca una recomendación o pregúntame lo que quieras."
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "createSurface": {
+      "surfaceId": "inicio",
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/perfil_financiero",
+      "value": {
+       "client_id": "CLI-0001",
+       "fecha_valuacion": "2026-09-01",
+       "ventana": {
+        "meses": 12,
+        "desde": "2025-09",
+        "hasta": "2026-08"
+       },
+       "identidad": {
+        "nombre": "Ana Sofia Reyes",
+        "nombre_corto": "Ana",
+        "edad": 34,
+        "etapa_de_vida": "consolidación",
+        "ocupacion": "Gerente de mercadotecnia",
+        "dependientes": 0,
+        "ciudad": "Monterrey",
+        "segmento": "preferente",
+        "cliente_desde": "2017-01-01",
+        "antiguedad_anios": 9.7
+       },
+       "resumen": "Ana gana $50,064 al mes y gasta $33,925 en consumo (68%); a créditos, intereses y comisiones se le van $8,744. Le quedan $7,395 al mes (15% de su ingreso). Usa 6 productos del banco.",
+       "salud_financiera": {
+        "score": 68.1,
+        "nivel": "estable",
+        "desglose": [
+         {
+          "factor": "ahorro",
+          "etiqueta": "Ahorro",
+          "valor": 49.2,
+          "peso": 0.25,
+          "aporte": 12.3,
+          "dato": "15% del ingreso"
+         },
+         {
+          "factor": "liquidez",
+          "etiqueta": "Colchón para emergencias",
+          "valor": 100.0,
+          "peso": 0.2,
+          "aporte": 20.0,
+          "dato": "9.5 de 3 meses"
+         },
+         {
+          "factor": "endeudamiento",
+          "etiqueta": "Endeudamiento",
+          "valor": 81.3,
+          "peso": 0.2,
+          "aporte": 16.26,
+          "dato": "17% del ingreso en deuda"
+         },
+         {
+          "factor": "credito",
+          "etiqueta": "Comportamiento de crédito",
+          "valor": 97.5,
+          "peso": 0.2,
+          "aporte": 19.5,
+          "dato": "98/100"
+         },
+         {
+          "factor": "patrimonio_productivo",
+          "etiqueta": "Dinero trabajando",
+          "valor": 0.0,
+          "peso": 0.15,
+          "aporte": 0.0,
+          "dato": "0% invertido"
+         }
+        ]
+       },
+       "flujo": {
+        "ingreso_mensual_declarado": 48000.0,
+        "ingreso_mensual": 50064.32,
+        "tipo_ingreso": "fijo",
+        "variacion_ingreso": 0.009,
+        "consumo_mensual": 33925.27,
+        "consumo_esencial_mensual": 26353.49,
+        "consumo_discrecional_mensual": 7571.78,
+        "pagos_credito_mensual": 8743.74,
+        "costo_financiero_mensual": 0.0,
+        "ahorro_mensual": 7395.3,
+        "tasa_ahorro": 0.1477,
+        "meses_con_deficit": 0,
+        "servicio_deuda_mensual": 8743.74,
+        "carga_deuda": 0.1747,
+        "serie": [
+         {
+          "mes": "2025-09",
+          "ingreso": 47131.46,
+          "consumo": 31557.77,
+          "deuda": 8743.74,
+          "ahorro": 6829.95
+         },
+         {
+          "mes": "2025-10",
+          "ingreso": 47706.16,
+          "consumo": 29113.1,
+          "deuda": 8743.74,
+          "ahorro": 9849.32
+         },
+         {
+          "mes": "2025-11",
+          "ingreso": 48289.31,
+          "consumo": 35358.8,
+          "deuda": 8743.74,
+          "ahorro": 4186.77
+         },
+         {
+          "mes": "2025-12",
+          "ingreso": 72365.3,
+          "consumo": 42527.15,
+          "deuda": 8743.74,
+          "ahorro": 21094.41
+         },
+         {
+          "mes": "2026-01",
+          "ingreso": 48385.68,
+          "consumo": 30414.19,
+          "deuda": 8743.74,
+          "ahorro": 9227.75
+         },
+         {
+          "mes": "2026-02",
+          "ingreso": 47988.52,
+          "consumo": 32754.06,
+          "deuda": 8743.74,
+          "ahorro": 6490.72
+         },
+         {
+          "mes": "2026-03",
+          "ingreso": 47922.53,
+          "consumo": 38175.51,
+          "deuda": 8743.74,
+          "ahorro": 1003.28
+         },
+         {
+          "mes": "2026-04",
+          "ingreso": 47960.92,
+          "consumo": 30317.86,
+          "deuda": 8743.74,
+          "ahorro": 8899.32
+         },
+         {
+          "mes": "2026-05",
+          "ingreso": 48064.59,
+          "consumo": 34374.13,
+          "deuda": 8743.74,
+          "ahorro": 4946.72
+         },
+         {
+          "mes": "2026-06",
+          "ingreso": 47985.27,
+          "consumo": 30596.36,
+          "deuda": 8743.74,
+          "ahorro": 8645.17
+         },
+         {
+          "mes": "2026-07",
+          "ingreso": 48486.06,
+          "consumo": 34985.63,
+          "deuda": 8743.74,
+          "ahorro": 4756.69
+         },
+         {
+          "mes": "2026-08",
+          "ingreso": 48486.01,
+          "consumo": 36928.72,
+          "deuda": 8743.74,
+          "ahorro": 2813.55
+         }
+        ]
+       },
+       "consumo": {
+        "por_categoria": [
+         {
+          "categoria": "renta",
+          "etiqueta": "Renta",
+          "esencial": true,
+          "promedio_mensual": 14886.67,
+          "participacion": 0.4388,
+          "compras_mes": 1.0,
+          "ultimo_mes": 15080.0,
+          "mediana_ultimos_3": 15080.0,
+          "mediana_previos_3": 15080.0,
+          "tendencia": 0.0,
+          "con_tarjeta_credito": 0.0
+         },
+         {
+          "categoria": "super",
+          "etiqueta": "Súper",
+          "esencial": true,
+          "promedio_mensual": 5363.42,
+          "participacion": 0.1581,
+          "compras_mes": 9.5,
+          "ultimo_mes": 4108.49,
+          "mediana_ultimos_3": 4658.23,
+          "mediana_previos_3": 4428.58,
+          "tendencia": 0.0519,
+          "con_tarjeta_credito": 0.6064
+         },
+         {
+          "categoria": "restaurantes",
+          "etiqueta": "Restaurantes",
+          "esencial": false,
+          "promedio_mensual": 4002.32,
+          "participacion": 0.118,
+          "compras_mes": 17.6,
+          "ultimo_mes": 5095.62,
+          "mediana_ultimos_3": 5095.62,
+          "mediana_previos_3": 2903.89,
+          "tendencia": 0.7548,
+          "con_tarjeta_credito": 0.6011
+         },
+         {
+          "categoria": "entretenimiento",
+          "etiqueta": "Entretenimiento",
+          "esencial": false,
+          "promedio_mensual": 3569.46,
+          "participacion": 0.1052,
+          "compras_mes": 6.4,
+          "ultimo_mes": 4830.91,
+          "mediana_ultimos_3": 3777.52,
+          "mediana_previos_3": 2364.15,
+          "tendencia": 0.5978,
+          "con_tarjeta_credito": 0.7055
+         },
+         {
+          "categoria": "transporte",
+          "etiqueta": "Transporte",
+          "esencial": true,
+          "promedio_mensual": 3484.93,
+          "participacion": 0.1027,
+          "compras_mes": 7.0,
+          "ultimo_mes": 4794.27,
+          "mediana_ultimos_3": 3053.67,
+          "mediana_previos_3": 3156.73,
+          "tendencia": -0.0326,
+          "con_tarjeta_credito": 0.6563
+         },
+         {
+          "categoria": "servicios",
+          "etiqueta": "Servicios del hogar",
+          "esencial": true,
+          "promedio_mensual": 1926.44,
+          "participacion": 0.0568,
+          "compras_mes": 3.5,
+          "ultimo_mes": 2308.25,
+          "mediana_ultimos_3": 2017.95,
+          "mediana_previos_3": 1585.76,
+          "tendencia": 0.2725,
+          "con_tarjeta_credito": 0.2071
+         },
+         {
+          "categoria": "salud",
+          "etiqueta": "Salud",
+          "esencial": true,
+          "promedio_mensual": 692.03,
+          "participacion": 0.0204,
+          "compras_mes": 1.8,
+          "ultimo_mes": 711.18,
+          "mediana_ultimos_3": 711.18,
+          "mediana_previos_3": 527.65,
+          "tendencia": 0.3478,
+          "con_tarjeta_credito": 0.6253
+         }
+        ],
+        "suscripciones": {
+         "detectadas": [
+          {
+           "comercio": "Cadena de gimnasios (sim)",
+           "descripcion": "Gimnasio",
+           "categoria": "entretenimiento",
+           "monto_mensual": 890.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-05"
+          },
+          {
+           "comercio": "Plataforma de video (sim)",
+           "descripcion": "Streaming de video",
+           "categoria": "entretenimiento",
+           "monto_mensual": 219.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-03"
+          },
+          {
+           "comercio": "Plataforma de música (sim)",
+           "descripcion": "Música en streaming",
+           "categoria": "entretenimiento",
+           "monto_mensual": 129.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-07"
+          },
+          {
+           "comercio": "Nube personal (sim)",
+           "descripcion": "Almacenamiento en la nube",
+           "categoria": "entretenimiento",
+           "monto_mensual": 49.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-15"
+          }
+         ],
+         "total_mensual": 1287.0,
+         "total_anual": 15444.0
+        },
+        "gasto_hormiga": {
+         "ticket_maximo": 250.0,
+         "compras_mes": 18.5,
+         "gasto_mensual": 2161.05,
+         "gasto_anual": 25932.59,
+         "pct_ingreso": 0.0432,
+         "principales": [
+          {
+           "comercio": "Delivery de comida (sim)",
+           "compras_mes": 4.7,
+           "gasto_mensual": 832.99
+          },
+          {
+           "comercio": "Cafetería (sim)",
+           "compras_mes": 7.5,
+           "gasto_mensual": 611.26
+          },
+          {
+           "comercio": "Tienda de conveniencia (sim)",
+           "compras_mes": 3.3,
+           "gasto_mensual": 322.67
+          }
+         ]
+        },
+        "pct_con_tarjeta_credito": 0.333,
+        "presupuestos": [
+         {
+          "categoria": "entretenimiento",
+          "monto_mensual": 3000.0
+         },
+         {
+          "categoria": "restaurantes",
+          "monto_mensual": 3000.0
+         },
+         {
+          "categoria": "super",
+          "monto_mensual": 5000.0
+         }
+        ]
+       },
+       "credito": {
+        "deuda_total": 287100.56,
+        "deuda_tarjetas": 17945.49,
+        "deuda_prestamos": 269155.07,
+        "uso_linea_revolvente": 0.1869,
+        "tarjetas": [
+         {
+          "card_id": "CRD-0002",
+          "last4": "3255",
+          "alias": null,
+          "limite": 96000.0,
+          "saldo": 17945.49,
+          "utilizacion": 0.1869,
+          "tasa_anual": 0.389,
+          "cortes_evaluados": 11,
+          "pagos_completos": 11,
+          "pagos_minimos": 0,
+          "pagos_tardios": 0,
+          "meses_con_saldo": 0,
+          "intereses_12m": 0.0,
+          "comisiones_12m": 0.0,
+          "costo_12m": 0.0,
+          "pago_minimo_promedio": 556.3,
+          "habito": "totalero",
+          "habito_etiqueta": "Paga su tarjeta completa",
+          "intereses_proyectados_anual": 0.0
+         }
+        ],
+        "prestamos": [
+         {
+          "loan_id": "LON-0000",
+          "producto": "auto",
+          "etiqueta": "Crédito automotriz",
+          "saldo_insoluto": 269155.07,
+          "tasa_anual": 0.135,
+          "pago_mensual": 8743.74,
+          "mensualidades_restantes": 38
+         }
+        ],
+        "salud_crediticia": {
+         "score": 97.5,
+         "nivel": "excelente",
+         "desglose": [
+          {
+           "factor": "puntualidad",
+           "etiqueta": "Pagos a tiempo",
+           "valor": 100.0,
+           "peso": 0.35,
+           "aporte": 35.0,
+           "dato": "11 de 11 cortes a tiempo"
+          },
+          {
+           "factor": "pago_completo",
+           "etiqueta": "Pagos completos",
+           "valor": 100.0,
+           "peso": 0.25,
+           "aporte": 25.0,
+           "dato": "11 de 11 cortes liquidados"
+          },
+          {
+           "factor": "utilizacion",
+           "etiqueta": "Uso de la línea",
+           "valor": 100.0,
+           "peso": 0.2,
+           "aporte": 20.0,
+           "dato": "19% de la línea"
+          },
+          {
+           "factor": "carga",
+           "etiqueta": "Pagos de deuda sobre ingreso",
+           "valor": 81.3,
+           "peso": 0.12,
+           "aporte": 9.76,
+           "dato": "17% del ingreso"
+          },
+          {
+           "factor": "antiguedad",
+           "etiqueta": "Antigüedad como cliente",
+           "valor": 96.6,
+           "peso": 0.08,
+           "aporte": 7.73,
+           "dato": "9.7 años"
+          }
+         ]
+        }
+       },
+       "liquidez": {
+        "saldo_cuentas": 55876.36,
+        "efectivo_en_inversion": 277469.33,
+        "invertido_liquido": 0.0,
+        "disponible": 333345.69,
+        "gasto_minimo_mensual": 35097.23,
+        "salidas_mensuales": 42669.01,
+        "meses_de_colchon": 9.5,
+        "colchon_objetivo_meses": 3,
+        "colchon_objetivo": 105291.7,
+        "efectivo_ocioso": 290676.68,
+        "rendimiento_no_ganado_anual": 18864.92,
+        "perdida_poder_compra_anual": 12063.08,
+        "patrimonio_neto": 46245.13
+       },
+       "inversion": {
+        "perfil_riesgo": null,
+        "perfil_vigente": false,
+        "posiciones": 0,
+        "valor_mercado": 0.0,
+        "rendimiento": 0.0,
+        "renta_variable_pct": null,
+        "renta_variable_objetivo_pct": null,
+        "rend_esperado_actual": null,
+        "asignacion_actual": {}
+       },
+       "productos": {
+        "total": 6,
+        "lista": [
+         {
+          "producto": "cuenta_cheques",
+          "etiqueta": "Cuenta de cheques"
+         },
+         {
+          "producto": "cuenta_inversion",
+          "etiqueta": "Cuenta de inversión"
+         },
+         {
+          "producto": "tarjeta_debito",
+          "etiqueta": "Tarjeta de débito"
+         },
+         {
+          "producto": "tarjeta_credito",
+          "etiqueta": "Tarjeta de crédito"
+         },
+         {
+          "producto": "credito_auto",
+          "etiqueta": "Crédito automotriz"
+         },
+         {
+          "producto": "presupuestos",
+          "etiqueta": "Presupuestos (3)"
+         }
+        ]
+       },
+       "rasgos": [
+        {
+         "rasgo": "ingreso_fijo",
+         "etiqueta": "Ingreso fijo",
+         "tono": "info",
+         "dato": "$50,064 al mes"
+        },
+        {
+         "rasgo": "totalero",
+         "etiqueta": "Paga su tarjeta completa",
+         "tono": "positive",
+         "dato": "11 de 11 cortes liquidados"
+        },
+        {
+         "rasgo": "efectivo_ocioso",
+         "etiqueta": "Efectivo sin invertir",
+         "tono": "warning",
+         "dato": "$290,677 sin rendimiento"
+        },
+        {
+         "rasgo": "gasto_creciente_restaurantes",
+         "etiqueta": "Más gasto en restaurantes",
+         "tono": "warning",
+         "dato": "+75% en los últimos 3 meses"
+        },
+        {
+         "rasgo": "gasto_creciente_entretenimiento",
+         "etiqueta": "Más gasto en entretenimiento",
+         "tono": "warning",
+         "dato": "+60% en los últimos 3 meses"
+        },
+        {
+         "rasgo": "suscripciones",
+         "etiqueta": "4 suscripciones",
+         "tono": "info",
+         "dato": "$1,287 al mes"
+        },
+        {
+         "rasgo": "sin_perfil",
+         "etiqueta": "Sin perfil de inversión",
+         "tono": "neutral",
+         "dato": "nunca lo ha contestado"
+        }
+       ],
+       "disclaimer": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+      }
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/recomendaciones",
+      "value": [
+       {
+        "recomendacion_id": "invertir_efectivo_ocioso",
+        "titulo": "Tienes $290,677 sin invertir",
+        "descripcion": "Es dinero que no rinde nada: a tasa de CETES serían $18,865 al año, y la inflación le quita $12,063 de poder de compra. Primero hay que conocer tu perfil de inversionista: son cuatro preguntas.",
+        "evidencia": [
+         {
+          "etiqueta": "En tu cuenta de inversión, sin invertir",
+          "valor": 277469.33,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "En tu cuenta, arriba de un mes de gastos",
+          "valor": 13207.35,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Equivale a meses de tus gastos",
+          "valor": 6.8,
+          "formato": "numero"
+         }
+        ],
+        "impacto": {
+         "valor": 18864.92,
+         "etiqueta": "Lo que dejas de ganar al año",
+         "periodo": "anual",
+         "supuesto": "Tasa de CETES 28 días (6.49%), antes de impuestos."
+        },
+        "urgencia": "alta",
+        "prioridad": 56,
+        "herramienta": {
+         "herramienta_id": "perfilador_inversion",
+         "nombre": "Perfil de inversionista",
+         "descripcion": "Cuatro preguntas para saber cuánto riesgo tiene sentido para ti.",
+         "dominio": "inversiones",
+         "disponible": true,
+         "tools": [
+          "get_risk_questions",
+          "score_risk_profile"
+         ]
+        },
+        "parametros": {
+         "monto": 290000,
+         "liquidez_requerida": false
+        },
+        "prompt": "Tengo $290,000 sin invertir, ¿qué hago con ellos?",
+        "orden": 1
+       },
+       {
+        "recomendacion_id": "presupuesto_rebasado_restaurantes",
+        "titulo": "Tu presupuesto de restaurantes ya no alcanza",
+        "descripcion": "Pusiste un tope de $3,000 al mes y en un mes típico de los últimos tres gastaste $5,096. O ajustas el tope a lo real o recortas $2,096 al mes.",
+        "evidencia": [
+         {
+          "etiqueta": "Tu presupuesto",
+          "valor": 3000.0,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Mes típico de los últimos 3",
+          "valor": 5095.62,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Último mes",
+          "valor": 5095.62,
+          "formato": "moneda"
+         }
+        ],
+        "impacto": {
+         "valor": 25147.44,
+         "etiqueta": "Lo que rebasas al año",
+         "periodo": "anual",
+         "supuesto": "Si sigues gastando lo de un mes típico reciente."
+        },
+        "urgencia": "media",
+        "prioridad": 38,
+        "herramienta": {
+         "herramienta_id": "presupuestos",
+         "nombre": "Presupuestos por categoría",
+         "descripcion": "Un tope mensual por categoría y aviso cuando lo rebasas.",
+         "dominio": "banca_personal",
+         "disponible": true,
+         "tools": [
+          "get_spending_alerts",
+          "set_budget"
+         ]
+        },
+        "parametros": {
+         "categoria": "restaurantes",
+         "presupuesto_actual": 3000.0,
+         "gasto_reciente": 5095.62
+        },
+        "prompt": "Ayúdame a ajustar mi presupuesto de restaurantes",
+        "orden": 2
+       },
+       {
+        "recomendacion_id": "presupuesto_rebasado_entretenimiento",
+        "titulo": "Tu presupuesto de entretenimiento ya no alcanza",
+        "descripcion": "Pusiste un tope de $3,000 al mes y en un mes típico de los últimos tres gastaste $3,778. O ajustas el tope a lo real o recortas $778 al mes.",
+        "evidencia": [
+         {
+          "etiqueta": "Tu presupuesto",
+          "valor": 3000.0,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Mes típico de los últimos 3",
+          "valor": 3777.52,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Último mes",
+          "valor": 4830.91,
+          "formato": "moneda"
+         }
+        ],
+        "impacto": {
+         "valor": 9330.24,
+         "etiqueta": "Lo que rebasas al año",
+         "periodo": "anual",
+         "supuesto": "Si sigues gastando lo de un mes típico reciente."
+        },
+        "urgencia": "media",
+        "prioridad": 33,
+        "herramienta": {
+         "herramienta_id": "presupuestos",
+         "nombre": "Presupuestos por categoría",
+         "descripcion": "Un tope mensual por categoría y aviso cuando lo rebasas.",
+         "dominio": "banca_personal",
+         "disponible": true,
+         "tools": [
+          "get_spending_alerts",
+          "set_budget"
+         ]
+        },
+        "parametros": {
+         "categoria": "entretenimiento",
+         "presupuesto_actual": 3000.0,
+         "gasto_reciente": 3777.52
+        },
+        "prompt": "Ayúdame a ajustar mi presupuesto de entretenimiento",
+        "orden": 3
+       },
+       {
+        "recomendacion_id": "revisar_suscripciones",
+        "titulo": "Pagas 4 suscripciones: $15,444 al año",
+        "descripcion": "Se cobran solas cada mes (gimnasio, streaming de video, música en streaming, almacenamiento en la nube). Revisa cuáles sigues usando.",
+        "evidencia": [
+         {
+          "etiqueta": "Suscripciones detectadas",
+          "valor": 4,
+          "formato": "numero"
+         },
+         {
+          "etiqueta": "Al mes",
+          "valor": 1287.0,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Al año",
+          "valor": 15444.0,
+          "formato": "moneda"
+         }
+        ],
+        "impacto": {
+         "valor": 7722.0,
+         "etiqueta": "Lo que ahorras al año cancelando la mitad",
+         "periodo": "anual",
+         "supuesto": "Cancelar suscripciones por la mitad del monto actual."
+        },
+        "urgencia": "baja",
+        "prioridad": 18,
+        "herramienta": {
+         "herramienta_id": "buscador_movimientos",
+         "nombre": "Buscador de movimientos",
+         "descripcion": "Encuentra cargos por comercio, monto o fecha.",
+         "dominio": "banca_personal",
+         "disponible": true,
+         "tools": [
+          "search_transactions"
+         ]
+        },
+        "parametros": {
+         "comercios": [
+          "Cadena de gimnasios (sim)",
+          "Plataforma de video (sim)",
+          "Plataforma de música (sim)",
+          "Nube personal (sim)"
+         ],
+         "categoria": "entretenimiento"
+        },
+        "prompt": "Muéstrame mis suscripciones y cargos recurrentes",
+        "orden": 4
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateComponents": {
+      "surfaceId": "inicio",
+      "components": [
+       {
+        "id": "root",
+        "component": "Column",
+        "gap": 20,
+        "children": [
+         "saludo",
+         "perfil",
+         "recomendaciones",
+         "aviso"
+        ]
+       },
+       {
+        "id": "saludo",
+        "component": "Text",
+        "variant": "h2",
+        "text": "Hola Ana, así se ven tus finanzas"
+       },
+       {
+        "id": "perfil",
+        "component": "bank.FinancialProfile",
+        "perfil": {
+         "path": "/perfil_financiero"
+        }
+       },
+       {
+        "id": "recomendaciones",
+        "component": "bank.Recommendations",
+        "recomendaciones": {
+         "path": "/recomendaciones"
+        },
+        "titulo": "Lo que te recomendamos hoy",
+        "max": 3
+       },
+       {
+        "id": "aviso",
+        "component": "Text",
+        "variant": "caption",
+        "tone": "muted",
+        "text": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "tool_call",
+    "name": "get_recommendations",
+    "efecto": false,
+    "directo": true
+   },
+   {
+    "type": "tool_result",
+    "name": "get_recommendations",
+    "ok": true,
+    "resumen": "tablero inicial · salud 68/100 · 4 recomendaciones",
+    "directo": true
+   },
+   {
+    "type": "done",
+    "turno": 1,
+    "render_ok": true
+   }
+  ],
+  "CLI-0002": [
+   {
+    "type": "text",
+    "text": "Hola Javier. Revisé tus últimos 12 meses: tu salud financiera es sólida (94/100). Te dejo lo que más te conviene atender, con los números que lo respaldan; toca una recomendación o pregúntame lo que quieras."
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "createSurface": {
+      "surfaceId": "inicio",
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/perfil_financiero",
+      "value": {
+       "client_id": "CLI-0002",
+       "fecha_valuacion": "2026-09-01",
+       "ventana": {
+        "meses": 12,
+        "desde": "2025-09",
+        "hasta": "2026-08"
+       },
+       "identidad": {
+        "nombre": "Javier Montemayor",
+        "nombre_corto": "Javier",
+        "edad": 47,
+        "etapa_de_vida": "madurez patrimonial",
+        "ocupacion": "Director comercial",
+        "dependientes": 2,
+        "ciudad": "Guadalajara",
+        "segmento": "patrimonial",
+        "cliente_desde": "2018-04-06",
+        "antiguedad_anios": 8.4
+       },
+       "resumen": "Javier gana $188,061 al mes y gasta $128,609 en consumo (68%); a créditos, intereses y comisiones se le van $814. Le quedan $58,638 al mes (31% de su ingreso). Usa 5 productos del banco.",
+       "salud_financiera": {
+        "score": 93.9,
+        "nivel": "sólida",
+        "desglose": [
+         {
+          "factor": "ahorro",
+          "etiqueta": "Ahorro",
+          "valor": 100.0,
+          "peso": 0.25,
+          "aporte": 25.0,
+          "dato": "31% del ingreso"
+         },
+         {
+          "factor": "liquidez",
+          "etiqueta": "Colchón para emergencias",
+          "valor": 100.0,
+          "peso": 0.2,
+          "aporte": 20.0,
+          "dato": "33.2 de 3 meses"
+         },
+         {
+          "factor": "endeudamiento",
+          "etiqueta": "Endeudamiento",
+          "valor": 100.0,
+          "peso": 0.2,
+          "aporte": 20.0,
+          "dato": "2% del ingreso en deuda"
+         },
+         {
+          "factor": "credito",
+          "etiqueta": "Comportamiento de crédito",
+          "valor": 73.7,
+          "peso": 0.2,
+          "aporte": 14.74,
+          "dato": "74/100"
+         },
+         {
+          "factor": "patrimonio_productivo",
+          "etiqueta": "Dinero trabajando",
+          "valor": 94.5,
+          "peso": 0.15,
+          "aporte": 14.17,
+          "dato": "94% invertido"
+         }
+        ]
+       },
+       "flujo": {
+        "ingreso_mensual_declarado": 180000.0,
+        "ingreso_mensual": 188060.52,
+        "tipo_ingreso": "fijo",
+        "variacion_ingreso": 0.0062,
+        "consumo_mensual": 128609.17,
+        "consumo_esencial_mensual": 99866.91,
+        "consumo_discrecional_mensual": 28742.25,
+        "pagos_credito_mensual": 0.0,
+        "costo_financiero_mensual": 813.54,
+        "ahorro_mensual": 58637.81,
+        "tasa_ahorro": 0.3118,
+        "meses_con_deficit": 0,
+        "servicio_deuda_mensual": 4572.38,
+        "carga_deuda": 0.0243,
+        "serie": [
+         {
+          "mes": "2025-09",
+          "ingreso": 180096.63,
+          "consumo": 133789.63,
+          "deuda": 479.69,
+          "ahorro": 45827.31
+         },
+         {
+          "mes": "2025-10",
+          "ingreso": 180707.78,
+          "consumo": 122911.95,
+          "deuda": 582.0,
+          "ahorro": 57213.83
+         },
+         {
+          "mes": "2025-11",
+          "ingreso": 180921.27,
+          "consumo": 109069.73,
+          "deuda": 981.25,
+          "ahorro": 70870.29
+         },
+         {
+          "mes": "2025-12",
+          "ingreso": 271370.88,
+          "consumo": 151147.97,
+          "deuda": 655.31,
+          "ahorro": 119567.6
+         },
+         {
+          "mes": "2026-01",
+          "ingreso": 179741.89,
+          "consumo": 118846.93,
+          "deuda": 488.46,
+          "ahorro": 60406.5
+         },
+         {
+          "mes": "2026-02",
+          "ingreso": 179931.59,
+          "consumo": 130026.87,
+          "deuda": 975.68,
+          "ahorro": 48929.04
+         },
+         {
+          "mes": "2026-03",
+          "ingreso": 178711.98,
+          "consumo": 115140.92,
+          "deuda": 1160.74,
+          "ahorro": 62410.32
+         },
+         {
+          "mes": "2026-04",
+          "ingreso": 182146.41,
+          "consumo": 129879.9,
+          "deuda": 692.96,
+          "ahorro": 51573.55
+         },
+         {
+          "mes": "2026-05",
+          "ingreso": 179015.28,
+          "consumo": 137059.56,
+          "deuda": 671.72,
+          "ahorro": 41284.0
+         },
+         {
+          "mes": "2026-06",
+          "ingreso": 182938.61,
+          "consumo": 117956.51,
+          "deuda": 992.45,
+          "ahorro": 63989.65
+         },
+         {
+          "mes": "2026-07",
+          "ingreso": 181254.62,
+          "consumo": 101264.68,
+          "deuda": 1101.4,
+          "ahorro": 78888.54
+         },
+         {
+          "mes": "2026-08",
+          "ingreso": 179889.3,
+          "consumo": 176215.35,
+          "deuda": 980.85,
+          "ahorro": 2693.1
+         }
+        ]
+       },
+       "consumo": {
+        "por_categoria": [
+         {
+          "categoria": "renta",
+          "etiqueta": "Renta",
+          "esencial": true,
+          "promedio_mensual": 39013.33,
+          "participacion": 0.3033,
+          "compras_mes": 1.0,
+          "ultimo_mes": 39520.0,
+          "mediana_ultimos_3": 39520.0,
+          "mediana_previos_3": 39520.0,
+          "tendencia": 0.0,
+          "con_tarjeta_credito": 0.0
+         },
+         {
+          "categoria": "super",
+          "etiqueta": "Súper",
+          "esencial": true,
+          "promedio_mensual": 23225.65,
+          "participacion": 0.1806,
+          "compras_mes": 9.0,
+          "ultimo_mes": 24575.23,
+          "mediana_ultimos_3": 22905.53,
+          "mediana_previos_3": 26421.34,
+          "tendencia": -0.1331,
+          "con_tarjeta_credito": 0.8259
+         },
+         {
+          "categoria": "entretenimiento",
+          "etiqueta": "Entretenimiento",
+          "esencial": false,
+          "promedio_mensual": 15540.27,
+          "participacion": 0.1208,
+          "compras_mes": 4.5,
+          "ultimo_mes": 62953.12,
+          "mediana_ultimos_3": 11944.89,
+          "mediana_previos_3": 8930.99,
+          "tendencia": 0.3375,
+          "con_tarjeta_credito": 0.6771
+         },
+         {
+          "categoria": "educacion",
+          "etiqueta": "Educación",
+          "esencial": true,
+          "promedio_mensual": 15125.0,
+          "participacion": 0.1176,
+          "compras_mes": 0.9,
+          "ultimo_mes": 16500.0,
+          "mediana_ultimos_3": 16500.0,
+          "mediana_previos_3": 16500.0,
+          "tendencia": 0.0,
+          "con_tarjeta_credito": 0.0
+         },
+         {
+          "categoria": "restaurantes",
+          "etiqueta": "Restaurantes",
+          "esencial": false,
+          "promedio_mensual": 13201.98,
+          "participacion": 0.1027,
+          "compras_mes": 14.8,
+          "ultimo_mes": 14431.28,
+          "mediana_ultimos_3": 12916.1,
+          "mediana_previos_3": 13949.14,
+          "tendencia": -0.0741,
+          "con_tarjeta_credito": 0.6672
+         },
+         {
+          "categoria": "servicios",
+          "etiqueta": "Servicios del hogar",
+          "esencial": true,
+          "promedio_mensual": 10498.11,
+          "participacion": 0.0816,
+          "compras_mes": 4.5,
+          "ultimo_mes": 11514.99,
+          "mediana_ultimos_3": 11514.99,
+          "mediana_previos_3": 9363.6,
+          "tendencia": 0.2298,
+          "con_tarjeta_credito": 0.1048
+         },
+         {
+          "categoria": "transporte",
+          "etiqueta": "Transporte",
+          "esencial": true,
+          "promedio_mensual": 7184.21,
+          "participacion": 0.0559,
+          "compras_mes": 12.2,
+          "ultimo_mes": 1791.7,
+          "mediana_ultimos_3": 2662.83,
+          "mediana_previos_3": 10076.33,
+          "tendencia": -0.7357,
+          "con_tarjeta_credito": 0.7205
+         },
+         {
+          "categoria": "salud",
+          "etiqueta": "Salud",
+          "esencial": true,
+          "promedio_mensual": 4820.61,
+          "participacion": 0.0375,
+          "compras_mes": 4.0,
+          "ultimo_mes": 4929.03,
+          "mediana_ultimos_3": 4929.03,
+          "mediana_previos_3": 4297.7,
+          "tendencia": 0.1469,
+          "con_tarjeta_credito": 0.8792
+         }
+        ],
+        "suscripciones": {
+         "detectadas": [
+          {
+           "comercio": "Club deportivo (sim)",
+           "descripcion": "Club deportivo",
+           "categoria": "entretenimiento",
+           "monto_mensual": 2400.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-04"
+          },
+          {
+           "comercio": "Plataforma de video (sim)",
+           "descripcion": "Streaming de video",
+           "categoria": "entretenimiento",
+           "monto_mensual": 299.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-03"
+          },
+          {
+           "comercio": "Plataforma de música (sim)",
+           "descripcion": "Música en streaming",
+           "categoria": "entretenimiento",
+           "monto_mensual": 179.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-07"
+          }
+         ],
+         "total_mensual": 2878.0,
+         "total_anual": 34536.0
+        },
+        "gasto_hormiga": {
+         "ticket_maximo": 250.0,
+         "compras_mes": 11.8,
+         "gasto_mensual": 1424.39,
+         "gasto_anual": 17092.64,
+         "pct_ingreso": 0.0076,
+         "principales": [
+          {
+           "comercio": "App de movilidad (sim)",
+           "compras_mes": 5.5,
+           "gasto_mensual": 865.18
+          },
+          {
+           "comercio": "Cafetería (sim)",
+           "compras_mes": 6.3,
+           "gasto_mensual": 559.21
+          }
+         ]
+        },
+        "pct_con_tarjeta_credito": 0.3812,
+        "presupuestos": []
+       },
+       "credito": {
+        "deuda_total": 131838.21,
+        "deuda_tarjetas": 131838.21,
+        "deuda_prestamos": 0.0,
+        "uso_linea_revolvente": 0.293,
+        "tarjetas": [
+         {
+          "card_id": "CRD-0004",
+          "last4": "3830",
+          "alias": null,
+          "limite": 450000.0,
+          "saldo": 131838.21,
+          "utilizacion": 0.293,
+          "tasa_anual": 0.329,
+          "cortes_evaluados": 11,
+          "pagos_completos": 0,
+          "pagos_minimos": 0,
+          "pagos_tardios": 0,
+          "meses_con_saldo": 11,
+          "intereses_12m": 9762.51,
+          "comisiones_12m": 0.0,
+          "costo_12m": 9762.51,
+          "pago_minimo_promedio": 4572.38,
+          "habito": "revolvente",
+          "habito_etiqueta": "Deja saldo en su tarjeta",
+          "intereses_proyectados_anual": 43374.77
+         }
+        ],
+        "prestamos": [],
+        "salud_crediticia": {
+         "score": 73.7,
+         "nivel": "buena",
+         "desglose": [
+          {
+           "factor": "puntualidad",
+           "etiqueta": "Pagos a tiempo",
+           "valor": 100.0,
+           "peso": 0.35,
+           "aporte": 35.0,
+           "dato": "11 de 11 cortes a tiempo"
+          },
+          {
+           "factor": "pago_completo",
+           "etiqueta": "Pagos completos",
+           "valor": 0.0,
+           "peso": 0.25,
+           "aporte": 0.0,
+           "dato": "0 de 11 cortes liquidados"
+          },
+          {
+           "factor": "utilizacion",
+           "etiqueta": "Uso de la línea",
+           "valor": 100.0,
+           "peso": 0.2,
+           "aporte": 20.0,
+           "dato": "29% de la línea"
+          },
+          {
+           "factor": "carga",
+           "etiqueta": "Pagos de deuda sobre ingreso",
+           "valor": 100.0,
+           "peso": 0.12,
+           "aporte": 12.0,
+           "dato": "2% del ingreso"
+          },
+          {
+           "factor": "antiguedad",
+           "etiqueta": "Antigüedad como cliente",
+           "valor": 84.1,
+           "peso": 0.08,
+           "aporte": 6.72,
+           "dato": "8.4 años"
+          }
+         ]
+        }
+       },
+       "liquidez": {
+        "saldo_cuentas": 196882.49,
+        "efectivo_en_inversion": 190106.96,
+        "invertido_liquido": 3076418.35,
+        "disponible": 3463407.8,
+        "gasto_minimo_mensual": 104439.29,
+        "salidas_mensuales": 129422.71,
+        "meses_de_colchon": 33.2,
+        "colchon_objetivo_meses": 3,
+        "colchon_objetivo": 313317.88,
+        "efectivo_ocioso": 257566.74,
+        "rendimiento_no_ganado_anual": 16716.08,
+        "perdida_poder_compra_anual": 10689.02,
+        "patrimonio_neto": 4658985.51
+       },
+       "inversion": {
+        "perfil_riesgo": {
+         "score": 72,
+         "perfil": "crecimiento",
+         "horizonte_meses": 120,
+         "respondido_en": "2026-07-18",
+         "vigente_hasta": "2027-07-18",
+         "vigente": true
+        },
+        "perfil_vigente": true,
+        "posiciones": 3,
+        "valor_mercado": 4403834.27,
+        "rendimiento": -480988.76,
+        "renta_variable_pct": 0.6986,
+        "renta_variable_objetivo_pct": 0.63,
+        "rend_esperado_actual": 0.0971,
+        "asignacion_actual": {
+         "NAFTRAC": 0.3879,
+         "PAGARE-28": 0.3014,
+         "TRACK-SP500": 0.3106
+        }
+       },
+       "productos": {
+        "total": 5,
+        "lista": [
+         {
+          "producto": "cuenta_cheques",
+          "etiqueta": "Cuenta de cheques"
+         },
+         {
+          "producto": "cuenta_inversion",
+          "etiqueta": "Cuenta de inversión"
+         },
+         {
+          "producto": "tarjeta_debito",
+          "etiqueta": "Tarjeta de débito"
+         },
+         {
+          "producto": "tarjeta_credito",
+          "etiqueta": "Tarjeta de crédito"
+         },
+         {
+          "producto": "fondos_inversion",
+          "etiqueta": "Fondos de inversión (3)"
+         }
+        ]
+       },
+       "rasgos": [
+        {
+         "rasgo": "ingreso_fijo",
+         "etiqueta": "Ingreso fijo",
+         "tono": "info",
+         "dato": "$188,061 al mes"
+        },
+        {
+         "rasgo": "ahorrador",
+         "etiqueta": "Ahorrador",
+         "tono": "positive",
+         "dato": "ahorra 31% de su ingreso"
+        },
+        {
+         "rasgo": "revolvente",
+         "etiqueta": "Deja saldo en su tarjeta",
+         "tono": "warning",
+         "dato": "0 de 11 cortes liquidados"
+        },
+        {
+         "rasgo": "efectivo_ocioso",
+         "etiqueta": "Efectivo sin invertir",
+         "tono": "warning",
+         "dato": "$257,567 sin rendimiento"
+        },
+        {
+         "rasgo": "inversionista",
+         "etiqueta": "Inversionista crecimiento",
+         "tono": "info",
+         "dato": "score 72"
+        }
+       ],
+       "disclaimer": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+      }
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/recomendaciones",
+      "value": [
+       {
+        "recomendacion_id": "liquidar_tarjeta_CRD-0004",
+        "titulo": "Liquida tu tarjeta •••• 3830: cobra 33% al año",
+        "descripcion": "Pagaste completo 0 de tus últimos 11 cortes y en 12 meses te cobraron $9,763 de intereses y comisiones. Pagando solo el mínimo tardarías 85 meses en liquidar $131,838. Tienes $257,567 sin invertir: alcanza para liquidarla hoy.",
+        "evidencia": [
+         {
+          "etiqueta": "Saldo de la tarjeta",
+          "valor": 131838.21,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Tasa anual",
+          "valor": 0.329,
+          "formato": "porcentaje"
+         },
+         {
+          "etiqueta": "Intereses y comisiones en 12 meses",
+          "valor": 9762.51,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Cortes pagados completos",
+          "valor": "0 de 11",
+          "formato": "texto"
+         }
+        ],
+        "impacto": {
+         "valor": 46482.19,
+         "etiqueta": "Intereses que te ahorras liquidándola en 12 meses en lugar de pagar el mínimo",
+         "periodo": "total",
+         "supuesto": "Sin compras nuevas mientras la liquidas; mínimo = 5% del saldo más intereses."
+        },
+        "urgencia": "media",
+        "prioridad": 34,
+        "herramienta": {
+         "herramienta_id": "plan_pago_tarjeta",
+         "nombre": "Plan para liquidar tu tarjeta",
+         "descripcion": "Cuánto pagar al mes, cuánto tardas y cuánto ahorras contra pagar el mínimo.",
+         "dominio": "credito",
+         "disponible": true,
+         "tools": [
+          "simulate_debt_payoff",
+          "get_credit_overview",
+          "get_funding_sources"
+         ]
+        },
+        "parametros": {
+         "card_id": "CRD-0004",
+         "pago_mensual_sugerido": 13041.32,
+         "meses_objetivo": 12
+        },
+        "prompt": "Quiero un plan para liquidar mi tarjeta terminación 3830",
+        "orden": 1
+       },
+       {
+        "recomendacion_id": "ahorro_programado",
+        "titulo": "Invierte $29,000 cada mes en automático",
+        "descripcion": "Te quedan $58,638 al mes en promedio y en 12 meses no tuviste ningún mes en rojo. Si la mitad se invierte sola cada mes, en 5 años juntas $2,049,017.",
+        "evidencia": [
+         {
+          "etiqueta": "Ahorro mensual promedio",
+          "valor": 58637.81,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Tasa de ahorro",
+          "valor": 0.3118,
+          "formato": "porcentaje"
+         },
+         {
+          "etiqueta": "Meses en rojo",
+          "valor": 0,
+          "formato": "numero"
+         }
+        ],
+        "impacto": {
+         "valor": 61803.31,
+         "etiqueta": "Rendimiento promedio al año",
+         "periodo": "anual",
+         "supuesto": "Aportación mensual a 5 años a tasa de CETES 28 días (6.49%), antes de impuestos. El simulador usa los fondos de tu perfil."
+        },
+        "urgencia": "baja",
+        "prioridad": 20,
+        "herramienta": {
+         "herramienta_id": "simulador_aportaciones",
+         "nombre": "Simulador de ahorro mensual",
+         "descripcion": "Cuánto juntarías invirtiendo una cantidad fija cada mes.",
+         "dominio": "inversiones",
+         "disponible": true,
+         "tools": [
+          "propose_allocation",
+          "simulate_portfolio"
+         ]
+        },
+        "parametros": {
+         "aportacion_mensual": 29000,
+         "horizonte_anios": 5
+        },
+        "prompt": "Quiero simular invertir $29,000 cada mes",
+        "orden": 2
+       },
+       {
+        "recomendacion_id": "invertir_efectivo_ocioso",
+        "titulo": "Tienes $257,567 sin invertir",
+        "descripcion": "Es dinero que no rinde nada: a tasa de CETES serían $16,716 al año, y la inflación le quita $10,689 de poder de compra. Antes, liquida tu tarjeta: cobra más de lo que rinde cualquier inversión.",
+        "evidencia": [
+         {
+          "etiqueta": "En tu cuenta de inversión, sin invertir",
+          "valor": 190106.96,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "En tu cuenta, arriba de un mes de gastos",
+          "valor": 67459.78,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Equivale a meses de tus gastos",
+          "valor": 2.0,
+          "formato": "numero"
+         }
+        ],
+        "impacto": {
+         "valor": 16716.08,
+         "etiqueta": "Lo que dejas de ganar al año",
+         "periodo": "anual",
+         "supuesto": "Tasa de CETES 28 días (6.49%), antes de impuestos."
+        },
+        "urgencia": "baja",
+        "prioridad": 16,
+        "herramienta": {
+         "herramienta_id": "propuesta_inversion",
+         "nombre": "Propuesta de inversión",
+         "descripcion": "Una asignación en fondos verificada contra tu perfil, con escenarios.",
+         "dominio": "inversiones",
+         "disponible": true,
+         "tools": [
+          "propose_allocation",
+          "simulate_portfolio",
+          "check_suitability"
+         ]
+        },
+        "parametros": {
+         "monto": 257000,
+         "liquidez_requerida": false
+        },
+        "prompt": "Quiero invertir $257,000 que tengo sin invertir",
+        "orden": 3
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateComponents": {
+      "surfaceId": "inicio",
+      "components": [
+       {
+        "id": "root",
+        "component": "Column",
+        "gap": 20,
+        "children": [
+         "saludo",
+         "perfil",
+         "recomendaciones",
+         "aviso"
+        ]
+       },
+       {
+        "id": "saludo",
+        "component": "Text",
+        "variant": "h2",
+        "text": "Hola Javier, así se ven tus finanzas"
+       },
+       {
+        "id": "perfil",
+        "component": "bank.FinancialProfile",
+        "perfil": {
+         "path": "/perfil_financiero"
+        }
+       },
+       {
+        "id": "recomendaciones",
+        "component": "bank.Recommendations",
+        "recomendaciones": {
+         "path": "/recomendaciones"
+        },
+        "titulo": "Lo que te recomendamos hoy",
+        "max": 3
+       },
+       {
+        "id": "aviso",
+        "component": "Text",
+        "variant": "caption",
+        "tone": "muted",
+        "text": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "tool_call",
+    "name": "get_recommendations",
+    "efecto": false,
+    "directo": true
+   },
+   {
+    "type": "tool_result",
+    "name": "get_recommendations",
+    "ok": true,
+    "resumen": "tablero inicial · salud 94/100 · 3 recomendaciones",
+    "directo": true
+   },
+   {
+    "type": "done",
+    "turno": 1,
+    "render_ok": true
+   }
+  ],
+  "CLI-0003": [
+   {
+    "type": "text",
+    "text": "Hola Luis. Revisé tus últimos 12 meses: tu salud financiera es estable (58/100). Te dejo lo que más te conviene atender, con los números que lo respaldan; toca una recomendación o pregúntame lo que quieras."
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "createSurface": {
+      "surfaceId": "inicio",
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/perfil_financiero",
+      "value": {
+       "client_id": "CLI-0003",
+       "fecha_valuacion": "2026-09-01",
+       "ventana": {
+        "meses": 12,
+        "desde": "2025-09",
+        "hasta": "2026-08"
+       },
+       "identidad": {
+        "nombre": "Luis Fernando Quiroz",
+        "nombre_corto": "Luis",
+        "edad": 27,
+        "etapa_de_vida": "inicio de carrera",
+        "ocupacion": "Analista de soporte técnico",
+        "dependientes": 0,
+        "ciudad": "CDMX",
+        "segmento": "nomina",
+        "cliente_desde": "2019-07-11",
+        "antiguedad_anios": 7.1
+       },
+       "resumen": "Luis gana $22,448 al mes y gasta $15,723 en consumo (70%); a créditos, intereses y comisiones se le van $3,573. Le quedan $3,152 al mes (14% de su ingreso). Usa 6 productos del banco.",
+       "salud_financiera": {
+        "score": 58.4,
+        "nivel": "estable",
+        "desglose": [
+         {
+          "factor": "ahorro",
+          "etiqueta": "Ahorro",
+          "valor": 46.8,
+          "peso": 0.25,
+          "aporte": 11.7,
+          "dato": "14% del ingreso"
+         },
+         {
+          "factor": "liquidez",
+          "etiqueta": "Colchón para emergencias",
+          "valor": 100.0,
+          "peso": 0.2,
+          "aporte": 20.0,
+          "dato": "8.4 de 3 meses"
+         },
+         {
+          "factor": "endeudamiento",
+          "etiqueta": "Endeudamiento",
+          "valor": 65.6,
+          "peso": 0.2,
+          "aporte": 13.12,
+          "dato": "24% del ingreso en deuda"
+         },
+         {
+          "factor": "credito",
+          "etiqueta": "Comportamiento de crédito",
+          "valor": 48.6,
+          "peso": 0.2,
+          "aporte": 9.72,
+          "dato": "49/100"
+         },
+         {
+          "factor": "patrimonio_productivo",
+          "etiqueta": "Dinero trabajando",
+          "valor": 25.6,
+          "peso": 0.15,
+          "aporte": 3.84,
+          "dato": "26% invertido"
+         }
+        ]
+       },
+       "flujo": {
+        "ingreso_mensual_declarado": 21500.0,
+        "ingreso_mensual": 22448.0,
+        "tipo_ingreso": "fijo",
+        "variacion_ingreso": 0.0165,
+        "consumo_mensual": 15723.32,
+        "consumo_esencial_mensual": 11447.13,
+        "consumo_discrecional_mensual": 4276.19,
+        "pagos_credito_mensual": 2323.42,
+        "costo_financiero_mensual": 1249.41,
+        "ahorro_mensual": 3151.86,
+        "tasa_ahorro": 0.1404,
+        "meses_con_deficit": 1,
+        "servicio_deuda_mensual": 5329.94,
+        "carga_deuda": 0.2374,
+        "serie": [
+         {
+          "mes": "2025-09",
+          "ingreso": 21560.25,
+          "consumo": 16521.97,
+          "deuda": 1232.95,
+          "ahorro": 3805.33
+         },
+         {
+          "mes": "2025-10",
+          "ingreso": 21475.38,
+          "consumo": 15714.69,
+          "deuda": 1247.62,
+          "ahorro": 4513.07
+         },
+         {
+          "mes": "2025-11",
+          "ingreso": 21284.84,
+          "consumo": 18406.68,
+          "deuda": 1257.39,
+          "ahorro": 1620.77
+         },
+         {
+          "mes": "2025-12",
+          "ingreso": 32279.52,
+          "consumo": 14325.08,
+          "deuda": 4346.91,
+          "ahorro": 13607.53
+         },
+         {
+          "mes": "2026-01",
+          "ingreso": 21683.86,
+          "consumo": 16300.57,
+          "deuda": 4343.86,
+          "ahorro": 1039.43
+         },
+         {
+          "mes": "2026-02",
+          "ingreso": 21850.59,
+          "consumo": 18645.81,
+          "deuda": 4347.2,
+          "ahorro": -1142.42
+         },
+         {
+          "mes": "2026-03",
+          "ingreso": 21842.77,
+          "consumo": 13489.93,
+          "deuda": 4346.07,
+          "ahorro": 4006.77
+         },
+         {
+          "mes": "2026-04",
+          "ingreso": 21468.1,
+          "consumo": 16564.23,
+          "deuda": 4352.61,
+          "ahorro": 551.26
+         },
+         {
+          "mes": "2026-05",
+          "ingreso": 21311.94,
+          "consumo": 14531.22,
+          "deuda": 4349.06,
+          "ahorro": 2431.66
+         },
+         {
+          "mes": "2026-06",
+          "ingreso": 21792.3,
+          "consumo": 13747.73,
+          "deuda": 4347.14,
+          "ahorro": 3697.43
+         },
+         {
+          "mes": "2026-07",
+          "ingreso": 21268.96,
+          "consumo": 13852.25,
+          "deuda": 4354.69,
+          "ahorro": 3062.02
+         },
+         {
+          "mes": "2026-08",
+          "ingreso": 21557.45,
+          "consumo": 16579.64,
+          "deuda": 4348.39,
+          "ahorro": 629.42
+         }
+        ]
+       },
+       "consumo": {
+        "por_categoria": [
+         {
+          "categoria": "renta",
+          "etiqueta": "Renta",
+          "esencial": true,
+          "promedio_mensual": 6365.33,
+          "participacion": 0.4048,
+          "compras_mes": 1.0,
+          "ultimo_mes": 6448.0,
+          "mediana_ultimos_3": 6448.0,
+          "mediana_previos_3": 6448.0,
+          "tendencia": 0.0,
+          "con_tarjeta_credito": 0.0
+         },
+         {
+          "categoria": "super",
+          "etiqueta": "Súper",
+          "esencial": true,
+          "promedio_mensual": 2702.7,
+          "participacion": 0.1719,
+          "compras_mes": 14.1,
+          "ultimo_mes": 3461.83,
+          "mediana_ultimos_3": 2030.82,
+          "mediana_previos_3": 2320.33,
+          "tendencia": -0.1248,
+          "con_tarjeta_credito": 0.276
+         },
+         {
+          "categoria": "restaurantes",
+          "etiqueta": "Restaurantes",
+          "esencial": false,
+          "promedio_mensual": 2561.74,
+          "participacion": 0.1629,
+          "compras_mes": 20.3,
+          "ultimo_mes": 2500.01,
+          "mediana_ultimos_3": 2500.01,
+          "mediana_previos_3": 1761.57,
+          "tendencia": 0.4192,
+          "con_tarjeta_credito": 0.2187
+         },
+         {
+          "categoria": "entretenimiento",
+          "etiqueta": "Entretenimiento",
+          "esencial": false,
+          "promedio_mensual": 1714.45,
+          "participacion": 0.109,
+          "compras_mes": 6.2,
+          "ultimo_mes": 1853.69,
+          "mediana_ultimos_3": 1440.16,
+          "mediana_previos_3": 1738.06,
+          "tendencia": -0.1714,
+          "con_tarjeta_credito": 0.2246
+         },
+         {
+          "categoria": "transporte",
+          "etiqueta": "Transporte",
+          "esencial": true,
+          "promedio_mensual": 1280.88,
+          "participacion": 0.0815,
+          "compras_mes": 13.9,
+          "ultimo_mes": 1210.4,
+          "mediana_ultimos_3": 1050.85,
+          "mediana_previos_3": 1448.37,
+          "tendencia": -0.2745,
+          "con_tarjeta_credito": 0.2349
+         },
+         {
+          "categoria": "servicios",
+          "etiqueta": "Servicios del hogar",
+          "esencial": true,
+          "promedio_mensual": 961.01,
+          "participacion": 0.0611,
+          "compras_mes": 3.5,
+          "ultimo_mes": 1105.71,
+          "mediana_ultimos_3": 1082.01,
+          "mediana_previos_3": 814.89,
+          "tendencia": 0.3278,
+          "con_tarjeta_credito": 0.0
+         },
+         {
+          "categoria": "salud",
+          "etiqueta": "Salud",
+          "esencial": true,
+          "promedio_mensual": 137.21,
+          "participacion": 0.0087,
+          "compras_mes": 0.7,
+          "ultimo_mes": 0.0,
+          "mediana_ultimos_3": 0.0,
+          "mediana_previos_3": 161.35,
+          "tendencia": -1.0,
+          "con_tarjeta_credito": 0.2178
+         }
+        ],
+        "suscripciones": {
+         "detectadas": [
+          {
+           "comercio": "Plataforma de video (sim)",
+           "descripcion": "Streaming de video",
+           "categoria": "entretenimiento",
+           "monto_mensual": 219.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-03"
+          },
+          {
+           "comercio": "Plataforma de videojuegos (sim)",
+           "descripcion": "Videojuegos en línea",
+           "categoria": "entretenimiento",
+           "monto_mensual": 179.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-09"
+          },
+          {
+           "comercio": "Plataforma de música (sim)",
+           "descripcion": "Música en streaming",
+           "categoria": "entretenimiento",
+           "monto_mensual": 129.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-07"
+          }
+         ],
+         "total_mensual": 527.0,
+         "total_anual": 6324.0
+        },
+        "gasto_hormiga": {
+         "ticket_maximo": 250.0,
+         "compras_mes": 44.6,
+         "gasto_mensual": 4143.67,
+         "gasto_anual": 49724.01,
+         "pct_ingreso": 0.1846,
+         "principales": [
+          {
+           "comercio": "App de movilidad (sim)",
+           "compras_mes": 13.9,
+           "gasto_mensual": 1280.88
+          },
+          {
+           "comercio": "Delivery de comida (sim)",
+           "compras_mes": 7.0,
+           "gasto_mensual": 1219.93
+          },
+          {
+           "comercio": "Tienda de conveniencia (sim)",
+           "compras_mes": 11.1,
+           "gasto_mensual": 752.94
+          }
+         ]
+        },
+        "pct_con_tarjeta_credito": 0.1286,
+        "presupuestos": []
+       },
+       "credito": {
+        "deuda_total": 73748.94,
+        "deuda_tarjetas": 33315.79,
+        "deuda_prestamos": 40433.15,
+        "uso_linea_revolvente": 0.9799,
+        "tarjetas": [
+         {
+          "card_id": "CRD-0006",
+          "last4": "4712",
+          "alias": null,
+          "limite": 34000.0,
+          "saldo": 33315.79,
+          "utilizacion": 0.9799,
+          "tasa_anual": 0.469,
+          "cortes_evaluados": 12,
+          "pagos_completos": 0,
+          "pagos_minimos": 12,
+          "pagos_tardios": 0,
+          "meses_con_saldo": 12,
+          "intereses_12m": 14992.88,
+          "comisiones_12m": 0.0,
+          "costo_12m": 14992.88,
+          "pago_minimo_promedio": 3006.52,
+          "habito": "paga_minimo",
+          "habito_etiqueta": "Paga el mínimo de su tarjeta",
+          "intereses_proyectados_anual": 15625.11
+         }
+        ],
+        "prestamos": [
+         {
+          "loan_id": "LON-0002",
+          "producto": "nomina",
+          "etiqueta": "Crédito de nómina",
+          "saldo_insoluto": 40433.15,
+          "tasa_anual": 0.215,
+          "pago_mensual": 3097.89,
+          "mensualidades_restantes": 15
+         }
+        ],
+        "salud_crediticia": {
+         "score": 48.6,
+         "nivel": "regular",
+         "desglose": [
+          {
+           "factor": "puntualidad",
+           "etiqueta": "Pagos a tiempo",
+           "valor": 100.0,
+           "peso": 0.35,
+           "aporte": 35.0,
+           "dato": "12 de 12 cortes a tiempo"
+          },
+          {
+           "factor": "pago_completo",
+           "etiqueta": "Pagos completos",
+           "valor": 0.0,
+           "peso": 0.25,
+           "aporte": 0.0,
+           "dato": "0 de 12 cortes liquidados"
+          },
+          {
+           "factor": "utilizacion",
+           "etiqueta": "Uso de la línea",
+           "valor": 0.0,
+           "peso": 0.2,
+           "aporte": 0.0,
+           "dato": "98% de la línea"
+          },
+          {
+           "factor": "carga",
+           "etiqueta": "Pagos de deuda sobre ingreso",
+           "valor": 65.6,
+           "peso": 0.12,
+           "aporte": 7.87,
+           "dato": "24% del ingreso"
+          },
+          {
+           "factor": "antiguedad",
+           "etiqueta": "Antigüedad como cliente",
+           "valor": 71.4,
+           "peso": 0.08,
+           "aporte": 5.71,
+           "dato": "7.1 años"
+          }
+         ]
+        }
+       },
+       "liquidez": {
+        "saldo_cuentas": 19989.88,
+        "efectivo_en_inversion": 116432.13,
+        "invertido_liquido": 5042.83,
+        "disponible": 141464.84,
+        "gasto_minimo_mensual": 16777.07,
+        "salidas_mensuales": 19296.14,
+        "meses_de_colchon": 8.4,
+        "colchon_objetivo_meses": 3,
+        "colchon_objetivo": 50331.2,
+        "efectivo_ocioso": 117125.87,
+        "rendimiento_no_ganado_anual": 7601.47,
+        "perdida_poder_compra_anual": 4860.72,
+        "patrimonio_neto": 102959.03
+       },
+       "inversion": {
+        "perfil_riesgo": {
+         "score": 28,
+         "perfil": "moderado",
+         "horizonte_meses": 24,
+         "respondido_en": "2026-07-18",
+         "vigente_hasta": "2027-07-18",
+         "vigente": true
+        },
+        "perfil_vigente": true,
+        "posiciones": 4,
+        "valor_mercado": 40285.96,
+        "rendimiento": 2991.68,
+        "renta_variable_pct": 0.0,
+        "renta_variable_objetivo_pct": 0.1,
+        "rend_esperado_actual": 0.065119,
+        "asignacion_actual": {
+         "CETES-28": 0.6436,
+         "FND-GUB-LP": 0.1252,
+         "PAGARE-28": 0.0652,
+         "PAGARE-360": 0.1661
+        }
+       },
+       "productos": {
+        "total": 6,
+        "lista": [
+         {
+          "producto": "cuenta_nomina",
+          "etiqueta": "Cuenta de nómina"
+         },
+         {
+          "producto": "cuenta_inversion",
+          "etiqueta": "Cuenta de inversión"
+         },
+         {
+          "producto": "tarjeta_debito",
+          "etiqueta": "Tarjeta de débito"
+         },
+         {
+          "producto": "tarjeta_credito",
+          "etiqueta": "Tarjeta de crédito"
+         },
+         {
+          "producto": "credito_nomina",
+          "etiqueta": "Crédito de nómina"
+         },
+         {
+          "producto": "fondos_inversion",
+          "etiqueta": "Fondos de inversión (4)"
+         }
+        ]
+       },
+       "rasgos": [
+        {
+         "rasgo": "ingreso_fijo",
+         "etiqueta": "Ingreso fijo",
+         "tono": "info",
+         "dato": "$22,448 al mes"
+        },
+        {
+         "rasgo": "paga_minimo",
+         "etiqueta": "Paga el mínimo de su tarjeta",
+         "tono": "danger",
+         "dato": "0 de 12 cortes liquidados"
+        },
+        {
+         "rasgo": "efectivo_ocioso",
+         "etiqueta": "Efectivo sin invertir",
+         "tono": "warning",
+         "dato": "$117,126 sin rendimiento"
+        },
+        {
+         "rasgo": "gasto_creciente_restaurantes",
+         "etiqueta": "Más gasto en restaurantes",
+         "tono": "warning",
+         "dato": "+42% en los últimos 3 meses"
+        },
+        {
+         "rasgo": "gasto_hormiga",
+         "etiqueta": "Gasto hormiga alto",
+         "tono": "warning",
+         "dato": "45 compras chicas al mes"
+        },
+        {
+         "rasgo": "inversionista",
+         "etiqueta": "Inversionista moderado",
+         "tono": "info",
+         "dato": "score 28"
+        }
+       ],
+       "disclaimer": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+      }
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/recomendaciones",
+      "value": [
+       {
+        "recomendacion_id": "liquidar_tarjeta_CRD-0006",
+        "titulo": "Liquida tu tarjeta •••• 4712: cobra 47% al año",
+        "descripcion": "Pagaste completo 0 de tus últimos 12 cortes y en 12 meses te cobraron $14,993 de intereses y comisiones. Pagando solo el mínimo tardarías 60 meses en liquidar $33,316. Tienes $117,126 sin invertir: alcanza para liquidarla hoy.",
+        "evidencia": [
+         {
+          "etiqueta": "Saldo de la tarjeta",
+          "valor": 33315.79,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Tasa anual",
+          "valor": 0.469,
+          "formato": "porcentaje"
+         },
+         {
+          "etiqueta": "Intereses y comisiones en 12 meses",
+          "valor": 14992.88,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Cortes pagados completos",
+          "valor": "0 de 12",
+          "formato": "texto"
+         }
+        ],
+        "impacto": {
+         "valor": 15504.59,
+         "etiqueta": "Intereses que te ahorras liquidándola en 12 meses en lugar de pagar el mínimo",
+         "periodo": "total",
+         "supuesto": "Sin compras nuevas mientras la liquidas; mínimo = 5% del saldo más intereses."
+        },
+        "urgencia": "alta",
+        "prioridad": 62,
+        "herramienta": {
+         "herramienta_id": "plan_pago_tarjeta",
+         "nombre": "Plan para liquidar tu tarjeta",
+         "descripcion": "Cuánto pagar al mes, cuánto tardas y cuánto ahorras contra pagar el mínimo.",
+         "dominio": "credito",
+         "disponible": true,
+         "tools": [
+          "simulate_debt_payoff",
+          "get_credit_overview",
+          "get_funding_sources"
+         ]
+        },
+        "parametros": {
+         "card_id": "CRD-0006",
+         "pago_mensual_sugerido": 3531.01,
+         "meses_objetivo": 12
+        },
+        "prompt": "Quiero un plan para liquidar mi tarjeta terminación 4712",
+        "orden": 1
+       },
+       {
+        "recomendacion_id": "invertir_efectivo_ocioso",
+        "titulo": "Tienes $117,126 sin invertir",
+        "descripcion": "Es dinero que no rinde nada: a tasa de CETES serían $7,601 al año, y la inflación le quita $4,861 de poder de compra. Usa $33,316 para liquidar tu tarjeta —cobra más de lo que rinde cualquier inversión— y pon el resto a trabajar.",
+        "evidencia": [
+         {
+          "etiqueta": "En tu cuenta de inversión, sin invertir",
+          "valor": 116432.13,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "En tu cuenta, arriba de un mes de gastos",
+          "valor": 693.74,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Equivale a meses de tus gastos",
+          "valor": 6.1,
+          "formato": "numero"
+         }
+        ],
+        "impacto": {
+         "valor": 7601.47,
+         "etiqueta": "Lo que dejas de ganar al año",
+         "periodo": "anual",
+         "supuesto": "Tasa de CETES 28 días (6.49%), antes de impuestos."
+        },
+        "urgencia": "alta",
+        "prioridad": 56,
+        "herramienta": {
+         "herramienta_id": "propuesta_inversion",
+         "nombre": "Propuesta de inversión",
+         "descripcion": "Una asignación en fondos verificada contra tu perfil, con escenarios.",
+         "dominio": "inversiones",
+         "disponible": true,
+         "tools": [
+          "propose_allocation",
+          "simulate_portfolio",
+          "check_suitability"
+         ]
+        },
+        "parametros": {
+         "monto": 117000,
+         "liquidez_requerida": false
+        },
+        "prompt": "Quiero invertir $117,000 que tengo sin invertir",
+        "orden": 2
+       },
+       {
+        "recomendacion_id": "gasto_hormiga",
+        "titulo": "45 compras chicas al mes suman $4,144",
+        "descripcion": "Son compras de $250 o menos, sobre todo en app de movilidad (14 al mes), delivery de comida (7 al mes), tienda de conveniencia (11 al mes). Juntas se llevan 18% de tu ingreso.",
+        "evidencia": [
+         {
+          "etiqueta": "Compras chicas al mes",
+          "valor": 44.6,
+          "formato": "numero"
+         },
+         {
+          "etiqueta": "Gasto al mes",
+          "valor": 4143.67,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Parte de tu ingreso",
+          "valor": 0.1846,
+          "formato": "porcentaje"
+         }
+        ],
+        "impacto": {
+         "valor": 24862.01,
+         "etiqueta": "Lo que ahorras al año si las recortas a la mitad",
+         "periodo": "anual",
+         "supuesto": "Recortar a la mitad el gasto en compras chicas."
+        },
+        "urgencia": "media",
+        "prioridad": 48,
+        "herramienta": {
+         "herramienta_id": "analisis_gasto",
+         "nombre": "Análisis de gasto",
+         "descripcion": "En qué se va tu dinero, categoría por categoría.",
+         "dominio": "banca_personal",
+         "disponible": true,
+         "tools": [
+          "get_spending_summary",
+          "search_transactions"
+         ]
+        },
+        "parametros": {
+         "ticket_maximo": 250.0
+        },
+        "prompt": "¿En qué se me va el dinero en compras chicas?",
+        "orden": 3
+       },
+       {
+        "recomendacion_id": "gasto_creciente_restaurantes",
+        "titulo": "Tu gasto en restaurantes subió 42%",
+        "descripcion": "En un mes típico de los últimos tres gastaste $2,500 en restaurantes, contra $1,762 en los tres anteriores. Un presupuesto de $1,800 te regresa a donde estabas.",
+        "evidencia": [
+         {
+          "etiqueta": "Mes típico, últimos 3",
+          "valor": 2500.01,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Mes típico, 3 anteriores",
+          "valor": 1761.57,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Variación",
+          "valor": 0.4192,
+          "formato": "porcentaje"
+         }
+        ],
+        "impacto": {
+         "valor": 8861.28,
+         "etiqueta": "Lo que ahorras al año si vuelves al gasto anterior",
+         "periodo": "anual",
+         "supuesto": null
+        },
+        "urgencia": "media",
+        "prioridad": 37,
+        "herramienta": {
+         "herramienta_id": "presupuestos",
+         "nombre": "Presupuestos por categoría",
+         "descripcion": "Un tope mensual por categoría y aviso cuando lo rebasas.",
+         "dominio": "banca_personal",
+         "disponible": true,
+         "tools": [
+          "get_spending_alerts",
+          "set_budget"
+         ]
+        },
+        "parametros": {
+         "categoria": "restaurantes",
+         "monto_sugerido": 1800
+        },
+        "prompt": "Quiero ponerle un presupuesto a restaurantes",
+        "orden": 4
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateComponents": {
+      "surfaceId": "inicio",
+      "components": [
+       {
+        "id": "root",
+        "component": "Column",
+        "gap": 20,
+        "children": [
+         "saludo",
+         "perfil",
+         "recomendaciones",
+         "aviso"
+        ]
+       },
+       {
+        "id": "saludo",
+        "component": "Text",
+        "variant": "h2",
+        "text": "Hola Luis, así se ven tus finanzas"
+       },
+       {
+        "id": "perfil",
+        "component": "bank.FinancialProfile",
+        "perfil": {
+         "path": "/perfil_financiero"
+        }
+       },
+       {
+        "id": "recomendaciones",
+        "component": "bank.Recommendations",
+        "recomendaciones": {
+         "path": "/recomendaciones"
+        },
+        "titulo": "Lo que te recomendamos hoy",
+        "max": 3
+       },
+       {
+        "id": "aviso",
+        "component": "Text",
+        "variant": "caption",
+        "tone": "muted",
+        "text": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "tool_call",
+    "name": "get_recommendations",
+    "efecto": false,
+    "directo": true
+   },
+   {
+    "type": "tool_result",
+    "name": "get_recommendations",
+    "ok": true,
+    "resumen": "tablero inicial · salud 58/100 · 4 recomendaciones",
+    "directo": true
+   },
+   {
+    "type": "done",
+    "turno": 1,
+    "render_ok": true
+   }
+  ],
+  "CLI-0004": [
+   {
+    "type": "text",
+    "text": "Hola Mariana. Revisé tus últimos 12 meses: tu salud financiera es sólida (84/100). Te dejo lo que más te conviene atender, con los números que lo respaldan; toca una recomendación o pregúntame lo que quieras."
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "createSurface": {
+      "surfaceId": "inicio",
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/perfil_financiero",
+      "value": {
+       "client_id": "CLI-0004",
+       "fecha_valuacion": "2026-09-01",
+       "ventana": {
+        "meses": 12,
+        "desde": "2025-09",
+        "hasta": "2026-08"
+       },
+       "identidad": {
+        "nombre": "Mariana Elizondo",
+        "nombre_corto": "Mariana",
+        "edad": 39,
+        "etapa_de_vida": "consolidación",
+        "ocupacion": "Arquitecta",
+        "dependientes": 1,
+        "ciudad": "Queretaro",
+        "segmento": "preferente",
+        "cliente_desde": "2020-10-16",
+        "antiguedad_anios": 5.9
+       },
+       "resumen": "Mariana gana $64,636 al mes y gasta $26,308 en consumo (41%); a créditos, intereses y comisiones se le van $16,244. Le quedan $22,084 al mes (34% de su ingreso). Usa 6 productos del banco.",
+       "salud_financiera": {
+        "score": 84.2,
+        "nivel": "sólida",
+        "desglose": [
+         {
+          "factor": "ahorro",
+          "etiqueta": "Ahorro",
+          "valor": 100.0,
+          "peso": 0.25,
+          "aporte": 25.0,
+          "dato": "34% del ingreso"
+         },
+         {
+          "factor": "liquidez",
+          "etiqueta": "Colchón para emergencias",
+          "valor": 100.0,
+          "peso": 0.2,
+          "aporte": 20.0,
+          "dato": "14.1 de 3 meses"
+         },
+         {
+          "factor": "endeudamiento",
+          "etiqueta": "Endeudamiento",
+          "valor": 62.2,
+          "peso": 0.2,
+          "aporte": 12.44,
+          "dato": "25% del ingreso en deuda"
+         },
+         {
+          "factor": "credito",
+          "etiqueta": "Comportamiento de crédito",
+          "valor": 92.2,
+          "peso": 0.2,
+          "aporte": 18.44,
+          "dato": "92/100"
+         },
+         {
+          "factor": "patrimonio_productivo",
+          "etiqueta": "Dinero trabajando",
+          "valor": 55.2,
+          "peso": 0.15,
+          "aporte": 8.28,
+          "dato": "55% invertido"
+         }
+        ]
+       },
+       "flujo": {
+        "ingreso_mensual_declarado": 62000.0,
+        "ingreso_mensual": 64635.77,
+        "tipo_ingreso": "fijo",
+        "variacion_ingreso": 0.0077,
+        "consumo_mensual": 26307.64,
+        "consumo_esencial_mensual": 22795.35,
+        "consumo_discrecional_mensual": 3512.3,
+        "pagos_credito_mensual": 16243.66,
+        "costo_financiero_mensual": 0.0,
+        "ahorro_mensual": 22084.47,
+        "tasa_ahorro": 0.3417,
+        "meses_con_deficit": 0,
+        "servicio_deuda_mensual": 16243.66,
+        "carga_deuda": 0.2513,
+        "serie": [
+         {
+          "mes": "2025-09",
+          "ingreso": 61877.0,
+          "consumo": 19840.8,
+          "deuda": 16243.66,
+          "ahorro": 25792.54
+         },
+         {
+          "mes": "2025-10",
+          "ingreso": 61208.38,
+          "consumo": 22804.4,
+          "deuda": 16243.66,
+          "ahorro": 22160.32
+         },
+         {
+          "mes": "2025-11",
+          "ingreso": 61457.64,
+          "consumo": 28616.52,
+          "deuda": 16243.66,
+          "ahorro": 16597.46
+         },
+         {
+          "mes": "2025-12",
+          "ingreso": 93152.68,
+          "consumo": 33147.14,
+          "deuda": 16243.66,
+          "ahorro": 43761.88
+         },
+         {
+          "mes": "2026-01",
+          "ingreso": 62524.28,
+          "consumo": 27582.89,
+          "deuda": 16243.66,
+          "ahorro": 18697.73
+         },
+         {
+          "mes": "2026-02",
+          "ingreso": 61924.95,
+          "consumo": 26210.65,
+          "deuda": 16243.66,
+          "ahorro": 19470.64
+         },
+         {
+          "mes": "2026-03",
+          "ingreso": 62626.05,
+          "consumo": 22120.19,
+          "deuda": 16243.66,
+          "ahorro": 24262.2
+         },
+         {
+          "mes": "2026-04",
+          "ingreso": 62297.77,
+          "consumo": 25927.07,
+          "deuda": 16243.66,
+          "ahorro": 20127.04
+         },
+         {
+          "mes": "2026-05",
+          "ingreso": 61702.12,
+          "consumo": 36780.0,
+          "deuda": 16243.66,
+          "ahorro": 8678.46
+         },
+         {
+          "mes": "2026-06",
+          "ingreso": 62081.76,
+          "consumo": 31757.85,
+          "deuda": 16243.66,
+          "ahorro": 14080.25
+         },
+         {
+          "mes": "2026-07",
+          "ingreso": 62488.55,
+          "consumo": 15795.67,
+          "deuda": 16243.66,
+          "ahorro": 30449.22
+         },
+         {
+          "mes": "2026-08",
+          "ingreso": 62288.08,
+          "consumo": 25108.55,
+          "deuda": 16243.66,
+          "ahorro": 20935.87
+         }
+        ]
+       },
+       "consumo": {
+        "por_categoria": [
+         {
+          "categoria": "super",
+          "etiqueta": "Súper",
+          "esencial": true,
+          "promedio_mensual": 8636.54,
+          "participacion": 0.3283,
+          "compras_mes": 5.8,
+          "ultimo_mes": 7219.31,
+          "mediana_ultimos_3": 7219.31,
+          "mediana_previos_3": 9380.17,
+          "tendencia": -0.2304,
+          "con_tarjeta_credito": 0.6451
+         },
+         {
+          "categoria": "transporte",
+          "etiqueta": "Transporte",
+          "esencial": true,
+          "promedio_mensual": 5513.44,
+          "participacion": 0.2096,
+          "compras_mes": 6.6,
+          "ultimo_mes": 7320.14,
+          "mediana_ultimos_3": 7153.93,
+          "mediana_previos_3": 4358.65,
+          "tendencia": 0.6413,
+          "con_tarjeta_credito": 0.6606
+         },
+         {
+          "categoria": "educacion",
+          "etiqueta": "Educación",
+          "esencial": true,
+          "promedio_mensual": 5316.67,
+          "participacion": 0.2021,
+          "compras_mes": 0.9,
+          "ultimo_mes": 5800.0,
+          "mediana_ultimos_3": 5800.0,
+          "mediana_previos_3": 5800.0,
+          "tendencia": 0.0,
+          "con_tarjeta_credito": 0.0
+         },
+         {
+          "categoria": "restaurantes",
+          "etiqueta": "Restaurantes",
+          "esencial": false,
+          "promedio_mensual": 2801.79,
+          "participacion": 0.1065,
+          "compras_mes": 7.2,
+          "ultimo_mes": 1519.2,
+          "mediana_ultimos_3": 1919.87,
+          "mediana_previos_3": 2430.1,
+          "tendencia": -0.21,
+          "con_tarjeta_credito": 0.5303
+         },
+         {
+          "categoria": "servicios",
+          "etiqueta": "Servicios del hogar",
+          "esencial": true,
+          "promedio_mensual": 2132.51,
+          "participacion": 0.0811,
+          "compras_mes": 3.5,
+          "ultimo_mes": 2461.12,
+          "mediana_ultimos_3": 2461.12,
+          "mediana_previos_3": 1715.84,
+          "tendencia": 0.4344,
+          "con_tarjeta_credito": 0.211
+         },
+         {
+          "categoria": "salud",
+          "etiqueta": "Salud",
+          "esencial": true,
+          "promedio_mensual": 1196.19,
+          "participacion": 0.0455,
+          "compras_mes": 2.3,
+          "ultimo_mes": 569.78,
+          "mediana_ultimos_3": 767.14,
+          "mediana_previos_3": 776.57,
+          "tendencia": -0.0121,
+          "con_tarjeta_credito": 0.7062
+         },
+         {
+          "categoria": "entretenimiento",
+          "etiqueta": "Entretenimiento",
+          "esencial": false,
+          "promedio_mensual": 710.5,
+          "participacion": 0.027,
+          "compras_mes": 1.7,
+          "ultimo_mes": 219.0,
+          "mediana_ultimos_3": 219.0,
+          "mediana_previos_3": 219.0,
+          "tendencia": 0.0,
+          "con_tarjeta_credito": 0.706
+         }
+        ],
+        "suscripciones": {
+         "detectadas": [
+          {
+           "comercio": "Plataforma de video (sim)",
+           "descripcion": "Streaming de video",
+           "categoria": "entretenimiento",
+           "monto_mensual": 219.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-03"
+          }
+         ],
+         "total_mensual": 219.0,
+         "total_anual": 2628.0
+        },
+        "gasto_hormiga": {
+         "ticket_maximo": 250.0,
+         "compras_mes": 3.7,
+         "gasto_mensual": 301.46,
+         "gasto_anual": 3617.58,
+         "pct_ingreso": 0.0047,
+         "principales": [
+          {
+           "comercio": "Cafetería (sim)",
+           "compras_mes": 3.7,
+           "gasto_mensual": 301.46
+          }
+         ]
+        },
+        "pct_con_tarjeta_credito": 0.475,
+        "presupuestos": []
+       },
+       "credito": {
+        "deuda_total": 1530581.22,
+        "deuda_tarjetas": 16605.63,
+        "deuda_prestamos": 1513975.59,
+        "uso_linea_revolvente": 0.1221,
+        "tarjetas": [
+         {
+          "card_id": "CRD-0008",
+          "last4": "1350",
+          "alias": null,
+          "limite": 136000.0,
+          "saldo": 16605.63,
+          "utilizacion": 0.1221,
+          "tasa_anual": 0.359,
+          "cortes_evaluados": 11,
+          "pagos_completos": 11,
+          "pagos_minimos": 0,
+          "pagos_tardios": 0,
+          "meses_con_saldo": 0,
+          "intereses_12m": 0.0,
+          "comisiones_12m": 0.0,
+          "costo_12m": 0.0,
+          "pago_minimo_promedio": 628.42,
+          "habito": "totalero",
+          "habito_etiqueta": "Paga su tarjeta completa",
+          "intereses_proyectados_anual": 0.0
+         }
+        ],
+        "prestamos": [
+         {
+          "loan_id": "LON-0003",
+          "producto": "hipotecario",
+          "etiqueta": "Crédito hipotecario",
+          "saldo_insoluto": 1513975.59,
+          "tasa_anual": 0.1075,
+          "pago_mensual": 16243.66,
+          "mensualidades_restantes": 202
+         }
+        ],
+        "salud_crediticia": {
+         "score": 92.2,
+         "nivel": "excelente",
+         "desglose": [
+          {
+           "factor": "puntualidad",
+           "etiqueta": "Pagos a tiempo",
+           "valor": 100.0,
+           "peso": 0.35,
+           "aporte": 35.0,
+           "dato": "11 de 11 cortes a tiempo"
+          },
+          {
+           "factor": "pago_completo",
+           "etiqueta": "Pagos completos",
+           "valor": 100.0,
+           "peso": 0.25,
+           "aporte": 25.0,
+           "dato": "11 de 11 cortes liquidados"
+          },
+          {
+           "factor": "utilizacion",
+           "etiqueta": "Uso de la línea",
+           "valor": 100.0,
+           "peso": 0.2,
+           "aporte": 20.0,
+           "dato": "12% de la línea"
+          },
+          {
+           "factor": "carga",
+           "etiqueta": "Pagos de deuda sobre ingreso",
+           "valor": 62.2,
+           "peso": 0.12,
+           "aporte": 7.46,
+           "dato": "25% del ingreso"
+          },
+          {
+           "factor": "antiguedad",
+           "etiqueta": "Antigüedad como cliente",
+           "valor": 58.8,
+           "peso": 0.08,
+           "aporte": 4.7,
+           "dato": "5.9 años"
+          }
+         ]
+        }
+       },
+       "liquidez": {
+        "saldo_cuentas": 55090.91,
+        "efectivo_en_inversion": 493566.43,
+        "invertido_liquido": 0.0,
+        "disponible": 548657.34,
+        "gasto_minimo_mensual": 39039.01,
+        "salidas_mensuales": 42551.3,
+        "meses_de_colchon": 14.1,
+        "colchon_objetivo_meses": 3,
+        "colchon_objetivo": 117117.02,
+        "efectivo_ocioso": 506106.04,
+        "rendimiento_no_ganado_anual": 32846.28,
+        "perdida_poder_compra_anual": 21003.4,
+        "patrimonio_neto": -359007.52
+       },
+       "inversion": {
+        "perfil_riesgo": {
+         "score": 55,
+         "perfil": "balanceado",
+         "horizonte_meses": 36,
+         "respondido_en": "2025-03-10",
+         "vigente_hasta": "2026-03-10",
+         "vigente": false
+        },
+        "perfil_vigente": false,
+        "posiciones": 4,
+        "valor_mercado": 622916.36,
+        "rendimiento": 96388.21,
+        "renta_variable_pct": 0.0,
+        "renta_variable_objetivo_pct": 0.35,
+        "rend_esperado_actual": 0.072358,
+        "asignacion_actual": {
+         "CETES-91": 0.1083,
+         "CORP-AAA-5A": 0.4437,
+         "PAGARE-180": 0.1912,
+         "PAGARE-360": 0.2567
+        }
+       },
+       "productos": {
+        "total": 6,
+        "lista": [
+         {
+          "producto": "cuenta_cheques",
+          "etiqueta": "Cuenta de cheques"
+         },
+         {
+          "producto": "cuenta_inversion",
+          "etiqueta": "Cuenta de inversión"
+         },
+         {
+          "producto": "tarjeta_debito",
+          "etiqueta": "Tarjeta de débito"
+         },
+         {
+          "producto": "tarjeta_credito",
+          "etiqueta": "Tarjeta de crédito"
+         },
+         {
+          "producto": "credito_hipotecario",
+          "etiqueta": "Crédito hipotecario"
+         },
+         {
+          "producto": "fondos_inversion",
+          "etiqueta": "Fondos de inversión (4)"
+         }
+        ]
+       },
+       "rasgos": [
+        {
+         "rasgo": "ingreso_fijo",
+         "etiqueta": "Ingreso fijo",
+         "tono": "info",
+         "dato": "$64,636 al mes"
+        },
+        {
+         "rasgo": "ahorrador",
+         "etiqueta": "Ahorrador",
+         "tono": "positive",
+         "dato": "ahorra 34% de su ingreso"
+        },
+        {
+         "rasgo": "totalero",
+         "etiqueta": "Paga su tarjeta completa",
+         "tono": "positive",
+         "dato": "11 de 11 cortes liquidados"
+        },
+        {
+         "rasgo": "efectivo_ocioso",
+         "etiqueta": "Efectivo sin invertir",
+         "tono": "warning",
+         "dato": "$506,106 sin rendimiento"
+        },
+        {
+         "rasgo": "gasto_creciente_transporte",
+         "etiqueta": "Más gasto en transporte",
+         "tono": "warning",
+         "dato": "+64% en los últimos 3 meses"
+        },
+        {
+         "rasgo": "perfil_vencido",
+         "etiqueta": "Perfil de inversión vencido",
+         "tono": "warning",
+         "dato": "venció el 2026-03-10"
+        }
+       ],
+       "disclaimer": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+      }
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/recomendaciones",
+      "value": [
+       {
+        "recomendacion_id": "invertir_efectivo_ocioso",
+        "titulo": "Tienes $506,106 sin invertir",
+        "descripcion": "Es dinero que no rinde nada: a tasa de CETES serían $32,846 al año, y la inflación le quita $21,003 de poder de compra. Tu perfil de inversionista venció el 2026-03-10: actualízalo, son cuatro preguntas.",
+        "evidencia": [
+         {
+          "etiqueta": "En tu cuenta de inversión, sin invertir",
+          "valor": 493566.43,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "En tu cuenta, arriba de un mes de gastos",
+          "valor": 12539.61,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Equivale a meses de tus gastos",
+          "valor": 11.9,
+          "formato": "numero"
+         }
+        ],
+        "impacto": {
+         "valor": 32846.28,
+         "etiqueta": "Lo que dejas de ganar al año",
+         "periodo": "anual",
+         "supuesto": "Tasa de CETES 28 días (6.49%), antes de impuestos."
+        },
+        "urgencia": "alta",
+        "prioridad": 58,
+        "herramienta": {
+         "herramienta_id": "perfilador_inversion",
+         "nombre": "Perfil de inversionista",
+         "descripcion": "Cuatro preguntas para saber cuánto riesgo tiene sentido para ti.",
+         "dominio": "inversiones",
+         "disponible": true,
+         "tools": [
+          "get_risk_questions",
+          "score_risk_profile"
+         ]
+        },
+        "parametros": {
+         "monto": 506000,
+         "liquidez_requerida": false
+        },
+        "prompt": "Tengo $506,000 sin invertir, ¿qué hago con ellos?",
+        "orden": 1
+       },
+       {
+        "recomendacion_id": "gasto_creciente_transporte",
+        "titulo": "Tu gasto en transporte subió 64%",
+        "descripcion": "En un mes típico de los últimos tres gastaste $7,154 en transporte, contra $4,359 en los tres anteriores. Un presupuesto de $4,400 te regresa a donde estabas.",
+        "evidencia": [
+         {
+          "etiqueta": "Mes típico, últimos 3",
+          "valor": 7153.93,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Mes típico, 3 anteriores",
+          "valor": 4358.65,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Variación",
+          "valor": 0.6413,
+          "formato": "porcentaje"
+         }
+        ],
+        "impacto": {
+         "valor": 33543.36,
+         "etiqueta": "Lo que ahorras al año si vuelves al gasto anterior",
+         "periodo": "anual",
+         "supuesto": null
+        },
+        "urgencia": "media",
+        "prioridad": 39,
+        "herramienta": {
+         "herramienta_id": "presupuestos",
+         "nombre": "Presupuestos por categoría",
+         "descripcion": "Un tope mensual por categoría y aviso cuando lo rebasas.",
+         "dominio": "banca_personal",
+         "disponible": true,
+         "tools": [
+          "get_spending_alerts",
+          "set_budget"
+         ]
+        },
+        "parametros": {
+         "categoria": "transporte",
+         "monto_sugerido": 4400
+        },
+        "prompt": "Quiero ponerle un presupuesto a transporte",
+        "orden": 2
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateComponents": {
+      "surfaceId": "inicio",
+      "components": [
+       {
+        "id": "root",
+        "component": "Column",
+        "gap": 20,
+        "children": [
+         "saludo",
+         "perfil",
+         "recomendaciones",
+         "aviso"
+        ]
+       },
+       {
+        "id": "saludo",
+        "component": "Text",
+        "variant": "h2",
+        "text": "Hola Mariana, así se ven tus finanzas"
+       },
+       {
+        "id": "perfil",
+        "component": "bank.FinancialProfile",
+        "perfil": {
+         "path": "/perfil_financiero"
+        }
+       },
+       {
+        "id": "recomendaciones",
+        "component": "bank.Recommendations",
+        "recomendaciones": {
+         "path": "/recomendaciones"
+        },
+        "titulo": "Lo que te recomendamos hoy",
+        "max": 3
+       },
+       {
+        "id": "aviso",
+        "component": "Text",
+        "variant": "caption",
+        "tone": "muted",
+        "text": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "tool_call",
+    "name": "get_recommendations",
+    "efecto": false,
+    "directo": true
+   },
+   {
+    "type": "tool_result",
+    "name": "get_recommendations",
+    "ok": true,
+    "resumen": "tablero inicial · salud 84/100 · 2 recomendaciones",
+    "directo": true
+   },
+   {
+    "type": "done",
+    "turno": 1,
+    "render_ok": true
+   }
+  ],
+  "CLI-0005": [
+   {
+    "type": "text",
+    "text": "Hola Diego. Revisé tus últimos 12 meses: tu salud financiera es frágil (47/100). Te dejo lo que más te conviene atender, con los números que lo respaldan; toca una recomendación o pregúntame lo que quieras."
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "createSurface": {
+      "surfaceId": "inicio",
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/perfil_financiero",
+      "value": {
+       "client_id": "CLI-0005",
+       "fecha_valuacion": "2026-09-01",
+       "ventana": {
+        "meses": 12,
+        "desde": "2025-09",
+        "hasta": "2026-08"
+       },
+       "identidad": {
+        "nombre": "Diego Alcantara",
+        "nombre_corto": "Diego",
+        "edad": 24,
+        "etapa_de_vida": "inicio de carrera",
+        "ocupacion": "Auxiliar administrativo",
+        "dependientes": 0,
+        "ciudad": "Merida",
+        "segmento": "nomina",
+        "cliente_desde": "2021-01-21",
+        "antiguedad_anios": 5.6
+       },
+       "resumen": "Diego gana $18,885 al mes y gasta $15,299 en consumo (81%); a créditos, intereses y comisiones se le van $2,858. Le quedan $727 al mes (4% de su ingreso). Usa 6 productos del banco.",
+       "salud_financiera": {
+        "score": 47.1,
+        "nivel": "frágil",
+        "desglose": [
+         {
+          "factor": "ahorro",
+          "etiqueta": "Ahorro",
+          "valor": 12.8,
+          "peso": 0.25,
+          "aporte": 3.2,
+          "dato": "4% del ingreso"
+         },
+         {
+          "factor": "liquidez",
+          "etiqueta": "Colchón para emergencias",
+          "valor": 100.0,
+          "peso": 0.2,
+          "aporte": 20.0,
+          "dato": "8.0 de 3 meses"
+         },
+         {
+          "factor": "endeudamiento",
+          "etiqueta": "Endeudamiento",
+          "valor": 70.3,
+          "peso": 0.2,
+          "aporte": 14.06,
+          "dato": "22% del ingreso en deuda"
+         },
+         {
+          "factor": "credito",
+          "etiqueta": "Comportamiento de crédito",
+          "valor": 35.2,
+          "peso": 0.2,
+          "aporte": 7.04,
+          "dato": "35/100"
+         },
+         {
+          "factor": "patrimonio_productivo",
+          "etiqueta": "Dinero trabajando",
+          "valor": 18.4,
+          "peso": 0.15,
+          "aporte": 2.76,
+          "dato": "18% invertido"
+         }
+        ]
+       },
+       "flujo": {
+        "ingreso_mensual_declarado": 18200.0,
+        "ingreso_mensual": 18884.77,
+        "tipo_ingreso": "fijo",
+        "variacion_ingreso": 0.007,
+        "consumo_mensual": 15299.27,
+        "consumo_esencial_mensual": 9801.81,
+        "consumo_discrecional_mensual": 5497.45,
+        "pagos_credito_mensual": 1726.37,
+        "costo_financiero_mensual": 1131.87,
+        "ahorro_mensual": 727.26,
+        "tasa_ahorro": 0.0385,
+        "meses_con_deficit": 5,
+        "servicio_deuda_mensual": 4128.49,
+        "carga_deuda": 0.2186,
+        "serie": [
+         {
+          "mes": "2025-09",
+          "ingreso": 18033.77,
+          "consumo": 14476.88,
+          "deuda": 978.5,
+          "ahorro": 2578.39
+         },
+         {
+          "mes": "2025-10",
+          "ingreso": 18001.19,
+          "consumo": 15010.15,
+          "deuda": 2868.17,
+          "ahorro": 122.87
+         },
+         {
+          "mes": "2025-11",
+          "ingreso": 18164.55,
+          "consumo": 15312.9,
+          "deuda": 2846.48,
+          "ahorro": 5.17
+         },
+         {
+          "mes": "2025-12",
+          "ingreso": 27269.89,
+          "consumo": 13952.34,
+          "deuda": 3411.44,
+          "ahorro": 9906.11
+         },
+         {
+          "mes": "2026-01",
+          "ingreso": 18352.25,
+          "consumo": 15824.9,
+          "deuda": 2898.84,
+          "ahorro": -371.49
+         },
+         {
+          "mes": "2026-02",
+          "ingreso": 18074.13,
+          "consumo": 17995.43,
+          "deuda": 2858.33,
+          "ahorro": -2779.63
+         },
+         {
+          "mes": "2026-03",
+          "ingreso": 18178.66,
+          "consumo": 13644.27,
+          "deuda": 2854.74,
+          "ahorro": 1679.65
+         },
+         {
+          "mes": "2026-04",
+          "ingreso": 18018.9,
+          "consumo": 15792.57,
+          "deuda": 3304.87,
+          "ahorro": -1078.54
+         },
+         {
+          "mes": "2026-05",
+          "ingreso": 18285.27,
+          "consumo": 14241.05,
+          "deuda": 3294.75,
+          "ahorro": 749.47
+         },
+         {
+          "mes": "2026-06",
+          "ingreso": 18034.43,
+          "consumo": 14198.05,
+          "deuda": 2809.15,
+          "ahorro": 1027.23
+         },
+         {
+          "mes": "2026-07",
+          "ingreso": 18169.05,
+          "consumo": 15570.47,
+          "deuda": 2861.11,
+          "ahorro": -262.53
+         },
+         {
+          "mes": "2026-08",
+          "ingreso": 18035.11,
+          "consumo": 17572.18,
+          "deuda": 3312.48,
+          "ahorro": -2849.55
+         }
+        ]
+       },
+       "consumo": {
+        "por_categoria": [
+         {
+          "categoria": "renta",
+          "etiqueta": "Renta",
+          "esencial": true,
+          "promedio_mensual": 5338.67,
+          "participacion": 0.3489,
+          "compras_mes": 1.0,
+          "ultimo_mes": 5408.0,
+          "mediana_ultimos_3": 5408.0,
+          "mediana_previos_3": 5408.0,
+          "tendencia": 0.0,
+          "con_tarjeta_credito": 0.0
+         },
+         {
+          "categoria": "entretenimiento",
+          "etiqueta": "Entretenimiento",
+          "esencial": false,
+          "promedio_mensual": 3038.69,
+          "participacion": 0.1986,
+          "compras_mes": 7.7,
+          "ultimo_mes": 3768.95,
+          "mediana_ultimos_3": 3314.56,
+          "mediana_previos_3": 2865.13,
+          "tendencia": 0.1569,
+          "con_tarjeta_credito": 0.1196
+         },
+         {
+          "categoria": "restaurantes",
+          "etiqueta": "Restaurantes",
+          "esencial": false,
+          "promedio_mensual": 2458.76,
+          "participacion": 0.1607,
+          "compras_mes": 16.1,
+          "ultimo_mes": 3024.4,
+          "mediana_ultimos_3": 3408.1,
+          "mediana_previos_3": 1813.06,
+          "tendencia": 0.8798,
+          "con_tarjeta_credito": 0.2159
+         },
+         {
+          "categoria": "super",
+          "etiqueta": "Súper",
+          "esencial": true,
+          "promedio_mensual": 2228.31,
+          "participacion": 0.1456,
+          "compras_mes": 14.8,
+          "ultimo_mes": 3319.43,
+          "mediana_ultimos_3": 1496.76,
+          "mediana_previos_3": 2412.26,
+          "tendencia": -0.3795,
+          "con_tarjeta_credito": 0.15
+         },
+         {
+          "categoria": "servicios",
+          "etiqueta": "Servicios del hogar",
+          "esencial": true,
+          "promedio_mensual": 1092.97,
+          "participacion": 0.0714,
+          "compras_mes": 3.5,
+          "ultimo_mes": 1177.05,
+          "mediana_ultimos_3": 1177.05,
+          "mediana_previos_3": 671.8,
+          "tendencia": 0.7521,
+          "con_tarjeta_credito": 0.0303
+         },
+         {
+          "categoria": "transporte",
+          "etiqueta": "Transporte",
+          "esencial": true,
+          "promedio_mensual": 976.08,
+          "participacion": 0.0638,
+          "compras_mes": 11.9,
+          "ultimo_mes": 522.46,
+          "mediana_ultimos_3": 882.08,
+          "mediana_previos_3": 1198.79,
+          "tendencia": -0.2642,
+          "con_tarjeta_credito": 0.1002
+         },
+         {
+          "categoria": "salud",
+          "etiqueta": "Salud",
+          "esencial": true,
+          "promedio_mensual": 165.78,
+          "participacion": 0.0108,
+          "compras_mes": 0.9,
+          "ultimo_mes": 351.89,
+          "mediana_ultimos_3": 0.0,
+          "mediana_previos_3": 352.13,
+          "tendencia": -1.0,
+          "con_tarjeta_credito": 0.048
+         }
+        ],
+        "suscripciones": {
+         "detectadas": [
+          {
+           "comercio": "Plataforma de deportes (sim)",
+           "descripcion": "Streaming de deportes",
+           "categoria": "entretenimiento",
+           "monto_mensual": 299.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-11"
+          },
+          {
+           "comercio": "Plataforma de video (sim)",
+           "descripcion": "Streaming de video",
+           "categoria": "entretenimiento",
+           "monto_mensual": 219.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-03"
+          },
+          {
+           "comercio": "Plataforma de música (sim)",
+           "descripcion": "Música en streaming",
+           "categoria": "entretenimiento",
+           "monto_mensual": 129.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-07"
+          }
+         ],
+         "total_mensual": 647.0,
+         "total_anual": 7764.0
+        },
+        "gasto_hormiga": {
+         "ticket_maximo": 250.0,
+         "compras_mes": 37.8,
+         "gasto_mensual": 3488.96,
+         "gasto_anual": 41867.56,
+         "pct_ingreso": 0.1848,
+         "principales": [
+          {
+           "comercio": "Delivery de comida (sim)",
+           "compras_mes": 8.1,
+           "gasto_mensual": 1279.67
+          },
+          {
+           "comercio": "App de movilidad (sim)",
+           "compras_mes": 11.9,
+           "gasto_mensual": 976.08
+          },
+          {
+           "comercio": "Tienda de conveniencia (sim)",
+           "compras_mes": 12.0,
+           "gasto_mensual": 833.57
+          }
+         ]
+        },
+        "pct_con_tarjeta_credito": 0.0894,
+        "presupuestos": []
+       },
+       "credito": {
+        "deuda_total": 60660.41,
+        "deuda_tarjetas": 25594.99,
+        "deuda_prestamos": 35065.42,
+        "uso_linea_revolvente": 1.0238,
+        "tarjetas": [
+         {
+          "card_id": "CRD-0010",
+          "last4": "2312",
+          "alias": null,
+          "limite": 25000.0,
+          "saldo": 25594.99,
+          "utilizacion": 1.0238,
+          "tasa_anual": 0.499,
+          "cortes_evaluados": 11,
+          "pagos_completos": 0,
+          "pagos_minimos": 11,
+          "pagos_tardios": 4,
+          "meses_con_saldo": 11,
+          "intereses_12m": 11782.45,
+          "comisiones_12m": 1800.0,
+          "costo_12m": 13582.45,
+          "pago_minimo_promedio": 2402.12,
+          "habito": "paga_tarde",
+          "habito_etiqueta": "Paga tarde su tarjeta",
+          "intereses_proyectados_anual": 12771.9
+         }
+        ],
+        "prestamos": [
+         {
+          "loan_id": "LON-0004",
+          "producto": "personal",
+          "etiqueta": "Crédito personal",
+          "saldo_insoluto": 35065.42,
+          "tasa_anual": 0.289,
+          "pago_mensual": 1883.31,
+          "mensualidades_restantes": 25
+         }
+        ],
+        "salud_crediticia": {
+         "score": 35.2,
+         "nivel": "en riesgo",
+         "desglose": [
+          {
+           "factor": "puntualidad",
+           "etiqueta": "Pagos a tiempo",
+           "valor": 63.6,
+           "peso": 0.35,
+           "aporte": 22.27,
+           "dato": "7 de 11 cortes a tiempo"
+          },
+          {
+           "factor": "pago_completo",
+           "etiqueta": "Pagos completos",
+           "valor": 0.0,
+           "peso": 0.25,
+           "aporte": 0.0,
+           "dato": "0 de 11 cortes liquidados"
+          },
+          {
+           "factor": "utilizacion",
+           "etiqueta": "Uso de la línea",
+           "valor": 0.0,
+           "peso": 0.2,
+           "aporte": 0.0,
+           "dato": "102% de la línea"
+          },
+          {
+           "factor": "carga",
+           "etiqueta": "Pagos de deuda sobre ingreso",
+           "valor": 70.3,
+           "peso": 0.12,
+           "aporte": 8.44,
+           "dato": "22% del ingreso"
+          },
+          {
+           "factor": "antiguedad",
+           "etiqueta": "Antigüedad como cliente",
+           "valor": 56.1,
+           "peso": 0.08,
+           "aporte": 4.49,
+           "dato": "5.6 años"
+          }
+         ]
+        }
+       },
+       "liquidez": {
+        "saldo_cuentas": 79220.62,
+        "efectivo_en_inversion": 25382.71,
+        "invertido_liquido": 7298.66,
+        "disponible": 111901.99,
+        "gasto_minimo_mensual": 13930.3,
+        "salidas_mensuales": 18157.5,
+        "meses_de_colchon": 8.0,
+        "colchon_objetivo_meses": 3,
+        "colchon_objetivo": 41790.9,
+        "efectivo_ocioso": 86445.83,
+        "rendimiento_no_ganado_anual": 5610.33,
+        "perdida_poder_compra_anual": 3587.5,
+        "patrimonio_neto": 63458.27
+       },
+       "inversion": {
+        "perfil_riesgo": {
+         "score": 18,
+         "perfil": "conservador",
+         "horizonte_meses": 12,
+         "respondido_en": "2026-07-18",
+         "vigente_hasta": "2027-07-18",
+         "vigente": true
+        },
+        "perfil_vigente": true,
+        "posiciones": 3,
+        "valor_mercado": 19515.35,
+        "rendimiento": 2301.12,
+        "renta_variable_pct": 0.0,
+        "renta_variable_objetivo_pct": 0.0,
+        "rend_esperado_actual": 0.063599,
+        "asignacion_actual": {
+         "CETES-182": 0.3615,
+         "FND-GUB-CP": 0.374,
+         "PAGARE-91": 0.2646
+        }
+       },
+       "productos": {
+        "total": 6,
+        "lista": [
+         {
+          "producto": "cuenta_nomina",
+          "etiqueta": "Cuenta de nómina"
+         },
+         {
+          "producto": "cuenta_inversion",
+          "etiqueta": "Cuenta de inversión"
+         },
+         {
+          "producto": "tarjeta_debito",
+          "etiqueta": "Tarjeta de débito"
+         },
+         {
+          "producto": "tarjeta_credito",
+          "etiqueta": "Tarjeta de crédito"
+         },
+         {
+          "producto": "credito_personal",
+          "etiqueta": "Crédito personal"
+         },
+         {
+          "producto": "fondos_inversion",
+          "etiqueta": "Fondos de inversión (3)"
+         }
+        ]
+       },
+       "rasgos": [
+        {
+         "rasgo": "ingreso_fijo",
+         "etiqueta": "Ingreso fijo",
+         "tono": "info",
+         "dato": "$18,885 al mes"
+        },
+        {
+         "rasgo": "ahorro_bajo",
+         "etiqueta": "Ahorro bajo",
+         "tono": "warning",
+         "dato": "ahorra 4% de su ingreso"
+        },
+        {
+         "rasgo": "paga_tarde",
+         "etiqueta": "Paga tarde su tarjeta",
+         "tono": "danger",
+         "dato": "0 de 11 cortes liquidados"
+        },
+        {
+         "rasgo": "efectivo_ocioso",
+         "etiqueta": "Efectivo sin invertir",
+         "tono": "warning",
+         "dato": "$86,446 sin rendimiento"
+        },
+        {
+         "rasgo": "gasto_creciente_restaurantes",
+         "etiqueta": "Más gasto en restaurantes",
+         "tono": "warning",
+         "dato": "+88% en los últimos 3 meses"
+        },
+        {
+         "rasgo": "gasto_hormiga",
+         "etiqueta": "Gasto hormiga alto",
+         "tono": "warning",
+         "dato": "38 compras chicas al mes"
+        },
+        {
+         "rasgo": "inversionista",
+         "etiqueta": "Inversionista conservador",
+         "tono": "info",
+         "dato": "score 18"
+        }
+       ],
+       "disclaimer": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+      }
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/recomendaciones",
+      "value": [
+       {
+        "recomendacion_id": "liquidar_tarjeta_CRD-0010",
+        "titulo": "Liquida tu tarjeta •••• 2312: cobra 50% al año",
+        "descripcion": "Pagaste completo 0 de tus últimos 11 cortes y en 12 meses te cobraron $13,582 de intereses y comisiones. Pagando solo el mínimo tardarías 55 meses en liquidar $25,595. Tienes $86,446 sin invertir: alcanza para liquidarla hoy.",
+        "evidencia": [
+         {
+          "etiqueta": "Saldo de la tarjeta",
+          "valor": 25594.99,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Tasa anual",
+          "valor": 0.499,
+          "formato": "porcentaje"
+         },
+         {
+          "etiqueta": "Intereses y comisiones en 12 meses",
+          "valor": 13582.45,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Cortes pagados completos",
+          "valor": "0 de 11",
+          "formato": "texto"
+         }
+        ],
+        "impacto": {
+         "valor": 12310.19,
+         "etiqueta": "Intereses que te ahorras liquidándola en 12 meses en lugar de pagar el mínimo",
+         "periodo": "total",
+         "supuesto": "Sin compras nuevas mientras la liquidas; mínimo = 5% del saldo más intereses."
+        },
+        "urgencia": "alta",
+        "prioridad": 61,
+        "herramienta": {
+         "herramienta_id": "plan_pago_tarjeta",
+         "nombre": "Plan para liquidar tu tarjeta",
+         "descripcion": "Cuánto pagar al mes, cuánto tardas y cuánto ahorras contra pagar el mínimo.",
+         "dominio": "credito",
+         "disponible": true,
+         "tools": [
+          "simulate_debt_payoff",
+          "get_credit_overview",
+          "get_funding_sources"
+         ]
+        },
+        "parametros": {
+         "card_id": "CRD-0010",
+         "pago_mensual_sugerido": 2752.32,
+         "meses_objetivo": 12
+        },
+        "prompt": "Quiero un plan para liquidar mi tarjeta terminación 2312",
+        "orden": 1
+       },
+       {
+        "recomendacion_id": "invertir_efectivo_ocioso",
+        "titulo": "Tienes $86,446 sin invertir",
+        "descripcion": "Es dinero que no rinde nada: a tasa de CETES serían $5,610 al año, y la inflación le quita $3,588 de poder de compra. Usa $25,595 para liquidar tu tarjeta —cobra más de lo que rinde cualquier inversión— y pon el resto a trabajar.",
+        "evidencia": [
+         {
+          "etiqueta": "En tu cuenta de inversión, sin invertir",
+          "valor": 25382.71,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "En tu cuenta, arriba de un mes de gastos",
+          "valor": 61063.12,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Equivale a meses de tus gastos",
+          "valor": 4.8,
+          "formato": "numero"
+         }
+        ],
+        "impacto": {
+         "valor": 5610.33,
+         "etiqueta": "Lo que dejas de ganar al año",
+         "periodo": "anual",
+         "supuesto": "Tasa de CETES 28 días (6.49%), antes de impuestos."
+        },
+        "urgencia": "alta",
+        "prioridad": 55,
+        "herramienta": {
+         "herramienta_id": "propuesta_inversion",
+         "nombre": "Propuesta de inversión",
+         "descripcion": "Una asignación en fondos verificada contra tu perfil, con escenarios.",
+         "dominio": "inversiones",
+         "disponible": true,
+         "tools": [
+          "propose_allocation",
+          "simulate_portfolio",
+          "check_suitability"
+         ]
+        },
+        "parametros": {
+         "monto": 86000,
+         "liquidez_requerida": false
+        },
+        "prompt": "Quiero invertir $86,000 que tengo sin invertir",
+        "orden": 2
+       },
+       {
+        "recomendacion_id": "gasto_hormiga",
+        "titulo": "38 compras chicas al mes suman $3,489",
+        "descripcion": "Son compras de $250 o menos, sobre todo en delivery de comida (8 al mes), app de movilidad (12 al mes), tienda de conveniencia (12 al mes). Juntas se llevan 18% de tu ingreso.",
+        "evidencia": [
+         {
+          "etiqueta": "Compras chicas al mes",
+          "valor": 37.8,
+          "formato": "numero"
+         },
+         {
+          "etiqueta": "Gasto al mes",
+          "valor": 3488.96,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Parte de tu ingreso",
+          "valor": 0.1848,
+          "formato": "porcentaje"
+         }
+        ],
+        "impacto": {
+         "valor": 20933.78,
+         "etiqueta": "Lo que ahorras al año si las recortas a la mitad",
+         "periodo": "anual",
+         "supuesto": "Recortar a la mitad el gasto en compras chicas."
+        },
+        "urgencia": "media",
+        "prioridad": 48,
+        "herramienta": {
+         "herramienta_id": "analisis_gasto",
+         "nombre": "Análisis de gasto",
+         "descripcion": "En qué se va tu dinero, categoría por categoría.",
+         "dominio": "banca_personal",
+         "disponible": true,
+         "tools": [
+          "get_spending_summary",
+          "search_transactions"
+         ]
+        },
+        "parametros": {
+         "ticket_maximo": 250.0
+        },
+        "prompt": "¿En qué se me va el dinero en compras chicas?",
+        "orden": 3
+       },
+       {
+        "recomendacion_id": "gasto_creciente_restaurantes",
+        "titulo": "Tu gasto en restaurantes subió 88%",
+        "descripcion": "En un mes típico de los últimos tres gastaste $3,408 en restaurantes, contra $1,813 en los tres anteriores. Un presupuesto de $1,800 te regresa a donde estabas.",
+        "evidencia": [
+         {
+          "etiqueta": "Mes típico, últimos 3",
+          "valor": 3408.1,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Mes típico, 3 anteriores",
+          "valor": 1813.06,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Variación",
+          "valor": 0.8798,
+          "formato": "porcentaje"
+         }
+        ],
+        "impacto": {
+         "valor": 19140.48,
+         "etiqueta": "Lo que ahorras al año si vuelves al gasto anterior",
+         "periodo": "anual",
+         "supuesto": null
+        },
+        "urgencia": "media",
+        "prioridad": 47,
+        "herramienta": {
+         "herramienta_id": "presupuestos",
+         "nombre": "Presupuestos por categoría",
+         "descripcion": "Un tope mensual por categoría y aviso cuando lo rebasas.",
+         "dominio": "banca_personal",
+         "disponible": true,
+         "tools": [
+          "get_spending_alerts",
+          "set_budget"
+         ]
+        },
+        "parametros": {
+         "categoria": "restaurantes",
+         "monto_sugerido": 1800
+        },
+        "prompt": "Quiero ponerle un presupuesto a restaurantes",
+        "orden": 4
+       },
+       {
+        "recomendacion_id": "pagos_tardios_CRD-0010",
+        "titulo": "Domicilia el pago de tu tarjeta •••• 2312",
+        "descripcion": "Pagaste tarde o por debajo del mínimo 4 de tus últimos 11 cortes. Eso te costó $1,800 en comisiones y queda registrado en tu historial de crédito.",
+        "evidencia": [
+         {
+          "etiqueta": "Pagos tardíos o incompletos",
+          "valor": "4 de 11",
+          "formato": "texto"
+         },
+         {
+          "etiqueta": "Comisiones en 12 meses",
+          "valor": 1800.0,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Salud crediticia",
+          "valor": 35.2,
+          "formato": "numero"
+         }
+        ],
+        "impacto": {
+         "valor": 1800.0,
+         "etiqueta": "Comisiones que dejarías de pagar al año",
+         "periodo": "anual",
+         "supuesto": "Con el pago domiciliado cada mes en la fecha límite."
+        },
+        "urgencia": "alta",
+        "prioridad": 37,
+        "herramienta": {
+         "herramienta_id": "domiciliacion_pago",
+         "nombre": "Domiciliación del pago de tarjeta",
+         "descripcion": "Pago automático en la fecha límite para no volver a pagar tarde.",
+         "dominio": "credito",
+         "disponible": false,
+         "tools": []
+        },
+        "parametros": {
+         "card_id": "CRD-0010"
+        },
+        "prompt": "¿Cómo evito pagar tarde mi tarjeta terminación 2312?",
+        "orden": 5
+       },
+       {
+        "recomendacion_id": "revisar_suscripciones",
+        "titulo": "Pagas 3 suscripciones: $7,764 al año",
+        "descripcion": "Se cobran solas cada mes (streaming de deportes, streaming de video, música en streaming). Revisa cuáles sigues usando.",
+        "evidencia": [
+         {
+          "etiqueta": "Suscripciones detectadas",
+          "valor": 3,
+          "formato": "numero"
+         },
+         {
+          "etiqueta": "Al mes",
+          "valor": 647.0,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Al año",
+          "valor": 7764.0,
+          "formato": "moneda"
+         }
+        ],
+        "impacto": {
+         "valor": 3882.0,
+         "etiqueta": "Lo que ahorras al año cancelando la mitad",
+         "periodo": "anual",
+         "supuesto": "Cancelar suscripciones por la mitad del monto actual."
+        },
+        "urgencia": "baja",
+        "prioridad": 18,
+        "herramienta": {
+         "herramienta_id": "buscador_movimientos",
+         "nombre": "Buscador de movimientos",
+         "descripcion": "Encuentra cargos por comercio, monto o fecha.",
+         "dominio": "banca_personal",
+         "disponible": true,
+         "tools": [
+          "search_transactions"
+         ]
+        },
+        "parametros": {
+         "comercios": [
+          "Plataforma de deportes (sim)",
+          "Plataforma de video (sim)",
+          "Plataforma de música (sim)"
+         ],
+         "categoria": "entretenimiento"
+        },
+        "prompt": "Muéstrame mis suscripciones y cargos recurrentes",
+        "orden": 6
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateComponents": {
+      "surfaceId": "inicio",
+      "components": [
+       {
+        "id": "root",
+        "component": "Column",
+        "gap": 20,
+        "children": [
+         "saludo",
+         "perfil",
+         "recomendaciones",
+         "aviso"
+        ]
+       },
+       {
+        "id": "saludo",
+        "component": "Text",
+        "variant": "h2",
+        "text": "Hola Diego, así se ven tus finanzas"
+       },
+       {
+        "id": "perfil",
+        "component": "bank.FinancialProfile",
+        "perfil": {
+         "path": "/perfil_financiero"
+        }
+       },
+       {
+        "id": "recomendaciones",
+        "component": "bank.Recommendations",
+        "recomendaciones": {
+         "path": "/recomendaciones"
+        },
+        "titulo": "Lo que te recomendamos hoy",
+        "max": 3
+       },
+       {
+        "id": "aviso",
+        "component": "Text",
+        "variant": "caption",
+        "tone": "muted",
+        "text": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "tool_call",
+    "name": "get_recommendations",
+    "efecto": false,
+    "directo": true
+   },
+   {
+    "type": "tool_result",
+    "name": "get_recommendations",
+    "ok": true,
+    "resumen": "tablero inicial · salud 47/100 · 6 recomendaciones",
+    "directo": true
+   },
+   {
+    "type": "done",
+    "turno": 1,
+    "render_ok": true
+   }
+  ],
+  "CLI-0006": [
+   {
+    "type": "text",
+    "text": "Hola Paulina. Revisé tus últimos 12 meses: tu salud financiera es sólida (94/100). Te dejo lo que más te conviene atender, con los números que lo respaldan; toca una recomendación o pregúntame lo que quieras."
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "createSurface": {
+      "surfaceId": "inicio",
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/perfil_financiero",
+      "value": {
+       "client_id": "CLI-0006",
+       "fecha_valuacion": "2026-09-01",
+       "ventana": {
+        "meses": 12,
+        "desde": "2025-09",
+        "hasta": "2026-08"
+       },
+       "identidad": {
+        "nombre": "Paulina Cervantes",
+        "nombre_corto": "Paulina",
+        "edad": 52,
+        "etapa_de_vida": "madurez patrimonial",
+        "ocupacion": "Socia directora de despacho legal",
+        "dependientes": 2,
+        "ciudad": "Puebla",
+        "segmento": "patrimonial",
+        "cliente_desde": "2022-04-26",
+        "antiguedad_anios": 4.4
+       },
+       "resumen": "Paulina gana $250,528 al mes y gasta $125,780 en consumo (50%). Le quedan $124,749 al mes (50% de su ingreso). Usa 5 productos del banco.",
+       "salud_financiera": {
+        "score": 94.2,
+        "nivel": "sólida",
+        "desglose": [
+         {
+          "factor": "ahorro",
+          "etiqueta": "Ahorro",
+          "valor": 100.0,
+          "peso": 0.25,
+          "aporte": 25.0,
+          "dato": "50% del ingreso"
+         },
+         {
+          "factor": "liquidez",
+          "etiqueta": "Colchón para emergencias",
+          "valor": 100.0,
+          "peso": 0.2,
+          "aporte": 20.0,
+          "dato": "60.4 de 3 meses"
+         },
+         {
+          "factor": "endeudamiento",
+          "etiqueta": "Endeudamiento",
+          "valor": 100.0,
+          "peso": 0.2,
+          "aporte": 20.0,
+          "dato": "0% del ingreso en deuda"
+         },
+         {
+          "factor": "credito",
+          "etiqueta": "Comportamiento de crédito",
+          "valor": 95.5,
+          "peso": 0.2,
+          "aporte": 19.1,
+          "dato": "96/100"
+         },
+         {
+          "factor": "patrimonio_productivo",
+          "etiqueta": "Dinero trabajando",
+          "valor": 67.3,
+          "peso": 0.15,
+          "aporte": 10.09,
+          "dato": "67% invertido"
+         }
+        ]
+       },
+       "flujo": {
+        "ingreso_mensual_declarado": 240000.0,
+        "ingreso_mensual": 250528.14,
+        "tipo_ingreso": "fijo",
+        "variacion_ingreso": 0.0119,
+        "consumo_mensual": 125779.51,
+        "consumo_esencial_mensual": 87532.99,
+        "consumo_discrecional_mensual": 38246.52,
+        "pagos_credito_mensual": 0.0,
+        "costo_financiero_mensual": 0.0,
+        "ahorro_mensual": 124748.63,
+        "tasa_ahorro": 0.4979,
+        "meses_con_deficit": 0,
+        "servicio_deuda_mensual": 0.0,
+        "carga_deuda": 0.0,
+        "serie": [
+         {
+          "mes": "2025-09",
+          "ingreso": 238765.54,
+          "consumo": 112146.68,
+          "deuda": 0.0,
+          "ahorro": 126618.86
+         },
+         {
+          "mes": "2025-10",
+          "ingreso": 240732.5,
+          "consumo": 167034.62,
+          "deuda": 0.0,
+          "ahorro": 73697.88
+         },
+         {
+          "mes": "2025-11",
+          "ingreso": 239358.0,
+          "consumo": 139489.9,
+          "deuda": 0.0,
+          "ahorro": 99868.1
+         },
+         {
+          "mes": "2025-12",
+          "ingreso": 360039.53,
+          "consumo": 146806.88,
+          "deuda": 0.0,
+          "ahorro": 213232.65
+         },
+         {
+          "mes": "2026-01",
+          "ingreso": 240685.81,
+          "consumo": 121292.49,
+          "deuda": 0.0,
+          "ahorro": 119393.32
+         },
+         {
+          "mes": "2026-02",
+          "ingreso": 242448.92,
+          "consumo": 97888.75,
+          "deuda": 0.0,
+          "ahorro": 144560.17
+         },
+         {
+          "mes": "2026-03",
+          "ingreso": 244404.95,
+          "consumo": 140682.65,
+          "deuda": 0.0,
+          "ahorro": 103722.3
+         },
+         {
+          "mes": "2026-04",
+          "ingreso": 238591.92,
+          "consumo": 132454.14,
+          "deuda": 0.0,
+          "ahorro": 106137.78
+         },
+         {
+          "mes": "2026-05",
+          "ingreso": 238037.49,
+          "consumo": 111329.7,
+          "deuda": 0.0,
+          "ahorro": 126707.79
+         },
+         {
+          "mes": "2026-06",
+          "ingreso": 238800.41,
+          "consumo": 159130.47,
+          "deuda": 0.0,
+          "ahorro": 79669.94
+         },
+         {
+          "mes": "2026-07",
+          "ingreso": 243228.76,
+          "consumo": 77308.28,
+          "deuda": 0.0,
+          "ahorro": 165920.48
+         },
+         {
+          "mes": "2026-08",
+          "ingreso": 241243.86,
+          "consumo": 103789.6,
+          "deuda": 0.0,
+          "ahorro": 137454.26
+         }
+        ]
+       },
+       "consumo": {
+        "por_categoria": [
+         {
+          "categoria": "educacion",
+          "etiqueta": "Educación",
+          "esencial": true,
+          "promedio_mensual": 29333.33,
+          "participacion": 0.2332,
+          "compras_mes": 0.9,
+          "ultimo_mes": 32000.0,
+          "mediana_ultimos_3": 32000.0,
+          "mediana_previos_3": 32000.0,
+          "tendencia": 0.0,
+          "con_tarjeta_credito": 0.0
+         },
+         {
+          "categoria": "entretenimiento",
+          "etiqueta": "Entretenimiento",
+          "esencial": false,
+          "promedio_mensual": 21917.07,
+          "participacion": 0.1742,
+          "compras_mes": 4.2,
+          "ultimo_mes": 4328.0,
+          "mediana_ultimos_3": 4328.0,
+          "mediana_previos_3": 15434.66,
+          "tendencia": -0.7196,
+          "con_tarjeta_credito": 0.865
+         },
+         {
+          "categoria": "super",
+          "etiqueta": "Súper",
+          "esencial": true,
+          "promedio_mensual": 21654.77,
+          "participacion": 0.1722,
+          "compras_mes": 7.5,
+          "ultimo_mes": 15867.9,
+          "mediana_ultimos_3": 24404.55,
+          "mediana_previos_3": 21377.6,
+          "tendencia": 0.1416,
+          "con_tarjeta_credito": 0.894
+         },
+         {
+          "categoria": "servicios",
+          "etiqueta": "Servicios del hogar",
+          "esencial": true,
+          "promedio_mensual": 17366.67,
+          "participacion": 0.1381,
+          "compras_mes": 5.5,
+          "ultimo_mes": 19215.93,
+          "mediana_ultimos_3": 19133.97,
+          "mediana_previos_3": 15747.73,
+          "tendencia": 0.215,
+          "con_tarjeta_credito": 0.0806
+         },
+         {
+          "categoria": "restaurantes",
+          "etiqueta": "Restaurantes",
+          "esencial": false,
+          "promedio_mensual": 16329.45,
+          "participacion": 0.1298,
+          "compras_mes": 9.9,
+          "ultimo_mes": 17379.98,
+          "mediana_ultimos_3": 17379.98,
+          "mediana_previos_3": 18040.04,
+          "tendencia": -0.0366,
+          "con_tarjeta_credito": 0.7521
+         },
+         {
+          "categoria": "salud",
+          "etiqueta": "Salud",
+          "esencial": true,
+          "promedio_mensual": 9843.21,
+          "participacion": 0.0783,
+          "compras_mes": 4.0,
+          "ultimo_mes": 7555.8,
+          "mediana_ultimos_3": 7781.55,
+          "mediana_previos_3": 10509.45,
+          "tendencia": -0.2596,
+          "con_tarjeta_credito": 0.8923
+         },
+         {
+          "categoria": "transporte",
+          "etiqueta": "Transporte",
+          "esencial": true,
+          "promedio_mensual": 9335.01,
+          "participacion": 0.0742,
+          "compras_mes": 6.9,
+          "ultimo_mes": 7441.99,
+          "mediana_ultimos_3": 9511.58,
+          "mediana_previos_3": 13183.52,
+          "tendencia": -0.2785,
+          "con_tarjeta_credito": 0.8021
+         }
+        ],
+        "suscripciones": {
+         "detectadas": [
+          {
+           "comercio": "Club deportivo (sim)",
+           "descripcion": "Club deportivo",
+           "categoria": "entretenimiento",
+           "monto_mensual": 3800.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-04"
+          },
+          {
+           "comercio": "Plataforma de video (sim)",
+           "descripcion": "Streaming de video",
+           "categoria": "entretenimiento",
+           "monto_mensual": 299.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-03"
+          },
+          {
+           "comercio": "Plataforma de música (sim)",
+           "descripcion": "Música familiar",
+           "categoria": "entretenimiento",
+           "monto_mensual": 229.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-07"
+          }
+         ],
+         "total_mensual": 4328.0,
+         "total_anual": 51936.0
+        },
+        "gasto_hormiga": {
+         "ticket_maximo": 250.0,
+         "compras_mes": 0.0,
+         "gasto_mensual": 0.0,
+         "gasto_anual": 0.0,
+         "pct_ingreso": 0.0,
+         "principales": []
+        },
+        "pct_con_tarjeta_credito": 0.5428,
+        "presupuestos": []
+       },
+       "credito": {
+        "deuda_total": 36683.02,
+        "deuda_tarjetas": 36683.02,
+        "deuda_prestamos": 0.0,
+        "uso_linea_revolvente": 0.0546,
+        "tarjetas": [
+         {
+          "card_id": "CRD-0012",
+          "last4": "7546",
+          "alias": null,
+          "limite": 672000.0,
+          "saldo": 36683.02,
+          "utilizacion": 0.0546,
+          "tasa_anual": 0.319,
+          "cortes_evaluados": 12,
+          "pagos_completos": 12,
+          "pagos_minimos": 0,
+          "pagos_tardios": 0,
+          "meses_con_saldo": 0,
+          "intereses_12m": 0.0,
+          "comisiones_12m": 0.0,
+          "costo_12m": 0.0,
+          "pago_minimo_promedio": 3472.83,
+          "habito": "totalero",
+          "habito_etiqueta": "Paga su tarjeta completa",
+          "intereses_proyectados_anual": 0.0
+         }
+        ],
+        "prestamos": [],
+        "salud_crediticia": {
+         "score": 95.5,
+         "nivel": "excelente",
+         "desglose": [
+          {
+           "factor": "puntualidad",
+           "etiqueta": "Pagos a tiempo",
+           "valor": 100.0,
+           "peso": 0.35,
+           "aporte": 35.0,
+           "dato": "12 de 12 cortes a tiempo"
+          },
+          {
+           "factor": "pago_completo",
+           "etiqueta": "Pagos completos",
+           "valor": 100.0,
+           "peso": 0.25,
+           "aporte": 25.0,
+           "dato": "12 de 12 cortes liquidados"
+          },
+          {
+           "factor": "utilizacion",
+           "etiqueta": "Uso de la línea",
+           "valor": 100.0,
+           "peso": 0.2,
+           "aporte": 20.0,
+           "dato": "5% de la línea"
+          },
+          {
+           "factor": "carga",
+           "etiqueta": "Pagos de deuda sobre ingreso",
+           "valor": 100.0,
+           "peso": 0.12,
+           "aporte": 12.0,
+           "dato": "0% del ingreso"
+          },
+          {
+           "factor": "antiguedad",
+           "etiqueta": "Antigüedad como cliente",
+           "valor": 43.5,
+           "peso": 0.08,
+           "aporte": 3.48,
+           "dato": "4.4 años"
+          }
+         ]
+        }
+       },
+       "liquidez": {
+        "saldo_cuentas": 2764806.14,
+        "efectivo_en_inversion": 376720.24,
+        "invertido_liquido": 2148652.42,
+        "disponible": 5290178.8,
+        "gasto_minimo_mensual": 87532.99,
+        "salidas_mensuales": 125779.51,
+        "meses_de_colchon": 60.4,
+        "colchon_objetivo_meses": 3,
+        "colchon_objetivo": 262598.98,
+        "efectivo_ocioso": 3015746.87,
+        "rendimiento_no_ganado_anual": 195721.97,
+        "perdida_poder_compra_anual": 125153.49,
+        "patrimonio_neto": 9306499.37
+       },
+       "inversion": {
+        "perfil_riesgo": {
+         "score": 88,
+         "perfil": "agresivo",
+         "horizonte_meses": 180,
+         "respondido_en": "2026-07-18",
+         "vigente_hasta": "2027-07-18",
+         "vigente": true
+        },
+        "perfil_vigente": true,
+        "posiciones": 3,
+        "valor_mercado": 6201656.01,
+        "rendimiento": -585463.47,
+        "renta_variable_pct": 0.8425,
+        "renta_variable_objetivo_pct": 0.8,
+        "rend_esperado_actual": 0.117335,
+        "asignacion_actual": {
+         "CETES-91": 0.1575,
+         "ETF-EM": 0.3465,
+         "FND-RV-MX": 0.4961
+        }
+       },
+       "productos": {
+        "total": 5,
+        "lista": [
+         {
+          "producto": "cuenta_cheques",
+          "etiqueta": "Cuenta de cheques"
+         },
+         {
+          "producto": "cuenta_inversion",
+          "etiqueta": "Cuenta de inversión"
+         },
+         {
+          "producto": "tarjeta_debito",
+          "etiqueta": "Tarjeta de débito"
+         },
+         {
+          "producto": "tarjeta_credito",
+          "etiqueta": "Tarjeta de crédito"
+         },
+         {
+          "producto": "fondos_inversion",
+          "etiqueta": "Fondos de inversión (3)"
+         }
+        ]
+       },
+       "rasgos": [
+        {
+         "rasgo": "ingreso_fijo",
+         "etiqueta": "Ingreso fijo",
+         "tono": "info",
+         "dato": "$250,528 al mes"
+        },
+        {
+         "rasgo": "ahorrador",
+         "etiqueta": "Ahorrador",
+         "tono": "positive",
+         "dato": "ahorra 50% de su ingreso"
+        },
+        {
+         "rasgo": "totalero",
+         "etiqueta": "Paga su tarjeta completa",
+         "tono": "positive",
+         "dato": "12 de 12 cortes liquidados"
+        },
+        {
+         "rasgo": "efectivo_ocioso",
+         "etiqueta": "Efectivo sin invertir",
+         "tono": "warning",
+         "dato": "$3,015,747 sin rendimiento"
+        },
+        {
+         "rasgo": "inversionista",
+         "etiqueta": "Inversionista agresivo",
+         "tono": "info",
+         "dato": "score 88"
+        }
+       ],
+       "disclaimer": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+      }
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/recomendaciones",
+      "value": [
+       {
+        "recomendacion_id": "invertir_efectivo_ocioso",
+        "titulo": "Tienes $3,015,747 sin invertir",
+        "descripcion": "Es dinero que no rinde nada: a tasa de CETES serían $195,722 al año, y la inflación le quita $125,153 de poder de compra.",
+        "evidencia": [
+         {
+          "etiqueta": "En tu cuenta de inversión, sin invertir",
+          "valor": 376720.24,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "En tu cuenta, arriba de un mes de gastos",
+          "valor": 2639026.63,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Equivale a meses de tus gastos",
+          "valor": 24.0,
+          "formato": "numero"
+         }
+        ],
+        "impacto": {
+         "valor": 195721.97,
+         "etiqueta": "Lo que dejas de ganar al año",
+         "periodo": "anual",
+         "supuesto": "Tasa de CETES 28 días (6.49%), antes de impuestos."
+        },
+        "urgencia": "alta",
+        "prioridad": 63,
+        "herramienta": {
+         "herramienta_id": "propuesta_inversion",
+         "nombre": "Propuesta de inversión",
+         "descripcion": "Una asignación en fondos verificada contra tu perfil, con escenarios.",
+         "dominio": "inversiones",
+         "disponible": true,
+         "tools": [
+          "propose_allocation",
+          "simulate_portfolio",
+          "check_suitability"
+         ]
+        },
+        "parametros": {
+         "monto": 3015000,
+         "liquidez_requerida": false
+        },
+        "prompt": "Quiero invertir $3,015,000 que tengo sin invertir",
+        "orden": 1
+       },
+       {
+        "recomendacion_id": "ahorro_programado",
+        "titulo": "Invierte $62,000 cada mes en automático",
+        "descripcion": "Te quedan $124,749 al mes en promedio y en 12 meses no tuviste ningún mes en rojo. Si la mitad se invierte sola cada mes, en 5 años juntas $4,380,656.",
+        "evidencia": [
+         {
+          "etiqueta": "Ahorro mensual promedio",
+          "valor": 124748.63,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Tasa de ahorro",
+          "valor": 0.4979,
+          "formato": "porcentaje"
+         },
+         {
+          "etiqueta": "Meses en rojo",
+          "valor": 0,
+          "formato": "numero"
+         }
+        ],
+        "impacto": {
+         "valor": 132131.21,
+         "etiqueta": "Rendimiento promedio al año",
+         "periodo": "anual",
+         "supuesto": "Aportación mensual a 5 años a tasa de CETES 28 días (6.49%), antes de impuestos. El simulador usa los fondos de tu perfil."
+        },
+        "urgencia": "baja",
+        "prioridad": 24,
+        "herramienta": {
+         "herramienta_id": "simulador_aportaciones",
+         "nombre": "Simulador de ahorro mensual",
+         "descripcion": "Cuánto juntarías invirtiendo una cantidad fija cada mes.",
+         "dominio": "inversiones",
+         "disponible": true,
+         "tools": [
+          "propose_allocation",
+          "simulate_portfolio"
+         ]
+        },
+        "parametros": {
+         "aportacion_mensual": 62000,
+         "horizonte_anios": 5
+        },
+        "prompt": "Quiero simular invertir $62,000 cada mes",
+        "orden": 2
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateComponents": {
+      "surfaceId": "inicio",
+      "components": [
+       {
+        "id": "root",
+        "component": "Column",
+        "gap": 20,
+        "children": [
+         "saludo",
+         "perfil",
+         "recomendaciones",
+         "aviso"
+        ]
+       },
+       {
+        "id": "saludo",
+        "component": "Text",
+        "variant": "h2",
+        "text": "Hola Paulina, así se ven tus finanzas"
+       },
+       {
+        "id": "perfil",
+        "component": "bank.FinancialProfile",
+        "perfil": {
+         "path": "/perfil_financiero"
+        }
+       },
+       {
+        "id": "recomendaciones",
+        "component": "bank.Recommendations",
+        "recomendaciones": {
+         "path": "/recomendaciones"
+        },
+        "titulo": "Lo que te recomendamos hoy",
+        "max": 3
+       },
+       {
+        "id": "aviso",
+        "component": "Text",
+        "variant": "caption",
+        "tone": "muted",
+        "text": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "tool_call",
+    "name": "get_recommendations",
+    "efecto": false,
+    "directo": true
+   },
+   {
+    "type": "tool_result",
+    "name": "get_recommendations",
+    "ok": true,
+    "resumen": "tablero inicial · salud 94/100 · 2 recomendaciones",
+    "directo": true
+   },
+   {
+    "type": "done",
+    "turno": 1,
+    "render_ok": true
+   }
+  ],
+  "CLI-0007": [
+   {
+    "type": "text",
+    "text": "Hola Rodrigo. Revisé tus últimos 12 meses: tu salud financiera es sólida (84/100). Te dejo lo que más te conviene atender, con los números que lo respaldan; toca una recomendación o pregúntame lo que quieras."
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "createSurface": {
+      "surfaceId": "inicio",
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/perfil_financiero",
+      "value": {
+       "client_id": "CLI-0007",
+       "fecha_valuacion": "2026-09-01",
+       "ventana": {
+        "meses": 12,
+        "desde": "2025-09",
+        "hasta": "2026-08"
+       },
+       "identidad": {
+        "nombre": "Rodrigo Nava",
+        "nombre_corto": "Rodrigo",
+        "edad": 45,
+        "etapa_de_vida": "madurez patrimonial",
+        "ocupacion": "Dueño de taller mecánico",
+        "dependientes": 3,
+        "ciudad": "Tijuana",
+        "segmento": "pyme",
+        "cliente_desde": "2017-07-04",
+        "antiguedad_anios": 9.2
+       },
+       "resumen": "Rodrigo gana $101,077 al mes (ingreso variable) y gasta $55,133 en consumo (55%); a créditos, intereses y comisiones se le van $6,287. Le quedan $39,658 al mes (39% de su ingreso). Usa 5 productos del banco.",
+       "salud_financiera": {
+        "score": 84.4,
+        "nivel": "sólida",
+        "desglose": [
+         {
+          "factor": "ahorro",
+          "etiqueta": "Ahorro",
+          "valor": 100.0,
+          "peso": 0.25,
+          "aporte": 25.0,
+          "dato": "39% del ingreso"
+         },
+         {
+          "factor": "liquidez",
+          "etiqueta": "Colchón para emergencias",
+          "valor": 100.0,
+          "peso": 0.2,
+          "aporte": 20.0,
+          "dato": "16.3 de 6 meses"
+         },
+         {
+          "factor": "endeudamiento",
+          "etiqueta": "Endeudamiento",
+          "valor": 100.0,
+          "peso": 0.2,
+          "aporte": 20.0,
+          "dato": "6% del ingreso en deuda"
+         },
+         {
+          "factor": "credito",
+          "etiqueta": "Comportamiento de crédito",
+          "valor": 97.1,
+          "peso": 0.2,
+          "aporte": 19.42,
+          "dato": "97/100"
+         },
+         {
+          "factor": "patrimonio_productivo",
+          "etiqueta": "Dinero trabajando",
+          "valor": 0.0,
+          "peso": 0.15,
+          "aporte": 0.0,
+          "dato": "0% invertido"
+         }
+        ]
+       },
+       "flujo": {
+        "ingreso_mensual_declarado": 95000.0,
+        "ingreso_mensual": 101077.4,
+        "tipo_ingreso": "variable",
+        "variacion_ingreso": 0.3582,
+        "consumo_mensual": 55132.61,
+        "consumo_esencial_mensual": 51182.63,
+        "consumo_discrecional_mensual": 3949.98,
+        "pagos_credito_mensual": 6277.7,
+        "costo_financiero_mensual": 8.92,
+        "ahorro_mensual": 39658.17,
+        "tasa_ahorro": 0.3924,
+        "meses_con_deficit": 1,
+        "servicio_deuda_mensual": 6277.7,
+        "carga_deuda": 0.0621,
+        "serie": [
+         {
+          "mes": "2025-09",
+          "ingreso": 76081.01,
+          "consumo": 48406.26,
+          "deuda": 6277.7,
+          "ahorro": 21397.05
+         },
+         {
+          "mes": "2025-10",
+          "ingreso": 62328.11,
+          "consumo": 56222.34,
+          "deuda": 6277.7,
+          "ahorro": -171.93
+         },
+         {
+          "mes": "2025-11",
+          "ingreso": 125412.8,
+          "consumo": 54441.64,
+          "deuda": 6277.7,
+          "ahorro": 64693.46
+         },
+         {
+          "mes": "2025-12",
+          "ingreso": 127975.83,
+          "consumo": 56674.71,
+          "deuda": 6277.7,
+          "ahorro": 65023.42
+         },
+         {
+          "mes": "2026-01",
+          "ingreso": 81975.26,
+          "consumo": 49145.93,
+          "deuda": 6277.7,
+          "ahorro": 26551.63
+         },
+         {
+          "mes": "2026-02",
+          "ingreso": 76523.39,
+          "consumo": 62737.66,
+          "deuda": 6277.7,
+          "ahorro": 7508.03
+         },
+         {
+          "mes": "2026-03",
+          "ingreso": 129173.23,
+          "consumo": 59211.02,
+          "deuda": 6384.69,
+          "ahorro": 63577.52
+         },
+         {
+          "mes": "2026-04",
+          "ingreso": 75185.82,
+          "consumo": 58822.38,
+          "deuda": 6277.7,
+          "ahorro": 10085.74
+         },
+         {
+          "mes": "2026-05",
+          "ingreso": 90689.83,
+          "consumo": 49827.39,
+          "deuda": 6277.7,
+          "ahorro": 34584.74
+         },
+         {
+          "mes": "2026-06",
+          "ingreso": 145063.45,
+          "consumo": 60017.31,
+          "deuda": 6277.7,
+          "ahorro": 78768.44
+         },
+         {
+          "mes": "2026-07",
+          "ingreso": 131893.75,
+          "consumo": 55899.08,
+          "deuda": 6277.7,
+          "ahorro": 69716.97
+         },
+         {
+          "mes": "2026-08",
+          "ingreso": 90626.27,
+          "consumo": 50185.56,
+          "deuda": 6277.7,
+          "ahorro": 34163.01
+         }
+        ]
+       },
+       "consumo": {
+        "por_categoria": [
+         {
+          "categoria": "renta",
+          "etiqueta": "Renta",
+          "esencial": true,
+          "promedio_mensual": 16426.67,
+          "participacion": 0.2979,
+          "compras_mes": 1.0,
+          "ultimo_mes": 16640.0,
+          "mediana_ultimos_3": 16640.0,
+          "mediana_previos_3": 16640.0,
+          "tendencia": 0.0,
+          "con_tarjeta_credito": 0.0
+         },
+         {
+          "categoria": "super",
+          "etiqueta": "Súper",
+          "esencial": true,
+          "promedio_mensual": 11800.45,
+          "participacion": 0.214,
+          "compras_mes": 6.4,
+          "ultimo_mes": 4576.74,
+          "mediana_ultimos_3": 12995.98,
+          "mediana_previos_3": 11984.52,
+          "tendencia": 0.0844,
+          "con_tarjeta_credito": 0.5874
+         },
+         {
+          "categoria": "educacion",
+          "etiqueta": "Educación",
+          "esencial": true,
+          "promedio_mensual": 8800.0,
+          "participacion": 0.1596,
+          "compras_mes": 0.9,
+          "ultimo_mes": 9600.0,
+          "mediana_ultimos_3": 9600.0,
+          "mediana_previos_3": 9600.0,
+          "tendencia": 0.0,
+          "con_tarjeta_credito": 0.0
+         },
+         {
+          "categoria": "transporte",
+          "etiqueta": "Transporte",
+          "esencial": true,
+          "promedio_mensual": 8569.19,
+          "participacion": 0.1554,
+          "compras_mes": 13.5,
+          "ultimo_mes": 9949.28,
+          "mediana_ultimos_3": 9949.28,
+          "mediana_previos_3": 8361.74,
+          "tendencia": 0.1899,
+          "con_tarjeta_credito": 0.6077
+         },
+         {
+          "categoria": "servicios",
+          "etiqueta": "Servicios del hogar",
+          "esencial": true,
+          "promedio_mensual": 3837.6,
+          "participacion": 0.0696,
+          "compras_mes": 3.5,
+          "ultimo_mes": 5571.67,
+          "mediana_ultimos_3": 5191.45,
+          "mediana_previos_3": 2505.95,
+          "tendencia": 1.0716,
+          "con_tarjeta_credito": 0.2345
+         },
+         {
+          "categoria": "restaurantes",
+          "etiqueta": "Restaurantes",
+          "esencial": false,
+          "promedio_mensual": 2833.91,
+          "participacion": 0.0514,
+          "compras_mes": 3.8,
+          "ultimo_mes": 1624.51,
+          "mediana_ultimos_3": 5092.56,
+          "mediana_previos_3": 2945.86,
+          "tendencia": 0.7287,
+          "con_tarjeta_credito": 0.3824
+         },
+         {
+          "categoria": "salud",
+          "etiqueta": "Salud",
+          "esencial": true,
+          "promedio_mensual": 1748.71,
+          "participacion": 0.0317,
+          "compras_mes": 2.7,
+          "ultimo_mes": 866.76,
+          "mediana_ultimos_3": 866.76,
+          "mediana_previos_3": 2941.82,
+          "tendencia": -0.7054,
+          "con_tarjeta_credito": 0.4873
+         },
+         {
+          "categoria": "entretenimiento",
+          "etiqueta": "Entretenimiento",
+          "esencial": false,
+          "promedio_mensual": 1116.06,
+          "participacion": 0.0202,
+          "compras_mes": 1.9,
+          "ultimo_mes": 1356.6,
+          "mediana_ultimos_3": 892.65,
+          "mediana_previos_3": 1315.76,
+          "tendencia": -0.3216,
+          "con_tarjeta_credito": 0.622
+         }
+        ],
+        "suscripciones": {
+         "detectadas": [
+          {
+           "comercio": "Plataforma de video (sim)",
+           "descripcion": "Streaming de video",
+           "categoria": "entretenimiento",
+           "monto_mensual": 219.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-03"
+          }
+         ],
+         "total_mensual": 219.0,
+         "total_anual": 2628.0
+        },
+        "gasto_hormiga": {
+         "ticket_maximo": 250.0,
+         "compras_mes": 4.2,
+         "gasto_mensual": 638.71,
+         "gasto_anual": 7664.55,
+         "pct_ingreso": 0.0063,
+         "principales": [
+          {
+           "comercio": "Caseta de peaje (sim)",
+           "compras_mes": 4.2,
+           "gasto_mensual": 638.71
+          }
+         ]
+        },
+        "pct_con_tarjeta_credito": 0.2842,
+        "presupuestos": []
+       },
+       "credito": {
+        "deuda_total": 122853.19,
+        "deuda_tarjetas": 16608.81,
+        "deuda_prestamos": 106244.38,
+        "uso_linea_revolvente": 0.0971,
+        "tarjetas": [
+         {
+          "card_id": "CRD-0014",
+          "last4": "8249",
+          "alias": null,
+          "limite": 171000.0,
+          "saldo": 16608.81,
+          "utilizacion": 0.0971,
+          "tasa_anual": 0.409,
+          "cortes_evaluados": 11,
+          "pagos_completos": 10,
+          "pagos_minimos": 0,
+          "pagos_tardios": 0,
+          "meses_con_saldo": 1,
+          "intereses_12m": 106.99,
+          "comisiones_12m": 0.0,
+          "costo_12m": 106.99,
+          "pago_minimo_promedio": 811.88,
+          "habito": "totalero",
+          "habito_etiqueta": "Paga su tarjeta completa",
+          "intereses_proyectados_anual": 0.0
+         }
+        ],
+        "prestamos": [
+         {
+          "loan_id": "LON-0006",
+          "producto": "personal",
+          "etiqueta": "Crédito personal",
+          "saldo_insoluto": 106244.38,
+          "tasa_anual": 0.289,
+          "pago_mensual": 6277.7,
+          "mensualidades_restantes": 22
+         }
+        ],
+        "salud_crediticia": {
+         "score": 97.1,
+         "nivel": "excelente",
+         "desglose": [
+          {
+           "factor": "puntualidad",
+           "etiqueta": "Pagos a tiempo",
+           "valor": 100.0,
+           "peso": 0.35,
+           "aporte": 35.0,
+           "dato": "11 de 11 cortes a tiempo"
+          },
+          {
+           "factor": "pago_completo",
+           "etiqueta": "Pagos completos",
+           "valor": 90.9,
+           "peso": 0.25,
+           "aporte": 22.73,
+           "dato": "10 de 11 cortes liquidados"
+          },
+          {
+           "factor": "utilizacion",
+           "etiqueta": "Uso de la línea",
+           "valor": 100.0,
+           "peso": 0.2,
+           "aporte": 20.0,
+           "dato": "10% de la línea"
+          },
+          {
+           "factor": "carga",
+           "etiqueta": "Pagos de deuda sobre ingreso",
+           "valor": 100.0,
+           "peso": 0.12,
+           "aporte": 12.0,
+           "dato": "6% del ingreso"
+          },
+          {
+           "factor": "antiguedad",
+           "etiqueta": "Antigüedad como cliente",
+           "valor": 91.6,
+           "peso": 0.08,
+           "aporte": 7.33,
+           "dato": "9.2 años"
+          }
+         ]
+        }
+       },
+       "liquidez": {
+        "saldo_cuentas": 82615.74,
+        "efectivo_en_inversion": 855909.1,
+        "invertido_liquido": 0.0,
+        "disponible": 938524.84,
+        "gasto_minimo_mensual": 57460.33,
+        "salidas_mensuales": 61419.22,
+        "meses_de_colchon": 16.3,
+        "colchon_objetivo_meses": 6,
+        "colchon_objetivo": 344761.97,
+        "efectivo_ocioso": 877105.62,
+        "rendimiento_no_ganado_anual": 56924.15,
+        "perdida_poder_compra_anual": 36399.88,
+        "patrimonio_neto": 815671.65
+       },
+       "inversion": {
+        "perfil_riesgo": {
+         "score": 64,
+         "perfil": "crecimiento",
+         "horizonte_meses": 48,
+         "respondido_en": "2025-03-10",
+         "vigente_hasta": "2026-03-10",
+         "vigente": false
+        },
+        "perfil_vigente": false,
+        "posiciones": 0,
+        "valor_mercado": 0.0,
+        "rendimiento": 0.0,
+        "renta_variable_pct": null,
+        "renta_variable_objetivo_pct": 0.63,
+        "rend_esperado_actual": null,
+        "asignacion_actual": {}
+       },
+       "productos": {
+        "total": 5,
+        "lista": [
+         {
+          "producto": "cuenta_cheques",
+          "etiqueta": "Cuenta de cheques"
+         },
+         {
+          "producto": "cuenta_inversion",
+          "etiqueta": "Cuenta de inversión"
+         },
+         {
+          "producto": "tarjeta_debito",
+          "etiqueta": "Tarjeta de débito"
+         },
+         {
+          "producto": "tarjeta_credito",
+          "etiqueta": "Tarjeta de crédito"
+         },
+         {
+          "producto": "credito_personal",
+          "etiqueta": "Crédito personal"
+         }
+        ]
+       },
+       "rasgos": [
+        {
+         "rasgo": "ingreso_variable",
+         "etiqueta": "Ingreso variable",
+         "tono": "warning",
+         "dato": "varía ±36% de un mes a otro"
+        },
+        {
+         "rasgo": "ahorrador",
+         "etiqueta": "Ahorrador",
+         "tono": "positive",
+         "dato": "ahorra 39% de su ingreso"
+        },
+        {
+         "rasgo": "totalero",
+         "etiqueta": "Paga su tarjeta completa",
+         "tono": "positive",
+         "dato": "10 de 11 cortes liquidados"
+        },
+        {
+         "rasgo": "efectivo_ocioso",
+         "etiqueta": "Efectivo sin invertir",
+         "tono": "warning",
+         "dato": "$877,106 sin rendimiento"
+        },
+        {
+         "rasgo": "perfil_vencido",
+         "etiqueta": "Perfil de inversión vencido",
+         "tono": "warning",
+         "dato": "venció el 2026-03-10"
+        }
+       ],
+       "disclaimer": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+      }
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/recomendaciones",
+      "value": [
+       {
+        "recomendacion_id": "invertir_efectivo_ocioso",
+        "titulo": "Tienes $877,106 sin invertir",
+        "descripcion": "Es dinero que no rinde nada: a tasa de CETES serían $56,924 al año, y la inflación le quita $36,400 de poder de compra. Tu perfil de inversionista venció el 2026-03-10: actualízalo, son cuatro preguntas.",
+        "evidencia": [
+         {
+          "etiqueta": "En tu cuenta de inversión, sin invertir",
+          "valor": 855909.1,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "En tu cuenta, arriba de un mes de gastos",
+          "valor": 21196.52,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Equivale a meses de tus gastos",
+          "valor": 14.3,
+          "formato": "numero"
+         }
+        ],
+        "impacto": {
+         "valor": 56924.15,
+         "etiqueta": "Lo que dejas de ganar al año",
+         "periodo": "anual",
+         "supuesto": "Tasa de CETES 28 días (6.49%), antes de impuestos."
+        },
+        "urgencia": "alta",
+        "prioridad": 59,
+        "herramienta": {
+         "herramienta_id": "perfilador_inversion",
+         "nombre": "Perfil de inversionista",
+         "descripcion": "Cuatro preguntas para saber cuánto riesgo tiene sentido para ti.",
+         "dominio": "inversiones",
+         "disponible": true,
+         "tools": [
+          "get_risk_questions",
+          "score_risk_profile"
+         ]
+        },
+        "parametros": {
+         "monto": 877000,
+         "liquidez_requerida": false
+        },
+        "prompt": "Tengo $877,000 sin invertir, ¿qué hago con ellos?",
+        "orden": 1
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateComponents": {
+      "surfaceId": "inicio",
+      "components": [
+       {
+        "id": "root",
+        "component": "Column",
+        "gap": 20,
+        "children": [
+         "saludo",
+         "perfil",
+         "recomendaciones",
+         "aviso"
+        ]
+       },
+       {
+        "id": "saludo",
+        "component": "Text",
+        "variant": "h2",
+        "text": "Hola Rodrigo, así se ven tus finanzas"
+       },
+       {
+        "id": "perfil",
+        "component": "bank.FinancialProfile",
+        "perfil": {
+         "path": "/perfil_financiero"
+        }
+       },
+       {
+        "id": "recomendaciones",
+        "component": "bank.Recommendations",
+        "recomendaciones": {
+         "path": "/recomendaciones"
+        },
+        "titulo": "Lo que te recomendamos hoy",
+        "max": 3
+       },
+       {
+        "id": "aviso",
+        "component": "Text",
+        "variant": "caption",
+        "tone": "muted",
+        "text": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "tool_call",
+    "name": "get_recommendations",
+    "efecto": false,
+    "directo": true
+   },
+   {
+    "type": "tool_result",
+    "name": "get_recommendations",
+    "ok": true,
+    "resumen": "tablero inicial · salud 84/100 · 1 recomendaciones",
+    "directo": true
+   },
+   {
+    "type": "done",
+    "turno": 1,
+    "render_ok": true
+   }
+  ],
+  "CLI-0008": [
+   {
+    "type": "text",
+    "text": "Hola Gabriela. Revisé tus últimos 12 meses: tu salud financiera es sólida (99/100). Te dejo lo que más te conviene atender, con los números que lo respaldan; toca una recomendación o pregúntame lo que quieras."
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "createSurface": {
+      "surfaceId": "inicio",
+      "catalogId": "https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json"
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/perfil_financiero",
+      "value": {
+       "client_id": "CLI-0008",
+       "fecha_valuacion": "2026-09-01",
+       "ventana": {
+        "meses": 12,
+        "desde": "2025-09",
+        "hasta": "2026-08"
+       },
+       "identidad": {
+        "nombre": "Gabriela Ontiveros",
+        "nombre_corto": "Gabriela",
+        "edad": 31,
+        "etapa_de_vida": "consolidación",
+        "ocupacion": "Ingeniera de software",
+        "dependientes": 0,
+        "ciudad": "Leon",
+        "segmento": "preferente",
+        "cliente_desde": "2018-10-09",
+        "antiguedad_anios": 7.9
+       },
+       "resumen": "Gabriela gana $57,323 al mes y gasta $28,125 en consumo (49%). Le quedan $29,198 al mes (51% de su ingreso). Usa 5 productos del banco.",
+       "salud_financiera": {
+        "score": 98.6,
+        "nivel": "sólida",
+        "desglose": [
+         {
+          "factor": "ahorro",
+          "etiqueta": "Ahorro",
+          "valor": 100.0,
+          "peso": 0.25,
+          "aporte": 25.0,
+          "dato": "51% del ingreso"
+         },
+         {
+          "factor": "liquidez",
+          "etiqueta": "Colchón para emergencias",
+          "valor": 100.0,
+          "peso": 0.2,
+          "aporte": 20.0,
+          "dato": "4.7 de 3 meses"
+         },
+         {
+          "factor": "endeudamiento",
+          "etiqueta": "Endeudamiento",
+          "valor": 100.0,
+          "peso": 0.2,
+          "aporte": 20.0,
+          "dato": "0% del ingreso en deuda"
+         },
+         {
+          "factor": "credito",
+          "etiqueta": "Comportamiento de crédito",
+          "valor": 98.3,
+          "peso": 0.2,
+          "aporte": 19.66,
+          "dato": "98/100"
+         },
+         {
+          "factor": "patrimonio_productivo",
+          "etiqueta": "Dinero trabajando",
+          "valor": 93.1,
+          "peso": 0.15,
+          "aporte": 13.96,
+          "dato": "93% invertido"
+         }
+        ]
+       },
+       "flujo": {
+        "ingreso_mensual_declarado": 55000.0,
+        "ingreso_mensual": 57323.32,
+        "tipo_ingreso": "fijo",
+        "variacion_ingreso": 0.0022,
+        "consumo_mensual": 28125.33,
+        "consumo_esencial_mensual": 20249.21,
+        "consumo_discrecional_mensual": 7876.12,
+        "pagos_credito_mensual": 0.0,
+        "costo_financiero_mensual": 0.0,
+        "ahorro_mensual": 29197.99,
+        "tasa_ahorro": 0.5094,
+        "meses_con_deficit": 0,
+        "servicio_deuda_mensual": 0.0,
+        "carga_deuda": 0.0,
+        "serie": [
+         {
+          "mes": "2025-09",
+          "ingreso": 55317.0,
+          "consumo": 31639.14,
+          "deuda": 0.0,
+          "ahorro": 23677.86
+         },
+         {
+          "mes": "2025-10",
+          "ingreso": 54964.51,
+          "consumo": 32280.48,
+          "deuda": 0.0,
+          "ahorro": 22684.03
+         },
+         {
+          "mes": "2025-11",
+          "ingreso": 54852.23,
+          "consumo": 28404.47,
+          "deuda": 0.0,
+          "ahorro": 26447.76
+         },
+         {
+          "mes": "2025-12",
+          "ingreso": 83423.42,
+          "consumo": 27737.04,
+          "deuda": 0.0,
+          "ahorro": 55686.38
+         },
+         {
+          "mes": "2026-01",
+          "ingreso": 55262.36,
+          "consumo": 21825.41,
+          "deuda": 0.0,
+          "ahorro": 33436.95
+         },
+         {
+          "mes": "2026-02",
+          "ingreso": 54935.47,
+          "consumo": 28217.86,
+          "deuda": 0.0,
+          "ahorro": 26717.61
+         },
+         {
+          "mes": "2026-03",
+          "ingreso": 54982.06,
+          "consumo": 31178.94,
+          "deuda": 0.0,
+          "ahorro": 23803.12
+         },
+         {
+          "mes": "2026-04",
+          "ingreso": 54946.63,
+          "consumo": 31256.91,
+          "deuda": 0.0,
+          "ahorro": 23689.72
+         },
+         {
+          "mes": "2026-05",
+          "ingreso": 55012.71,
+          "consumo": 24631.96,
+          "deuda": 0.0,
+          "ahorro": 30380.75
+         },
+         {
+          "mes": "2026-06",
+          "ingreso": 54554.42,
+          "consumo": 26575.77,
+          "deuda": 0.0,
+          "ahorro": 27978.65
+         },
+         {
+          "mes": "2026-07",
+          "ingreso": 54901.35,
+          "consumo": 26485.09,
+          "deuda": 0.0,
+          "ahorro": 28416.26
+         },
+         {
+          "mes": "2026-08",
+          "ingreso": 54727.63,
+          "consumo": 27270.9,
+          "deuda": 0.0,
+          "ahorro": 27456.73
+         }
+        ]
+       },
+       "consumo": {
+        "por_categoria": [
+         {
+          "categoria": "renta",
+          "etiqueta": "Renta",
+          "esencial": true,
+          "promedio_mensual": 12833.33,
+          "participacion": 0.4563,
+          "compras_mes": 1.0,
+          "ultimo_mes": 13000.0,
+          "mediana_ultimos_3": 13000.0,
+          "mediana_previos_3": 13000.0,
+          "tendencia": 0.0,
+          "con_tarjeta_credito": 0.0
+         },
+         {
+          "categoria": "super",
+          "etiqueta": "Súper",
+          "esencial": true,
+          "promedio_mensual": 4344.85,
+          "participacion": 0.1545,
+          "compras_mes": 9.9,
+          "ultimo_mes": 3308.47,
+          "mediana_ultimos_3": 4178.43,
+          "mediana_previos_3": 4276.51,
+          "tendencia": -0.0229,
+          "con_tarjeta_credito": 0.7117
+         },
+         {
+          "categoria": "entretenimiento",
+          "etiqueta": "Entretenimiento",
+          "esencial": false,
+          "promedio_mensual": 3973.65,
+          "participacion": 0.1413,
+          "compras_mes": 11.0,
+          "ultimo_mes": 3147.27,
+          "mediana_ultimos_3": 3147.27,
+          "mediana_previos_3": 4510.56,
+          "tendencia": -0.3022,
+          "con_tarjeta_credito": 0.8777
+         },
+         {
+          "categoria": "restaurantes",
+          "etiqueta": "Restaurantes",
+          "esencial": false,
+          "promedio_mensual": 3902.47,
+          "participacion": 0.1388,
+          "compras_mes": 16.6,
+          "ultimo_mes": 4699.02,
+          "mediana_ultimos_3": 2874.33,
+          "mediana_previos_3": 3696.56,
+          "tendencia": -0.2224,
+          "con_tarjeta_credito": 0.8239
+         },
+         {
+          "categoria": "servicios",
+          "etiqueta": "Servicios del hogar",
+          "esencial": true,
+          "promedio_mensual": 1692.32,
+          "participacion": 0.0602,
+          "compras_mes": 3.5,
+          "ultimo_mes": 2006.71,
+          "mediana_ultimos_3": 1980.55,
+          "mediana_previos_3": 1355.54,
+          "tendencia": 0.4611,
+          "con_tarjeta_credito": 0.2358
+         },
+         {
+          "categoria": "transporte",
+          "etiqueta": "Transporte",
+          "esencial": true,
+          "promedio_mensual": 982.62,
+          "participacion": 0.0349,
+          "compras_mes": 8.7,
+          "ultimo_mes": 1109.43,
+          "mediana_ultimos_3": 1109.43,
+          "mediana_previos_3": 680.27,
+          "tendencia": 0.6309,
+          "con_tarjeta_credito": 0.788
+         },
+         {
+          "categoria": "salud",
+          "etiqueta": "Salud",
+          "esencial": true,
+          "promedio_mensual": 396.1,
+          "participacion": 0.0141,
+          "compras_mes": 1.2,
+          "ultimo_mes": 0.0,
+          "mediana_ultimos_3": 247.32,
+          "mediana_previos_3": 353.92,
+          "tendencia": -0.3012,
+          "con_tarjeta_credito": 0.511
+         }
+        ],
+        "suscripciones": {
+         "detectadas": [
+          {
+           "comercio": "Cadena de gimnasios (sim)",
+           "descripcion": "Gimnasio",
+           "categoria": "entretenimiento",
+           "monto_mensual": 650.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-05"
+          },
+          {
+           "comercio": "Plataforma de video (sim)",
+           "descripcion": "Streaming de video",
+           "categoria": "entretenimiento",
+           "monto_mensual": 299.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-03"
+          },
+          {
+           "comercio": "Plataforma de videojuegos (sim)",
+           "descripcion": "Videojuegos en línea",
+           "categoria": "entretenimiento",
+           "monto_mensual": 249.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-09"
+          },
+          {
+           "comercio": "App de idiomas (sim)",
+           "descripcion": "App de idiomas",
+           "categoria": "entretenimiento",
+           "monto_mensual": 199.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-18"
+          },
+          {
+           "comercio": "Plataforma de series (sim)",
+           "descripcion": "Plataforma de series",
+           "categoria": "entretenimiento",
+           "monto_mensual": 179.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-10"
+          },
+          {
+           "comercio": "Plataforma de música (sim)",
+           "descripcion": "Música en streaming",
+           "categoria": "entretenimiento",
+           "monto_mensual": 129.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-07"
+          },
+          {
+           "comercio": "Nube personal (sim)",
+           "descripcion": "Almacenamiento en la nube",
+           "categoria": "entretenimiento",
+           "monto_mensual": 49.0,
+           "meses_detectado": 6,
+           "ultimo_cargo": "2026-08-15"
+          }
+         ],
+         "total_mensual": 1754.0,
+         "total_anual": 21048.0
+        },
+        "gasto_hormiga": {
+         "ticket_maximo": 250.0,
+         "compras_mes": 28.0,
+         "gasto_mensual": 3057.23,
+         "gasto_anual": 36686.8,
+         "pct_ingreso": 0.0533,
+         "principales": [
+          {
+           "comercio": "App de movilidad (sim)",
+           "compras_mes": 8.7,
+           "gasto_mensual": 982.61
+          },
+          {
+           "comercio": "Cafetería (sim)",
+           "compras_mes": 9.1,
+           "gasto_mensual": 788.25
+          },
+          {
+           "comercio": "Tienda de conveniencia (sim)",
+           "compras_mes": 6.2,
+           "gasto_mensual": 562.75
+          }
+         ]
+        },
+        "pct_con_tarjeta_credito": 0.3972,
+        "presupuestos": []
+       },
+       "credito": {
+        "deuda_total": 11810.17,
+        "deuda_tarjetas": 11810.17,
+        "deuda_prestamos": 0.0,
+        "uso_linea_revolvente": 0.1074,
+        "tarjetas": [
+         {
+          "card_id": "CRD-0016",
+          "last4": "8352",
+          "alias": null,
+          "limite": 110000.0,
+          "saldo": 11810.17,
+          "utilizacion": 0.1074,
+          "tasa_anual": 0.369,
+          "cortes_evaluados": 11,
+          "pagos_completos": 11,
+          "pagos_minimos": 0,
+          "pagos_tardios": 0,
+          "meses_con_saldo": 0,
+          "intereses_12m": 0.0,
+          "comisiones_12m": 0.0,
+          "costo_12m": 0.0,
+          "pago_minimo_promedio": 576.68,
+          "habito": "totalero",
+          "habito_etiqueta": "Paga su tarjeta completa",
+          "intereses_proyectados_anual": 0.0
+         }
+        ],
+        "prestamos": [],
+        "salud_crediticia": {
+         "score": 98.3,
+         "nivel": "excelente",
+         "desglose": [
+          {
+           "factor": "puntualidad",
+           "etiqueta": "Pagos a tiempo",
+           "valor": 100.0,
+           "peso": 0.35,
+           "aporte": 35.0,
+           "dato": "11 de 11 cortes a tiempo"
+          },
+          {
+           "factor": "pago_completo",
+           "etiqueta": "Pagos completos",
+           "valor": 100.0,
+           "peso": 0.25,
+           "aporte": 25.0,
+           "dato": "11 de 11 cortes liquidados"
+          },
+          {
+           "factor": "utilizacion",
+           "etiqueta": "Uso de la línea",
+           "valor": 100.0,
+           "peso": 0.2,
+           "aporte": 20.0,
+           "dato": "11% de la línea"
+          },
+          {
+           "factor": "carga",
+           "etiqueta": "Pagos de deuda sobre ingreso",
+           "valor": 100.0,
+           "peso": 0.12,
+           "aporte": 12.0,
+           "dato": "0% del ingreso"
+          },
+          {
+           "factor": "antiguedad",
+           "etiqueta": "Antigüedad como cliente",
+           "valor": 79.0,
+           "peso": 0.08,
+           "aporte": 6.32,
+           "dato": "7.9 años"
+          }
+         ]
+        }
+       },
+       "liquidez": {
+        "saldo_cuentas": 40397.92,
+        "efectivo_en_inversion": 55469.8,
+        "invertido_liquido": 0.0,
+        "disponible": 95867.72,
+        "gasto_minimo_mensual": 20249.21,
+        "salidas_mensuales": 28125.33,
+        "meses_de_colchon": 4.7,
+        "colchon_objetivo_meses": 3,
+        "colchon_objetivo": 60747.64,
+        "efectivo_ocioso": 67742.39,
+        "rendimiento_no_ganado_anual": 4396.48,
+        "perdida_poder_compra_anual": 2811.31,
+        "patrimonio_neto": 993366.11
+       },
+       "inversion": {
+        "perfil_riesgo": {
+         "score": 45,
+         "perfil": "balanceado",
+         "horizonte_meses": 84,
+         "respondido_en": "2026-07-18",
+         "vigente_hasta": "2027-07-18",
+         "vigente": true
+        },
+        "perfil_vigente": true,
+        "posiciones": 2,
+        "valor_mercado": 909308.56,
+        "rendimiento": 73321.96,
+        "renta_variable_pct": 0.0,
+        "renta_variable_objetivo_pct": 0.35,
+        "rend_esperado_actual": 0.073234,
+        "asignacion_actual": {
+         "BONOSM-10A": 0.4452,
+         "CETES-91": 0.5548
+        }
+       },
+       "productos": {
+        "total": 5,
+        "lista": [
+         {
+          "producto": "cuenta_cheques",
+          "etiqueta": "Cuenta de cheques"
+         },
+         {
+          "producto": "cuenta_inversion",
+          "etiqueta": "Cuenta de inversión"
+         },
+         {
+          "producto": "tarjeta_debito",
+          "etiqueta": "Tarjeta de débito"
+         },
+         {
+          "producto": "tarjeta_credito",
+          "etiqueta": "Tarjeta de crédito"
+         },
+         {
+          "producto": "fondos_inversion",
+          "etiqueta": "Fondos de inversión (2)"
+         }
+        ]
+       },
+       "rasgos": [
+        {
+         "rasgo": "ingreso_fijo",
+         "etiqueta": "Ingreso fijo",
+         "tono": "info",
+         "dato": "$57,323 al mes"
+        },
+        {
+         "rasgo": "ahorrador",
+         "etiqueta": "Ahorrador",
+         "tono": "positive",
+         "dato": "ahorra 51% de su ingreso"
+        },
+        {
+         "rasgo": "totalero",
+         "etiqueta": "Paga su tarjeta completa",
+         "tono": "positive",
+         "dato": "11 de 11 cortes liquidados"
+        },
+        {
+         "rasgo": "efectivo_ocioso",
+         "etiqueta": "Efectivo sin invertir",
+         "tono": "warning",
+         "dato": "$67,742 sin rendimiento"
+        },
+        {
+         "rasgo": "suscripciones",
+         "etiqueta": "7 suscripciones",
+         "tono": "info",
+         "dato": "$1,754 al mes"
+        },
+        {
+         "rasgo": "inversionista",
+         "etiqueta": "Inversionista balanceado",
+         "tono": "info",
+         "dato": "score 45"
+        }
+       ],
+       "disclaimer": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+      }
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateDataModel": {
+      "surfaceId": "inicio",
+      "path": "/recomendaciones",
+      "value": [
+       {
+        "recomendacion_id": "portafolio_desalineado",
+        "titulo": "Tu portafolio es más conservador que tu perfil balanceado",
+        "descripcion": "Tienes 0% en renta variable y a tu perfil le corresponde alrededor de 35%. Con la mezcla de tu perfil, el rendimiento esperado pasa de 7.3% a 9.1% al año.",
+        "evidencia": [
+         {
+          "etiqueta": "Renta variable hoy",
+          "valor": 0.0,
+          "formato": "porcentaje"
+         },
+         {
+          "etiqueta": "Renta variable de tu perfil",
+          "valor": 0.35,
+          "formato": "porcentaje"
+         },
+         {
+          "etiqueta": "Valor de tu portafolio",
+          "valor": 909308.56,
+          "formato": "moneda"
+         }
+        ],
+        "impacto": {
+         "valor": 15703.76,
+         "etiqueta": "Rendimiento esperado adicional al año",
+         "periodo": "anual",
+         "supuesto": "Rendimientos esperados del catálogo, antes de comisiones e impuestos."
+        },
+        "urgencia": "media",
+        "prioridad": 35,
+        "herramienta": {
+         "herramienta_id": "comparador_portafolios",
+         "nombre": "Comparador de portafolios",
+         "descripcion": "Tu portafolio contra el que corresponde a tu perfil, con los mismos supuestos.",
+         "dominio": "inversiones",
+         "disponible": true,
+         "tools": [
+          "propose_allocation",
+          "compare_allocations"
+         ]
+        },
+        "parametros": {
+         "asignacion_actual": {
+          "BONOSM-10A": 0.4452,
+          "CETES-91": 0.5548
+         },
+         "monto": 909308.56,
+         "horizonte_anios": 7.0
+        },
+        "prompt": "Compara mi portafolio actual contra el que corresponde a mi perfil",
+        "orden": 1
+       },
+       {
+        "recomendacion_id": "invertir_efectivo_ocioso",
+        "titulo": "Tienes $67,742 sin invertir",
+        "descripcion": "Es dinero que no rinde nada: a tasa de CETES serían $4,396 al año, y la inflación le quita $2,811 de poder de compra.",
+        "evidencia": [
+         {
+          "etiqueta": "En tu cuenta de inversión, sin invertir",
+          "valor": 55469.8,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "En tu cuenta, arriba de un mes de gastos",
+          "valor": 12272.59,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Equivale a meses de tus gastos",
+          "valor": 2.4,
+          "formato": "numero"
+         }
+        ],
+        "impacto": {
+         "valor": 4396.48,
+         "etiqueta": "Lo que dejas de ganar al año",
+         "periodo": "anual",
+         "supuesto": "Tasa de CETES 28 días (6.49%), antes de impuestos."
+        },
+        "urgencia": "media",
+        "prioridad": 31,
+        "herramienta": {
+         "herramienta_id": "propuesta_inversion",
+         "nombre": "Propuesta de inversión",
+         "descripcion": "Una asignación en fondos verificada contra tu perfil, con escenarios.",
+         "dominio": "inversiones",
+         "disponible": true,
+         "tools": [
+          "propose_allocation",
+          "simulate_portfolio",
+          "check_suitability"
+         ]
+        },
+        "parametros": {
+         "monto": 67000,
+         "liquidez_requerida": false
+        },
+        "prompt": "Quiero invertir $67,000 que tengo sin invertir",
+        "orden": 2
+       },
+       {
+        "recomendacion_id": "ahorro_programado",
+        "titulo": "Invierte $14,500 cada mes en automático",
+        "descripcion": "Te quedan $29,198 al mes en promedio y en 12 meses no tuviste ningún mes en rojo. Si la mitad se invierte sola cada mes, en 5 años juntas $1,024,508.",
+        "evidencia": [
+         {
+          "etiqueta": "Ahorro mensual promedio",
+          "valor": 29197.99,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Tasa de ahorro",
+          "valor": 0.5094,
+          "formato": "porcentaje"
+         },
+         {
+          "etiqueta": "Meses en rojo",
+          "valor": 0,
+          "formato": "numero"
+         }
+        ],
+        "impacto": {
+         "valor": 30901.65,
+         "etiqueta": "Rendimiento promedio al año",
+         "periodo": "anual",
+         "supuesto": "Aportación mensual a 5 años a tasa de CETES 28 días (6.49%), antes de impuestos. El simulador usa los fondos de tu perfil."
+        },
+        "urgencia": "baja",
+        "prioridad": 24,
+        "herramienta": {
+         "herramienta_id": "simulador_aportaciones",
+         "nombre": "Simulador de ahorro mensual",
+         "descripcion": "Cuánto juntarías invirtiendo una cantidad fija cada mes.",
+         "dominio": "inversiones",
+         "disponible": true,
+         "tools": [
+          "propose_allocation",
+          "simulate_portfolio"
+         ]
+        },
+        "parametros": {
+         "aportacion_mensual": 14500,
+         "horizonte_anios": 5
+        },
+        "prompt": "Quiero simular invertir $14,500 cada mes",
+        "orden": 3
+       },
+       {
+        "recomendacion_id": "revisar_suscripciones",
+        "titulo": "Pagas 7 suscripciones: $21,048 al año",
+        "descripcion": "Se cobran solas cada mes (gimnasio, streaming de video, videojuegos en línea, app de idiomas…). Revisa cuáles sigues usando.",
+        "evidencia": [
+         {
+          "etiqueta": "Suscripciones detectadas",
+          "valor": 7,
+          "formato": "numero"
+         },
+         {
+          "etiqueta": "Al mes",
+          "valor": 1754.0,
+          "formato": "moneda"
+         },
+         {
+          "etiqueta": "Al año",
+          "valor": 21048.0,
+          "formato": "moneda"
+         }
+        ],
+        "impacto": {
+         "valor": 10524.0,
+         "etiqueta": "Lo que ahorras al año cancelando la mitad",
+         "periodo": "anual",
+         "supuesto": "Cancelar suscripciones por la mitad del monto actual."
+        },
+        "urgencia": "baja",
+        "prioridad": 18,
+        "herramienta": {
+         "herramienta_id": "buscador_movimientos",
+         "nombre": "Buscador de movimientos",
+         "descripcion": "Encuentra cargos por comercio, monto o fecha.",
+         "dominio": "banca_personal",
+         "disponible": true,
+         "tools": [
+          "search_transactions"
+         ]
+        },
+        "parametros": {
+         "comercios": [
+          "Cadena de gimnasios (sim)",
+          "Plataforma de video (sim)",
+          "Plataforma de videojuegos (sim)",
+          "App de idiomas (sim)",
+          "Plataforma de series (sim)",
+          "Plataforma de música (sim)",
+          "Nube personal (sim)"
+         ],
+         "categoria": "entretenimiento"
+        },
+        "prompt": "Muéstrame mis suscripciones y cargos recurrentes",
+        "orden": 4
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "a2ui",
+    "message": {
+     "version": "v0.9",
+     "updateComponents": {
+      "surfaceId": "inicio",
+      "components": [
+       {
+        "id": "root",
+        "component": "Column",
+        "gap": 20,
+        "children": [
+         "saludo",
+         "perfil",
+         "recomendaciones",
+         "aviso"
+        ]
+       },
+       {
+        "id": "saludo",
+        "component": "Text",
+        "variant": "h2",
+        "text": "Hola Gabriela, así se ven tus finanzas"
+       },
+       {
+        "id": "perfil",
+        "component": "bank.FinancialProfile",
+        "perfil": {
+         "path": "/perfil_financiero"
+        }
+       },
+       {
+        "id": "recomendaciones",
+        "component": "bank.Recommendations",
+        "recomendaciones": {
+         "path": "/recomendaciones"
+        },
+        "titulo": "Lo que te recomendamos hoy",
+        "max": 3
+       },
+       {
+        "id": "aviso",
+        "component": "Text",
+        "variant": "caption",
+        "tone": "muted",
+        "text": "Perfil y recomendaciones calculados por reglas sobre datos sintéticos. No constituyen asesoría financiera ni de inversión."
+       }
+      ]
+     }
+    }
+   },
+   {
+    "type": "tool_call",
+    "name": "get_recommendations",
+    "efecto": false,
+    "directo": true
+   },
+   {
+    "type": "tool_result",
+    "name": "get_recommendations",
+    "ok": true,
+    "resumen": "tablero inicial · salud 99/100 · 4 recomendaciones",
+    "directo": true
+   },
+   {
+    "type": "done",
+    "turno": 1,
+    "render_ok": true
+   }
+  ]
+ },
  "turnos": [
   {
    "disparador": {
@@ -76,7 +6232,7 @@
      "type": "tool_result",
      "name": "get_client_snapshot",
      "ok": true,
-     "resumen": "Ana Sofia Reyes · perfil_vigente=False · efectivo 242,067"
+     "resumen": "Ana Sofia Reyes · perfil_vigente=False · efectivo 333,346"
     },
     {
      "type": "text",
@@ -293,7 +6449,7 @@
      "type": "tool_result",
      "name": "get_spending_summary",
      "ok": true,
-     "resumen": "capacidad de ahorro 38,397/mes"
+     "resumen": "capacidad de ahorro 9,040/mes"
     },
     {
      "type": "tool_call",
@@ -1720,7 +7876,7 @@
           "path": "/sim/mensual"
          },
          "min": 0,
-         "max": 10000,
+         "max": 9000,
          "step": 500,
          "format": "moneda",
          "action": {
@@ -4856,7 +11012,7 @@
           "path": "/sim/mensual"
          },
          "min": 0,
-         "max": 10000,
+         "max": 9000,
          "step": 500,
          "format": "moneda",
          "action": {
@@ -4912,7 +11068,7 @@
      "type": "tool_result",
      "name": "place_order",
      "ok": true,
-     "resumen": "estado pendiente · folio BN-2026-100006 · requiere confirmación"
+     "resumen": "estado pendiente · folio BN-2026-100007 · requiere confirmación"
     },
     {
      "type": "text",
@@ -4926,8 +11082,8 @@
        "surfaceId": "inv-main",
        "path": "/orden",
        "value": {
-        "order_id": "3ada7645-6620-4731-8d01-919079643449",
-        "folio": "BN-2026-100006",
+        "order_id": "1f919ca1-7462-4034-98f0-401008a49451",
+        "folio": "BN-2026-100007",
         "estado": "pendiente",
         "client_id": "CLI-0001",
         "account_id": "ACC-0002",
@@ -5000,8 +11156,8 @@
           "plazo_dias": null
          }
         ],
-        "saldo_antes": 171085.96,
-        "saldo_despues_estimado": 91085.96,
+        "saldo_antes": 277469.33,
+        "saldo_despues_estimado": 197469.33,
         "idoneidad": {
          "apto": true,
          "perfil_declarado": "balanceado",
@@ -5072,7 +11228,7 @@
          "resumen": "Asignación apta para el perfil."
         },
         "requiere_confirmacion": true,
-        "confirmation_token": "88QhnSo-OPF67mDmaxsSb1GL",
+        "confirmation_token": "rPLtLZgDOAxf93okjgBDZ9aL",
         "vence_en_minutos": 15,
         "mensaje": "Orden registrada sin ejecutar. Muestra el resumen al usuario y vuelve a llamar `place_order` con el mismo `idempotency_key` y este `confirmation_token` solo cuando el usuario confirme.",
         "disclaimer": "Operación simulada sobre datos sintéticos. No mueve dinero real."
@@ -5153,7 +11309,7 @@
      "type": "tool_result",
      "name": "place_order",
      "ok": true,
-     "resumen": "EJECUTADA · folio BN-2026-100006 · saldo 91,085.96"
+     "resumen": "EJECUTADA · folio BN-2026-100007 · saldo 197,469.33"
     },
     {
      "type": "tool_call",
@@ -5168,7 +11324,7 @@
     },
     {
      "type": "text",
-     "text": "Listo. Folio BN-2026-100006. Así queda tu cuenta."
+     "text": "Listo. Folio BN-2026-100007. Así queda tu cuenta."
     },
     {
      "type": "a2ui",
@@ -5178,17 +11334,17 @@
        "surfaceId": "inv-main",
        "path": "/orden",
        "value": {
-        "order_id": "3ada7645-6620-4731-8d01-919079643449",
-        "folio": "BN-2026-100006",
+        "order_id": "1f919ca1-7462-4034-98f0-401008a49451",
+        "folio": "BN-2026-100007",
         "client_id": "CLI-0001",
         "account_id": "ACC-0002",
         "estado": "ejecutada",
         "monto": 80000.0,
         "motivo_rechazo": null,
-        "creada_en": "2026-09-01T16:28:35.181461",
-        "ejecutada_en": "2026-09-01T16:28:35.202154",
+        "creada_en": "2026-09-01T23:03:03.528407",
+        "ejecutada_en": "2026-09-01T23:03:03.537761",
         "idempotency_key": "CLI-0001-fixture-1",
-        "confirmation_token_hash": "4d8cc928b8d535b6163f3b888d14aa52d2277de9518177c967fb994fa9e791ea",
+        "confirmation_token_hash": "b2d9e9e8352dbe261f998ba57cb512a3099f914265df614c6f2344a23c828a69",
         "legs": [
          {
           "instrument_id": "BONOSM-10A",
@@ -5241,46 +11397,46 @@
         ],
         "requiere_confirmacion": false,
         "duplicado": false,
-        "saldo_despues": 91085.96,
+        "saldo_despues": 197469.33,
         "posiciones": [
          {
-          "position_id": "POS-e38d9dba7a",
+          "position_id": "POS-7010ea09f6",
           "instrument_id": "BONOSM-10A",
           "titulos": 82.629949,
           "monto_aplicado": 17600.0
          },
          {
-          "position_id": "POS-5e067d5595",
+          "position_id": "POS-0ea21da3b0",
           "instrument_id": "CETES-364",
           "titulos": 81.849428,
           "monto_aplicado": 16000.0
          },
          {
-          "position_id": "POS-e4bac9a530",
+          "position_id": "POS-c6959a2eb9",
           "instrument_id": "FND-CORP-AAA",
           "titulos": 50.161135,
           "monto_aplicado": 10400.0
          },
          {
-          "position_id": "POS-82d390a63a",
+          "position_id": "POS-786a7c9ef5",
           "instrument_id": "FND-GUB-CP",
           "titulos": 43.244631,
           "monto_aplicado": 8000.0
          },
          {
-          "position_id": "POS-3c6eacc966",
+          "position_id": "POS-a314d4f7f3",
           "instrument_id": "NAFTRAC",
           "titulos": 53.349816,
           "monto_aplicado": 14400.0
          },
          {
-          "position_id": "POS-680a4b5d5a",
+          "position_id": "POS-e2c40404e5",
           "instrument_id": "TRACK-SP500",
           "titulos": 53.359458,
           "monto_aplicado": 13600.0
          }
         ],
-        "mensaje": "Orden ejecutada. Folio BN-2026-100006.",
+        "mensaje": "Orden ejecutada. Folio BN-2026-100007.",
         "disclaimer": "Operación simulada sobre datos sintéticos. No movió dinero real."
        }
       }
@@ -5373,7 +11529,7 @@
          "valor_mercado": 80000.0,
          "rendimiento": 0.0
         },
-        "patrimonio": 242067.4
+        "patrimonio": 333345.69
        }
       }
      }
@@ -5475,7 +11631,7 @@
          "valor_mercado": 80000.0,
          "rendimiento": 0.0
         },
-        "patrimonio": 242067.4
+        "patrimonio": 333345.69
        }
       }
      }
@@ -5488,17 +11644,17 @@
        "surfaceId": "inv-estado",
        "path": "/orden",
        "value": {
-        "order_id": "3ada7645-6620-4731-8d01-919079643449",
-        "folio": "BN-2026-100006",
+        "order_id": "1f919ca1-7462-4034-98f0-401008a49451",
+        "folio": "BN-2026-100007",
         "client_id": "CLI-0001",
         "account_id": "ACC-0002",
         "estado": "ejecutada",
         "monto": 80000.0,
         "motivo_rechazo": null,
-        "creada_en": "2026-09-01T16:28:35.181461",
-        "ejecutada_en": "2026-09-01T16:28:35.202154",
+        "creada_en": "2026-09-01T23:03:03.528407",
+        "ejecutada_en": "2026-09-01T23:03:03.537761",
         "idempotency_key": "CLI-0001-fixture-1",
-        "confirmation_token_hash": "4d8cc928b8d535b6163f3b888d14aa52d2277de9518177c967fb994fa9e791ea",
+        "confirmation_token_hash": "b2d9e9e8352dbe261f998ba57cb512a3099f914265df614c6f2344a23c828a69",
         "legs": [
          {
           "instrument_id": "BONOSM-10A",
@@ -5551,46 +11707,46 @@
         ],
         "requiere_confirmacion": false,
         "duplicado": false,
-        "saldo_despues": 91085.96,
+        "saldo_despues": 197469.33,
         "posiciones": [
          {
-          "position_id": "POS-e38d9dba7a",
+          "position_id": "POS-7010ea09f6",
           "instrument_id": "BONOSM-10A",
           "titulos": 82.629949,
           "monto_aplicado": 17600.0
          },
          {
-          "position_id": "POS-5e067d5595",
+          "position_id": "POS-0ea21da3b0",
           "instrument_id": "CETES-364",
           "titulos": 81.849428,
           "monto_aplicado": 16000.0
          },
          {
-          "position_id": "POS-e4bac9a530",
+          "position_id": "POS-c6959a2eb9",
           "instrument_id": "FND-CORP-AAA",
           "titulos": 50.161135,
           "monto_aplicado": 10400.0
          },
          {
-          "position_id": "POS-82d390a63a",
+          "position_id": "POS-786a7c9ef5",
           "instrument_id": "FND-GUB-CP",
           "titulos": 43.244631,
           "monto_aplicado": 8000.0
          },
          {
-          "position_id": "POS-3c6eacc966",
+          "position_id": "POS-a314d4f7f3",
           "instrument_id": "NAFTRAC",
           "titulos": 53.349816,
           "monto_aplicado": 14400.0
          },
          {
-          "position_id": "POS-680a4b5d5a",
+          "position_id": "POS-e2c40404e5",
           "instrument_id": "TRACK-SP500",
           "titulos": 53.359458,
           "monto_aplicado": 13600.0
          }
         ],
-        "mensaje": "Orden ejecutada. Folio BN-2026-100006.",
+        "mensaje": "Orden ejecutada. Folio BN-2026-100007.",
         "disclaimer": "Operación simulada sobre datos sintéticos. No movió dinero real."
        }
       }
@@ -5623,7 +11779,7 @@
          "id": "folio",
          "component": "Badge",
          "tone": "positive",
-         "label": "Orden BN-2026-100006 ejecutada"
+         "label": "Orden BN-2026-100007 ejecutada"
         },
         {
          "id": "posiciones",

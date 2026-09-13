@@ -141,6 +141,28 @@ def test_blueprint_banca_personal_pasa():
     assert res.ok, res.errores
 
 
+def test_blueprint_tablero_inicial_pasa():
+    mensajes = [
+        {"version": "v0.9", "createSurface": {"surfaceId": "inicio", "catalogId": CATALOG_ID}},
+        {"version": "v0.9", "updateComponents": {"surfaceId": "inicio", "components": [
+            {"id": "root", "component": "Column", "children": ["perfil", "recs"]},
+            {"id": "perfil", "component": "bank.FinancialProfile",
+             "perfil": {"path": "/perfil_financiero"}},
+            {"id": "recs", "component": "bank.Recommendations",
+             "recomendaciones": {"path": "/recomendaciones"}, "titulo": "Para ti", "max": 3},
+        ]}},
+    ]
+    res = validate_a2ui(mensajes)
+    assert res.ok, res.errores
+
+
+def test_follow_recommendation_esta_declarada_y_la_emiten_las_recomendaciones():
+    assert "follow_recommendation" in ACCIONES
+    assert "bank.Recommendations" in ACCIONES["follow_recommendation"]["emitida_por"]
+    assert set(ACCIONES["follow_recommendation"]["contexto"]) == {
+        "recomendacion_id", "herramienta_id", "prompt"}
+
+
 # ------------------------------------------------------------------ casos que fallan
 def _solo_componentes(componentes: list[dict]) -> list[dict]:
     return [{"version": "v0.9",

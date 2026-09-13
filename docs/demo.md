@@ -19,11 +19,12 @@ asesoría real. Lo que sí es real es el ciclo.»
 
 ---
 
-## Los seis momentos
+## Los siete momentos
 
 | # | Qué haces | Qué decir mientras carga | Qué se ve |
 |---|---|---|---|
-| 1 | Escribes «tengo 80 mil pesos parados y los podría dejar 5 años, ¿qué hago?» | «Le falta contexto: no tengo su perfil. En vez de preguntárselo en texto, **construye** la pregunta.» | `createSurface` + perfilador de 4 preguntas |
+| 0 | Nada: abres la app | «Antes de que escriba, el banco ya leyó 12 meses de su historia: movimientos, estados de cuenta de la tarjeta, créditos. Esto no lo escribió el modelo; lo **calculó** el banco, y no hubo una sola llamada a la API.» | Tablero: salud financiera, a dónde se va el ingreso, rasgos y recomendaciones con evidencia e impacto en pesos |
+| 1 | En la primera recomendación («Tienes … sin invertir») presionas **Empezar** —o escribes «tengo 80 mil pesos parados y los podría dejar 5 años, ¿qué hago?»— | «Le falta contexto: no tengo su perfil. En vez de preguntárselo en texto, **construye** la pregunta.» | `createSurface` + perfilador de 4 preguntas |
 | 2 | Contestas las cuatro | «El score no lo inventa el modelo, se lo pide al banco. Y con eso arma la propuesta.» | La superficie se reescribe: métricas, dona, proyección p10/p50/p90, sliders |
 | 3 | Subes la aportación mensual a $2,500 | «Fíjense que **no parpadeó**. Un solo `updateDataModel`: los componentes ya estaban montados.» | La gráfica se recalcula en el lugar |
 | 4 | Presionas «¿Y si fuera más conservador?» | «Nadie programó una pantalla de comparación. El agente decidió que esa pregunta se responde con dos columnas.» | `inv.ComparePanel` con las mismas métricas |
@@ -43,7 +44,14 @@ técnico:
   `get_spending_summary` → `propose_allocation` → `simulate_portfolio`;
 - `tool (mueve dinero)` en rojo en los turnos 5 y 6;
 - en el turno 3, **un solo** `updateDataModel` frente a los
-  `updateComponents` de los otros turnos.
+  `updateComponents` de los otros turnos;
+- en el momento 0, `tool directa (sin LLM)`: el tablero entero salió de los
+  servicios, sin tokens.
+
+**Si hay tiempo, cambia de cliente.** Con Luis (CLI-0003) o Diego (CLI-0005) el
+tablero cambia solo: la primera recomendación deja de ser invertir y pasa a ser
+su tarjeta, porque sus estados de cuenta dicen que pagan el mínimo o tarde. Nadie
+programó esa diferencia por cliente.
 
 Si en algún turno aparece `blueprint rechazado`, **no lo escondas**: es el mejor
 momento de la demo. «El modelo se equivocó, el validador le devolvió el error
@@ -80,6 +88,18 @@ No. El system prompt lo prohíbe y el motor está en `bank/finance/`; toda cifra
 pantalla viene de un `tool_result`. Además el Monte Carlo es determinista: la
 semilla se deriva de los argumentos, así que mover un slider y regresarlo da
 exactamente lo mismo.
+
+**«¿De dónde salen las recomendaciones? ¿Las decide el modelo?»**
+No. Salen de reglas sobre un perfil que el banco calcula con 12 meses de datos
+(`bank/finance/perfil.py`). Cada una trae la evidencia que la dispara, su impacto
+en pesos con el supuesto declarado y una prioridad con fórmula: urgencia más el
+impacto frente al ingreso. El modelo las puede explicar, pero no las reordena ni
+inventa otras.
+
+**«¿Cómo sabe que paga el mínimo?»**
+Lo lee de sus estados de cuenta: en cuántos cortes pagó completo, cuántos pagó
+cerca del mínimo y cuántos tarde. Los clientes sintéticos declaran hábitos, no
+etiquetas; el perfil tiene que descubrirlos y un test verifica que lo haga.
 
 **«¿Qué pasa si el modelo inventa un componente?»**
 Tres cosas, en orden: el validador lo rechaza y le devuelve el error con los

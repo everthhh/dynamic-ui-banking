@@ -114,6 +114,9 @@ class Sesion:
     historial: list[dict[str, Any]] = field(default_factory=list)
     tools_del_turno: list[dict[str, Any]] = field(default_factory=list)
     a2ui_del_turno: list[dict[str, Any]] = field(default_factory=list)
+    # Lo que el cliente vio en el tablero inicial, que arma el gateway sin el
+    # modelo. Va al system prompt para que el agente sepa qué hay en pantalla.
+    contexto_tablero: str | None = None
     uso: dict[str, int] = field(default_factory=lambda: {
         "input_tokens": 0, "output_tokens": 0,
         "cache_creation_input_tokens": 0, "cache_read_input_tokens": 0})
@@ -299,7 +302,8 @@ class AgenteUIGenerativa:
     async def _una_llamada(self, sesion: Sesion) -> tuple[list[dict[str, Any]], str | None]:
         """Una llamada a messages.create con streaming. Devuelve bloques normalizados."""
         system = construir_system(
-            contexto_de_sesion(sesion.client_id, sesion.surface_id, sesion.turno))
+            contexto_de_sesion(sesion.client_id, sesion.surface_id, sesion.turno,
+                               tablero=sesion.contexto_tablero))
 
         async with self.cliente.messages.stream(
             model=self.modelo,

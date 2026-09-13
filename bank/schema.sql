@@ -26,6 +26,10 @@ CREATE TABLE clients (
     rfc_mock             TEXT    NOT NULL,
     ingreso_mensual      REAL    NOT NULL,          -- MXN declarado
     horizonte_meses      INTEGER,                   -- lo que el cliente dijo la ultima vez
+    -- conocimiento del cliente (KYC): lo que el banco pide al abrir la cuenta
+    fecha_nacimiento     TEXT,                      -- ISO date
+    ocupacion            TEXT,
+    dependientes         INTEGER NOT NULL DEFAULT 0,
     CHECK (segmento IN ('nomina','preferente','patrimonial','pyme'))
 );
 
@@ -46,21 +50,31 @@ CREATE TABLE accounts (
 CREATE INDEX idx_accounts_client ON accounts(client_id);
 
 -- --------------------------------------------------------- core: movimientos
+-- Un solo libro por cliente, como lo ve en la app: la cuenta de uso y su
+-- tarjeta de credito. `card_id` NULL = movimiento de la cuenta; con valor =
+-- compra, interes o comision de esa tarjeta (y `account_id` es su cuenta eje).
+-- Categorias (ver bank/categorias.py):
+--   consumo      super | restaurantes | transporte | servicios | renta | salud
+--                | entretenimiento | educacion
+--   ingreso      nomina | honorarios
+--   no consumo   traspaso | inversion | pago_tarjeta | credito | costo_financiero
 CREATE TABLE transactions (
     txn_id               TEXT PRIMARY KEY,          -- 'TXN-000001'
     account_id           TEXT    NOT NULL REFERENCES accounts(account_id),
+    card_id              TEXT             REFERENCES cards(card_id),
     fecha                TEXT    NOT NULL,          -- ISO datetime
     tipo                 TEXT    NOT NULL,          -- cargo | abono
     monto                REAL    NOT NULL,          -- siempre positivo; el signo lo da `tipo`
-    categoria            TEXT    NOT NULL,          -- nomina | renta | super | transporte | ...
+    categoria            TEXT    NOT NULL,
     descripcion          TEXT    NOT NULL,
     comercio             TEXT,
-    saldo_posterior      REAL    NOT NULL,
+    saldo_posterior      REAL    NOT NULL,          -- del producto que se movio: cuenta o tarjeta
     CHECK (tipo IN ('cargo','abono')),
     CHECK (monto >= 0)
 );
 CREATE INDEX idx_txn_account_fecha ON transactions(account_id, fecha DESC);
 CREATE INDEX idx_txn_categoria     ON transactions(categoria);
+CREATE INDEX idx_txn_card          ON transactions(card_id);
 
 -- ------------------------------------------------------------ core: tarjetas
 CREATE TABLE cards (
@@ -95,6 +109,34 @@ CREATE TABLE card_events (
     CHECK (tipo IN ('bloqueo','desbloqueo','limite','alias'))
 );
 CREATE INDEX idx_card_events_card ON card_events(card_id, creado_en DESC);
+
+-- Estados de cuenta mensuales de tarjeta de credito: el historial crediticio
+-- interno. Cuanto debia al corte, cuanto era el minimo, cuanto pago y cuando.
+-- `bank/finance/perfil.py` deduce de aqui si el cliente es totalero,
+-- revolvente o paga tarde; ninguna de esas etiquetas se guarda.
+CREATE TABLE card_statements (
+    statement_id         TEXT PRIMARY KEY,
+    card_id              TEXT    NOT NULL REFERENCES cards(card_id),
+    client_id            TEXT    NOT NULL REFERENCES clients(client_id),
+    fecha_corte          TEXT    NOT NULL,          -- ISO date
+    fecha_limite_pago    TEXT    NOT NULL,
+    saldo_anterior       REAL    NOT NULL,
+    compras              REAL    NOT NULL,
+    intereses            REAL    NOT NULL DEFAULT 0,
+    comisiones           REAL    NOT NULL DEFAULT 0,
+    pagos_periodo        REAL    NOT NULL DEFAULT 0,
+    saldo_al_corte       REAL    NOT NULL,
+    pago_minimo          REAL    NOT NULL,
+    pago_no_intereses    REAL    NOT NULL,
+    pagado               REAL    NOT NULL DEFAULT 0, -- abonado a ESTE corte
+    fecha_pago           TEXT,                       -- NULL: no ha pagado
+    dias_atraso          INTEGER NOT NULL DEFAULT 0,
+    CHECK (saldo_al_corte >= 0),
+    CHECK (pagado >= 0),
+    CHECK (dias_atraso >= 0)
+);
+CREATE INDEX idx_statements_card   ON card_statements(card_id, fecha_corte DESC);
+CREATE INDEX idx_statements_client ON card_statements(client_id, fecha_corte DESC);
 
 -- ---------------------------------------------------------- core: presupuestos
 -- Uno por categoria y cliente: el usuario define cuanto quiere gastar al mes

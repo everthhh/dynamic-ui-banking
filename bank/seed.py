@@ -6,7 +6,9 @@
 Lo que produce:
   * 24 instrumentos (bank/instrumentos.py)
   * 120 meses de series por instrumento, GBM con correlacion entre clases
-  * 8 clientes con cuentas, 18 meses de movimientos, tarjetas y creditos
+  * 8 clientes con cuentas, tarjetas y creditos, y 18 meses de movimientos y
+    estados de cuenta de tarjeta simulados desde sus habitos
+    (bank/personas.py + bank/comportamiento.py)
   * perfiles de riesgo: algunos vigentes, algunos vencidos, uno inexistente
   * posiciones de inversion y un historial corto de ordenes ejecutadas
 
@@ -26,7 +28,7 @@ from pathlib import Path
 
 import numpy as np
 
-from bank import carteras, db, emisoras, mercado
+from bank import carteras, comportamiento, db, emisoras, mercado, personas
 from bank.finance import fiscal
 from bank.instrumentos import (
     INSTRUMENTOS,
@@ -53,6 +55,8 @@ CIUDADES = ("Monterrey", "Guadalajara", "CDMX", "Queretaro",
 # perfil_sembrado = None  -> no tiene perfil en la base
 #                 = ("vencido", score) -> perfil existente pero fuera de vigencia
 #                 = ("vigente", score) -> perfil usable
+# Los habitos de cada uno (en que gasta, como paga la tarjeta) viven en
+# bank/personas.py, con el mismo client_id.
 CLIENTES = (
     ("CLI-0001", "Ana Sofia Reyes",     "preferente",  48_000,  60, None),
     ("CLI-0002", "Javier Montemayor",   "patrimonial", 180_000, 120, ("vigente", 72)),
@@ -72,16 +76,15 @@ PERFILES = (
     (81, 100, "agresivo"),
 )
 
-CATEGORIAS_CARGO = (
-    ("super", "Supermercado", 900, 3_200),
-    ("restaurantes", "Restaurante", 250, 1_400),
-    ("transporte", "Transporte", 120, 800),
-    ("servicios", "Servicios del hogar", 400, 1_900),
-    ("renta", "Renta", 8_000, 18_000),
-    ("salud", "Farmacia", 180, 1_100),
-    ("entretenimiento", "Suscripciones y salidas", 150, 1_200),
-    ("educacion", "Colegiaturas", 2_500, 9_000),
-)
+# Tasa por producto de credito. Son las mismas que usa bank/finance/origen.py
+# como costo del dinero prestado.
+TASA_POR_PRODUCTO = {"auto": 0.135, "hipotecario": 0.1075, "personal": 0.289, "nomina": 0.215}
+
+# Presupuestos del cliente del guion. Solo CLI-0001, a proposito: asi el demo
+# muestra el caso "ya configuro presupuestos" y el caso "todavia no", que es
+# el mas comun.
+PRESUPUESTOS_CLI_0001 = (("super", 5_000.0), ("restaurantes", 3_000.0),
+                         ("entretenimiento", 3_000.0))
 
 
 def perfil_de_score(score: int) -> str:
@@ -173,156 +176,143 @@ def generar_series(rng: np.random.Generator) -> dict[str, list[tuple[date, float
 # ---------------------------------------------------------------------------
 # core bancario
 # ---------------------------------------------------------------------------
-def sembrar_core(conn: sqlite3.Connection, rng: np.random.Generator) -> None:
+def sembrar_core(
+    conn: sqlite3.Connection, rng: np.random.Generator
+) -> tuple[dict[str, list[str]], dict[str, float]]:
+    """Clientes, cuentas, tarjetas y creditos; los movimientos salen de simular.
+
+    El `rng` global solo decide lo que no es habito (saldos iniciales y
+    terminaciones de tarjeta). Los movimientos usan una semilla propia por
+    cliente, `[SEED, idx]`: recalibrar una persona no reacomoda a las demas.
+
+    Devuelve dos cosas por cliente: los cargos fijos que sus habitos no
+    alcanzaron a pagar (vacio es lo correcto; `construir` decide que hacer si
+    no lo es) y lo que barrio a sus fondos, que `sembrar_inversiones` suma a
+    sus posiciones.
+    """
+    rechazos: dict[str, list[str]] = {}
+    a_fondos: dict[str, float] = {}
     txn_n = 0
-    for idx, (cid, nombre, segmento, ingreso, horizonte, _perfil) in enumerate(CLIENTES):
+    meses = comportamiento.meses_calendario(
+        MESES_MOVIMIENTOS, FECHA_VALUACION - timedelta(days=1))
+
+    for idx, (cid, nombre, segmento, ingreso, _horizonte, perfil) in enumerate(CLIENTES):
+        persona = personas.POR_CLIENTE[cid]
+        ingreso = float(ingreso)
         alta = date(2017 + idx % 6, 1 + (idx * 3) % 12, 1 + (idx * 5) % 27)
         conn.execute(
             "INSERT INTO clients (client_id, nombre, fecha_alta, segmento, ciudad,"
-            " rfc_mock, ingreso_mensual, horizonte_meses) VALUES (?,?,?,?,?,?,?,?)",
+            " rfc_mock, ingreso_mensual, horizonte_meses, fecha_nacimiento, ocupacion,"
+            " dependientes) VALUES (?,?,?,?,?,?,?,?,?,?,?)",
             (cid, nombre, alta.isoformat(), segmento, CIUDADES[idx],
-             f"XXXX{alta.strftime('%y%m%d')}{chr(65 + idx)}{idx}A", float(ingreso), horizonte),
+             f"XXXX{persona.fecha_nacimiento.strftime('%y%m%d')}{chr(65 + idx)}{idx}A",
+             ingreso, _horizonte, persona.fecha_nacimiento.isoformat(), persona.ocupacion,
+             persona.dependientes),
         )
 
-        # una cuenta de uso diario y una de inversion
         uso = f"ACC-{idx * 2 + 1:04d}"
         inv = f"ACC-{idx * 2 + 2:04d}"
-        saldo_uso = round(float(ingreso) * rng.uniform(0.4, 2.2), 2)
-        conn.execute(
-            "INSERT INTO accounts (account_id, client_id, tipo, clabe_mock, moneda,"
-            " saldo_disponible, saldo_liquidado, abierta_en) VALUES (?,?,?,?,?,?,?,?)",
-            (uso, cid, "nomina" if segmento == "nomina" else "cheques",
-             f"0721800000{idx:08d}", "MXN", saldo_uso, saldo_uso, alta.isoformat()),
-        )
-        # Efectivo SIN invertir dentro de la cuenta de inversion. Lo que ya se
-        # invirtio vive en `positions`, no aqui. Quien no tiene perfil tampoco
-        # tiene posiciones, asi que le dejamos un piso de efectivo: es el
-        # cliente del guion ("tengo 80 mil parados").
-        tiene_perfil = CLIENTES[idx][5] is not None
-        saldo_inv = float(ingreso) * float(rng.uniform(0.5, 4.0))
-        if not tiene_perfil:
-            saldo_inv = max(saldo_inv, float(ingreso) * 2.5)
-        saldo_inv = round(saldo_inv, 2)
-        conn.execute(
-            "INSERT INTO accounts (account_id, client_id, tipo, clabe_mock, moneda,"
-            " saldo_disponible, saldo_liquidado, abierta_en) VALUES (?,?,?,?,?,?,?,?)",
-            (inv, cid, "inversion", f"0721810000{idx:08d}", "MXN",
-             saldo_inv, saldo_inv, alta.isoformat()),
-        )
+        saldo_uso_inicial = round(ingreso * float(rng.uniform(0.4, 2.2)), 2)
+        # Efectivo SIN invertir en la cuenta de inversion al inicio de la
+        # ventana; los barridos de fin de mes se le suman. Quien no tiene
+        # perfil lleva un piso: es el cliente del guion ("tengo 80 mil parados").
+        saldo_inv = ingreso * persona.efectivo_inversion_meses * float(rng.uniform(0.9, 1.1))
+        if perfil is None:
+            saldo_inv = max(saldo_inv, ingreso * 2.5)
+        last4_debito = f"{int(rng.integers(1000, 9999))}"
+        last4_credito = f"{int(rng.integers(1000, 9999))}"
 
-        # movimientos de los ultimos 18 meses en la cuenta de uso
-        saldo = saldo_uso
-        inicio = FECHA_VALUACION - timedelta(days=30 * MESES_MOVIMIENTOS)
-        for mes in range(MESES_MOVIMIENTOS):
-            base = inicio + timedelta(days=30 * mes)
-            # abono de nomina, quincenal
-            for quincena in (0, 15):
-                txn_n += 1
-                monto = round(float(ingreso) / 2 * rng.uniform(0.97, 1.03), 2)
-                saldo += monto
-                conn.execute(
-                    "INSERT INTO transactions (txn_id, account_id, fecha, tipo, monto,"
-                    " categoria, descripcion, comercio, saldo_posterior)"
-                    " VALUES (?,?,?,?,?,?,?,?,?)",
-                    (f"TXN-{txn_n:06d}", uso,
-                     (base + timedelta(days=quincena)).isoformat() + "T09:00:00",
-                     "abono", monto, "nomina", "Deposito de nomina", "Empleador (sim)",
-                     round(saldo, 2)),
-                )
-            # cargos del mes
-            for k in range(int(rng.integers(9, 17))):
-                categoria, desc, lo, hi = CATEGORIAS_CARGO[int(rng.integers(0, len(CATEGORIAS_CARGO)))]
-                if categoria in ("renta", "educacion") and k > 0:
-                    continue            # esos son una vez al mes
-                txn_n += 1
-                monto = round(float(rng.uniform(lo, hi)), 2)
-                saldo -= monto
-                conn.execute(
-                    "INSERT INTO transactions (txn_id, account_id, fecha, tipo, monto,"
-                    " categoria, descripcion, comercio, saldo_posterior)"
-                    " VALUES (?,?,?,?,?,?,?,?,?)",
-                    (f"TXN-{txn_n:06d}", uso,
-                     (base + timedelta(days=int(rng.integers(1, 28)))).isoformat() + "T"
-                     f"{int(rng.integers(8, 22)):02d}:{int(rng.integers(0, 60)):02d}:00",
-                     "cargo", monto, categoria, desc, f"{desc} (sim)", round(saldo, 2)),
-                )
-            # Barrido de fin de mes: lo que sobra se va a la cuenta de inversion.
-            # Sin esto la cuenta de uso acumula 18 meses de excedente y un
-            # cliente de 48 mil de ingreso termina con un millon parado ahi,
-            # que es justo el tipo de dato absurdo que un juez nota.
-            colchon = float(ingreso) * float(rng.uniform(0.6, 1.6))
-            excedente = saldo - colchon
-            if excedente > 500:
-                txn_n += 1
-                saldo -= excedente
-                conn.execute(
-                    "INSERT INTO transactions (txn_id, account_id, fecha, tipo, monto,"
-                    " categoria, descripcion, comercio, saldo_posterior)"
-                    " VALUES (?,?,?,?,?,?,?,?,?)",
-                    (f"TXN-{txn_n:06d}", uso,
-                     (base + timedelta(days=28)).isoformat() + "T23:00:00",
-                     "cargo", round(excedente, 2), "traspaso",
-                     "Traspaso a cuenta de inversión", None, round(saldo, 2)),
-                )
-        conn.execute("UPDATE accounts SET saldo_disponible = ?, saldo_liquidado = ?"
-                     " WHERE account_id = ?", (round(saldo, 2), round(saldo, 2), uso))
-
-        # tarjetas
-        conn.execute(
-            "INSERT INTO cards (card_id, client_id, account_id, tipo, last4, limite_credito,"
-            " saldo_utilizado, tasa_anual, dia_corte, dia_pago) VALUES (?,?,?,?,?,?,?,?,?,?)",
-            (f"CRD-{idx * 2 + 1:04d}", cid, uso, "debito", f"{int(rng.integers(1000, 9999))}",
-             None, 0.0, None, None, None),
-        )
-        if segmento != "nomina" or rng.random() < 0.6:
-            limite = round(float(ingreso) * rng.uniform(1.5, 5.0), -3)
-            # La tasa es lo que convierte a la tarjeta en un origen de fondos
-            # evaluable: sin ella no se puede comparar contra el rendimiento
-            # esperado del portafolio.
-            tasa_tdc = round(float(rng.uniform(0.32, 0.52)), 4)
+        tipo_uso = "nomina" if segmento == "nomina" else "cheques"
+        for account_id, tipo, clabe in ((uso, tipo_uso, f"0721800000{idx:08d}"),
+                                        (inv, "inversion", f"0721810000{idx:08d}")):
             conn.execute(
-                "INSERT INTO cards (card_id, client_id, account_id, tipo, last4, limite_credito,"
-                " saldo_utilizado, tasa_anual, dia_corte, dia_pago) VALUES (?,?,?,?,?,?,?,?,?,?)",
-                (f"CRD-{idx * 2 + 2:04d}", cid, None, "credito",
-                 f"{int(rng.integers(1000, 9999))}", limite,
-                 round(limite * float(rng.uniform(0.05, 0.55)), 2), tasa_tdc,
-                 int(rng.integers(1, 28)), int(rng.integers(1, 28))),
+                "INSERT INTO accounts (account_id, client_id, tipo, clabe_mock, moneda,"
+                " saldo_disponible, saldo_liquidado, abierta_en) VALUES (?,?,?,?,?,?,?,?)",
+                (account_id, cid, tipo, clabe, "MXN", 0.0, 0.0, alta.isoformat()),
             )
 
-        # credito vigente para la mitad de los clientes
-        if idx % 2 == 0:
-            producto = ("auto", "hipotecario", "personal", "nomina")[idx % 4]
-            monto = {"auto": 380_000, "hipotecario": 2_400_000,
-                     "personal": 120_000, "nomina": 80_000}[producto]
-            plazo = {"auto": 60, "hipotecario": 240, "personal": 36, "nomina": 24}[producto]
-            tasa = {"auto": 0.135, "hipotecario": 0.1075, "personal": 0.289, "nomina": 0.215}[producto]
-            i = tasa / 12
-            pago = monto * i / (1 - (1 + i) ** -plazo)
-            pagadas = int(rng.integers(4, max(5, plazo // 2)))
-            saldo_insoluto = monto * ((1 + i) ** plazo - (1 + i) ** pagadas) / ((1 + i) ** plazo - 1)
+        # Tarjetas. El limite nunca pasa de 3x el ingreso: es la misma regla que
+        # aplica `set_card_limit`, y antes el seed la rompia.
+        tarjeta = persona.tarjeta
+        limite = round(ingreso * tarjeta.limite_x_ingreso, -3)
+        card_debito = f"CRD-{idx * 2 + 1:04d}"
+        card_credito = f"CRD-{idx * 2 + 2:04d}"
+        conn.executemany(
+            "INSERT INTO cards (card_id, client_id, account_id, tipo, last4, limite_credito,"
+            " saldo_utilizado, tasa_anual, dia_corte, dia_pago) VALUES (?,?,?,?,?,?,?,?,?,?)",
+            [(card_debito, cid, uso, "debito", last4_debito, None, 0.0, None, None, None),
+             (card_credito, cid, uso, "credito", last4_credito, limite, 0.0,
+              tarjeta.tasa_anual, tarjeta.dia_corte,
+              (tarjeta.dia_corte + comportamiento.DIAS_PARA_PAGAR - 1) % 28 + 1)],
+        )
+
+        # Credito: va antes de simular porque su mensualidad sale de la cuenta.
+        pago_credito: float | None = None
+        if persona.credito is not None:
+            c = persona.credito
+            tasa = TASA_POR_PRODUCTO[c.producto]
+            pago_credito = round(comportamiento.pago_mensual(c.monto, tasa, c.plazo_meses), 2)
             conn.execute(
                 "INSERT INTO loans (loan_id, client_id, producto, monto_original, saldo_insoluto,"
                 " tasa_anual, plazo_meses, pago_mensual, mensualidades_pagadas, abierto_en)"
                 " VALUES (?,?,?,?,?,?,?,?,?,?)",
-                (f"LON-{idx:04d}", cid, producto, float(monto), round(saldo_insoluto, 2),
-                 tasa, plazo, round(pago, 2), pagadas,
-                 (FECHA_VALUACION - timedelta(days=30 * pagadas)).isoformat()),
+                (f"LON-{idx:04d}", cid, c.producto, float(c.monto),
+                 round(comportamiento.saldo_insoluto(c.monto, tasa, c.plazo_meses,
+                                                     c.meses_pagados), 2),
+                 tasa, c.plazo_meses, pago_credito, c.meses_pagados,
+                 (FECHA_VALUACION - timedelta(days=30 * c.meses_pagados)).isoformat()),
             )
 
-        # Presupuestos: solo para el cliente del guion (CLI-0001), a propósito
-        # sin tocar los demás — así el demo muestra tanto el caso "ya configuró
-        # presupuestos" como el caso "todavía no", que es el más común.
+        sim = comportamiento.simular(
+            persona, ingreso_mensual=ingreso, saldo_inicial=saldo_uso_inicial,
+            limite_tdc=limite, last4_tdc=last4_credito, pago_credito=pago_credito,
+            meses=meses, rng=np.random.default_rng([db.SEED, idx]))
+        if sim.cargos_fijos_rechazados:
+            rechazos[cid] = sim.cargos_fijos_rechazados
+
+        filas = []
+        for mov in sim.movimientos:
+            txn_n += 1
+            filas.append((f"TXN-{txn_n:06d}", uso, card_credito if mov["tarjeta"] else None,
+                          mov["fecha"], mov["tipo"], mov["monto"], mov["categoria"],
+                          mov["descripcion"], mov["comercio"], mov["saldo_posterior"]))
+        conn.executemany(
+            "INSERT INTO transactions (txn_id, account_id, card_id, fecha, tipo, monto,"
+            " categoria, descripcion, comercio, saldo_posterior)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?)", filas)
+
+        conn.executemany(
+            "INSERT INTO card_statements (statement_id, card_id, client_id, fecha_corte,"
+            " fecha_limite_pago, saldo_anterior, compras, intereses, comisiones,"
+            " pagos_periodo, saldo_al_corte, pago_minimo, pago_no_intereses, pagado,"
+            " fecha_pago, dias_atraso) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+            [(f"EDC-{card_credito[4:]}-{e['fecha_corte'][:7]}", card_credito, cid,
+              e["fecha_corte"], e["fecha_limite_pago"], e["saldo_anterior"], e["compras"],
+              e["intereses"], e["comisiones"], e["pagos_periodo"], e["saldo_al_corte"],
+              e["pago_minimo"], e["pago_no_intereses"], e["pagado"], e["fecha_pago"],
+              e["dias_atraso"])
+             for e in sim.estados_cuenta])
+
+        if persona.invierte_barrido:
+            a_fondos[cid] = sim.barrido_total
+            saldo_inv_final = round(saldo_inv, 2)
+        else:
+            saldo_inv_final = round(saldo_inv + sim.barrido_total, 2)
+        conn.executemany(
+            "UPDATE accounts SET saldo_disponible = ?, saldo_liquidado = ? WHERE account_id = ?",
+            [(sim.saldo_cuenta, sim.saldo_cuenta, uso),
+             (saldo_inv_final, saldo_inv_final, inv)])
+        conn.execute("UPDATE cards SET saldo_utilizado = ? WHERE card_id = ?",
+                     (sim.saldo_tarjeta, card_credito))
+
         if cid == "CLI-0001":
             hoy_iso = FECHA_VALUACION.isoformat()
-            for cat_idx, (categoria, monto_presupuesto) in enumerate(
-                (("super", 3000.0), ("restaurantes", 1200.0), ("entretenimiento", 500.0))
-            ):
-                conn.execute(
-                    "INSERT INTO budgets (budget_id, client_id, categoria, monto_mensual,"
-                    " creado_en, actualizado_en) VALUES (?,?,?,?,?,?)",
-                    (f"BUD-{idx:04d}-{cat_idx}", cid, categoria, monto_presupuesto,
-                     hoy_iso, hoy_iso),
-                )
+            conn.executemany(
+                "INSERT INTO budgets (budget_id, client_id, categoria, monto_mensual,"
+                " creado_en, actualizado_en) VALUES (?,?,?,?,?,?)",
+                [(f"BUD-{idx:04d}-{k}", cid, categoria, monto, hoy_iso, hoy_iso)
+                 for k, (categoria, monto) in enumerate(PRESUPUESTOS_CLI_0001)])
+    return rechazos, a_fondos
 
 
 # ---------------------------------------------------------------------------
@@ -332,9 +322,11 @@ def sembrar_inversiones(
     conn: sqlite3.Connection,
     rng: np.random.Generator,
     series: dict[str, list[tuple[date, float, float]]],
+    a_fondos: dict[str, float] | None = None,
 ) -> None:
     for idx, (cid, _n, _seg, ingreso, horizonte, perfil) in enumerate(CLIENTES):
         inv = f"ACC-{idx * 2 + 2:04d}"
+        barrido = (a_fondos or {}).get(cid, 0.0)
 
         if perfil is not None:
             estado, score = perfil
@@ -356,11 +348,20 @@ def sembrar_inversiones(
 
         # posiciones: solo los que ya invirtieron
         if perfil is None or rng.random() < 0.2:
+            if barrido:
+                # Iba a sus fondos, pero no tiene: se queda como efectivo.
+                conn.execute(
+                    "UPDATE accounts SET saldo_disponible = saldo_disponible + ?,"
+                    " saldo_liquidado = saldo_liquidado + ? WHERE account_id = ?",
+                    (barrido, barrido, inv))
             continue
         score = perfil[1]
         candidatos = [i for i in INSTRUMENTOS if i.riesgo_1a5 <= max(1, score // 20 + 1)]
         elegidos = rng.choice(len(candidatos), size=int(rng.integers(2, 5)), replace=False)
-        capital = float(ingreso) * float(rng.uniform(3, 20))
+        capital = float(ingreso) * personas.POR_CLIENTE[cid].invertido_meses \
+            * float(rng.uniform(0.8, 1.2)) + barrido
+        if capital <= 0:
+            continue
         pesos = rng.dirichlet(np.ones(len(elegidos)) * 2.5)
         for k, pos_idx in enumerate(elegidos):
             inst = candidatos[int(pos_idx)]
@@ -439,7 +440,14 @@ def sembrar_emisoras(conn: sqlite3.Connection) -> None:
 
 
 # ---------------------------------------------------------------------------
-def construir(path: Path | None = None) -> Path:
+def construir(path: Path | None = None, *, estricto: bool = True,
+              rechazos: dict[str, list[str]] | None = None) -> Path:
+    """Escribe la base completa.
+
+    `estricto=False` es para calibrar personas: en lugar de fallar cuando un
+    cliente no alcanza a pagar sus cargos fijos, deja la base escrita y reporta
+    los rechazos en `rechazos`.
+    """
     rng = np.random.default_rng(db.SEED)
     target = db.reset(path)
     series = generar_series(rng)
@@ -492,8 +500,15 @@ def construir(path: Path | None = None) -> Path:
             " VALUES (?,?,?,?)",
             [(iid, f.isoformat(), v, r) for iid, filas in series.items() for f, v, r in filas],
         )
-        sembrar_core(conn, rng)
-        sembrar_inversiones(conn, rng, series)
+        sin_pagar, a_fondos = sembrar_core(conn, rng)
+        if rechazos is not None:
+            rechazos.update(sin_pagar)
+        if sin_pagar and estricto:
+            detalle = "; ".join(f"{cid}: {', '.join(v[:2])}" for cid, v in sin_pagar.items())
+            raise ValueError(
+                "Con sus habitos, estos clientes no alcanzan a pagar sus cargos fijos "
+                f"({detalle}). Recalibra sus personas en bank/personas.py.")
+        sembrar_inversiones(conn, rng, series, a_fondos)
 
     _exportar_parquet(series)
     return target
@@ -524,8 +539,8 @@ def verificar(path: Path | None = None) -> list[str]:
     """Invariantes que el resto del repo da por ciertas."""
     problemas: list[str] = []
     with db.session(path, readonly=True) as conn:
-        def uno(sql: str) -> int:
-            return int(conn.execute(sql).fetchall()[0]["n"])
+        def uno(sql: str, params: tuple = ()) -> int:
+            return int(conn.execute(sql, params).fetchall()[0]["n"])
 
         if (n := uno("SELECT COUNT(*) n FROM instruments")) != len(INSTRUMENTOS):
             problemas.append(f"instruments: esperaba {len(INSTRUMENTOS)}, hay {n}")
@@ -536,6 +551,40 @@ def verificar(path: Path | None = None) -> list[str]:
             problemas.append(f"clients: esperaba {len(CLIENTES)}, hay {n}")
         if uno("SELECT COUNT(*) n FROM transactions") < 8 * MESES_MOVIMIENTOS * 10:
             problemas.append("transactions: muy pocos movimientos")
+
+        # --------------------------------------------- habitos y su simulacion
+        problemas += personas.validar()
+        sin_persona = [c[0] for c in CLIENTES if c[0] not in personas.POR_CLIENTE]
+        if sin_persona:
+            problemas.append(f"clientes sin persona en bank/personas.py: {', '.join(sin_persona)}")
+        negativos = uno("SELECT COUNT(*) n FROM transactions"
+                        " WHERE card_id IS NULL AND saldo_posterior < -0.005")
+        if negativos:
+            problemas.append(f"{negativos} movimientos dejan una cuenta en negativo")
+        for fila in conn.execute(
+                "SELECT card_id FROM cards WHERE tipo = 'credito'"
+                " AND saldo_utilizado > limite_credito * 1.10").fetchall():
+            problemas.append(f"{fila['card_id']}: utilizado muy por encima del limite")
+        for fila in conn.execute(
+                "SELECT c.card_id, (SELECT COUNT(*) FROM card_statements s"
+                "  WHERE s.card_id = c.card_id) n"
+                " FROM cards c WHERE c.tipo = 'credito'").fetchall():
+            if fila["n"] < MESES_MOVIMIENTOS - 1:
+                problemas.append(f"{fila['card_id']}: solo {fila['n']} estados de cuenta")
+        # El saldo de la cuenta de uso es exactamente donde termino su libro.
+        for fila in conn.execute(
+                "SELECT a.account_id, a.saldo_disponible,"
+                " (SELECT t.saldo_posterior FROM transactions t"
+                "   WHERE t.account_id = a.account_id AND t.card_id IS NULL"
+                "   ORDER BY t.fecha DESC, t.txn_id DESC LIMIT 1) ultimo"
+                " FROM accounts a WHERE a.tipo IN ('cheques', 'nomina')").fetchall():
+            if fila["ultimo"] is not None and abs(fila["ultimo"] - fila["saldo_disponible"]) > 0.01:
+                problemas.append(
+                    f"{fila['account_id']}: el saldo no coincide con su ultimo movimiento")
+        if (n := uno("SELECT COUNT(*) n FROM transactions WHERE categoria = 'renta'"
+                     " AND account_id = 'ACC-0003'")) < MESES_MOVIMIENTOS:
+            problemas.append(f"CLI-0002 deberia pagar renta cada mes (hay {n} pagos)")
+
         if (n := uno("SELECT COUNT(*) n FROM issuers")) != len(emisoras.EMISORAS):
             problemas.append(f"issuers: esperaba {len(emisoras.EMISORAS)}, hay {n}")
         esperado_factores = len(emisoras.EMISORAS) * len(emisoras.PESOS_RIESGO)

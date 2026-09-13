@@ -15,6 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from a2ui.models import CATALOG_ID
+from bank.finance.recomendaciones import HERRAMIENTAS
 
 CATALOG_PROMPT_PATH = Path(__file__).resolve().parent / "catalog_prompt.md"
 
@@ -28,7 +29,7 @@ un término técnico, lo explicas en la misma frase. No eres un asesor con licen
 y los datos son sintéticos: lo dices cuando venga al caso, sin repetirlo cada turno.
 """
 
-REGLAS = f"""\
+_REGLAS_BASE = f"""\
 ## Reglas que no se negocian
 
 1. **Tú no haces aritmética.** Ningún monto, porcentaje, proyección, score ni
@@ -165,9 +166,68 @@ REGLAS = f"""\
    `search_transactions` de nuevo y reescribes `/movimientos` (sin tocar
    `/movimientos_completos`).
 
+"""
+
+# Con qué componentes se pinta cada herramienta del catálogo de
+# recomendaciones (`bank/finance/recomendaciones.py`). Las tools de cada una
+# están en `services/profile.py`; un test verifica que las tres listas coincidan.
+COMPONENTES_POR_HERRAMIENTA: dict[str, tuple[str, ...]] = {
+    "perfilador_inversion": ("inv.RiskProfiler",),
+    "propuesta_inversion": ("inv.AllocationDonut", "inv.ProjectionChart", "inv.AmountSlider"),
+    "simulador_aportaciones": ("inv.ProjectionChart", "inv.AmountSlider"),
+    "comparador_portafolios": ("inv.ComparePanel",),
+    "presupuestos": ("bank.SpendingBudgets",),
+    "analisis_gasto": ("inv.SpendingBreakdown", "bank.TransactionSearch"),
+    "buscador_movimientos": ("bank.TransactionSearch",),
+    "control_tarjetas": ("bank.AccountsOverview", "bank.CardManager"),
+    "plan_pago_tarjeta": ("Stat", "Card", "Badge", "Button"),
+    "domiciliacion_pago": (),
+    "refinanciamiento": (),
+}
+
+
+def _tabla_herramientas() -> str:
+    filas = ["   | herramienta | qué es | se pinta con |", "   |---|---|---|"]
+    for h in HERRAMIENTAS:
+        componentes = ", ".join(f"`{c}`" for c in COMPONENTES_POR_HERRAMIENTA[h.herramienta_id])
+        filas.append(f"   | `{h.herramienta_id}` | {h.nombre} | "
+                     f"{componentes if h.disponible else 'aún no disponible'} |")
+    return "\n".join(filas)
+
+
+REGLAS_PERFIL = f"""\
+9. **El perfil financiero es la base de toda recomendación.** Antes de
+   recomendar algo —invertir, recortar un gasto, pagar una deuda— llama
+   `get_recommendations` (o `get_financial_profile` si solo hace falta el
+   diagnóstico). Ahí vienen el ingreso, el gasto, los hábitos de pago y las
+   recomendaciones ya priorizadas, cada una con su `evidencia`, su `impacto`
+   y su `herramienta`. No recomiendes nada que esas cifras no respalden, y
+   cuando recomiendes, di en qué dato te basas. El orden lo pone el banco con
+   una fórmula (`criterio_prioridad`): no lo reordenes a tu criterio.
+
+9b. **Cada herramienta se pinta con sus componentes.** Cuando llegue la acción
+   `follow_recommendation`, su `context` trae `recomendacion_id`,
+   `herramienta_id` y `prompt`: atiéndela como si el usuario hubiera escrito el
+   `prompt`, con las `tools` de esa herramienta y los `parametros` que trae la
+   recomendación en `get_recommendations`. Es una tarea nueva: `createSurface`
+   con otro `surfaceId`.
+
+{_tabla_herramientas()}
+
+   Si la herramienta aún no está disponible, dilo en una frase y ofrece lo más
+   cercano que sí existe.
+
+9c. **`bank.FinancialProfile` va enlazado a `/perfil_financiero` y
+   `bank.Recommendations` a `/recomendaciones`**, igual que en el tablero
+   inicial, para que el cliente reconozca lo que ya vio.
+
+"""
+
+_TURNO = """\
 ## Cómo trabajas un turno
 
-1. Entiende la intención. Si es la primera vez, `get_client_snapshot`.
+1. Entiende la intención. Si es la primera vez, `get_client_snapshot`; si vas a
+   recomendar algo, `get_recommendations`.
 2. Pide los datos y cálculos que necesites. Encadena tools libremente.
 3. Llama `render_surface` UNA vez con todos los mensajes A2UI del turno, en orden.
 4. Acompaña con una o dos frases de texto, máximo. La pantalla ya dice lo demás.
@@ -177,8 +237,10 @@ Cuando te llegue una acción del usuario (`profile_done`, `simulate`, …), su
 entrada de las tools; no vuelvas a preguntar lo que ya está ahí.
 """
 
+REGLAS = _REGLAS_BASE + REGLAS_PERFIL + _TURNO
+
 FEWSHOTS = """\
-## Cuatro ejemplos de intención → tools → blueprint
+## Cinco ejemplos de intención → tools → blueprint
 
 ### 1. Falta contexto
 
@@ -237,6 +299,27 @@ servidor responde solo, sin volver a llamarte, y solo sabe escribir ahí.
 Lo que estaría MAL: enlazar a `/cuenta/lista` o `/datos/tarjetas` porque "se
 oye más claro" — rompe el camino directo y el cambio del usuario no se vería
 reflejado hasta el siguiente turno tuyo.
+
+### 5. Seguir una recomendación del tablero
+
+Acción entrante: `follow_recommendation` con `context: {recomendacion_id:
+"liquidar_tarjeta_CRD-0006", herramienta_id: "plan_pago_tarjeta", prompt:
+"Quiero un plan para liquidar mi tarjeta terminación 4712"}`.
+
+Tools: `get_recommendations("CLI-0003")` para leer la evidencia y los
+`parametros` de esa recomendación, y después `simulate_debt_payoff("CLI-0003",
+card_id="CRD-0006", meses_objetivo=12)`.
+
+Blueprint: `createSurface` (`credito-plan`) + `updateDataModel` en `/plan` +
+`updateComponents` con `root` = Column[ Text h2, Row[ Stat pago mensual,
+Stat meses, Stat intereses que te ahorras ], Card con un Text que compara
+contra pagar solo el mínimo, Button `ask` «¿De dónde saco el dinero?» ]. Toda
+cifra, enlazada a `/plan`.
+
+Texto: una frase con el pago mensual y el ahorro, copiados del `tool_result`.
+
+Lo que estaría MAL: calcular tú el pago o los intereses, o contestar la
+recomendación con un párrafo en vez de construir la herramienta.
 """
 
 
@@ -261,11 +344,16 @@ def construir_system(extra: str | None = None, *, cachear: bool = True) -> list[
     return bloques
 
 
-def contexto_de_sesion(client_id: str, surface_id: str, turno: int) -> str:
-    return (
+def contexto_de_sesion(client_id: str, surface_id: str, turno: int,
+                       tablero: str | None = None) -> str:
+    """Bloque variable del system prompt. `tablero` es lo que el cliente ya vio al entrar."""
+    texto = (
         f"## Contexto de esta sesión\n"
         f"- Cliente en sesión: `{client_id}`. Úsalo en toda tool que pida `client_id`.\n"
         f"- Superficie activa: `{surface_id}`.\n"
         f"- Turno: {turno}.\n"
         f"- Prefijo sugerido para `idempotency_key`: `{client_id}-t{turno}`.\n"
     )
+    if tablero:
+        texto += "\n" + tablero + "\n"
+    return texto

@@ -20,6 +20,8 @@ type Turno = {
 };
 
 const GUION = demo.turnos as unknown as Turno[];
+// Tablero inicial grabado por cliente (scripts/gen_fixtures.py).
+const INICIOS = ((demo as unknown as { inicio?: Record<string, Evento[]> }).inicio ?? {});
 export const CLIENTES_SIMULADOS = demo.clientes as {
   client_id: string;
   nombre: string;
@@ -93,11 +95,43 @@ export async function reproducirChatSimulado(
   await reproducir(turno, onEvento);
 }
 
+export async function reproducirInicioSimulado(
+  cuerpo: { client_id: string },
+  onEvento: ManejadorDeEvento,
+): Promise<void> {
+  cursor = 0; // sesión nueva, guion desde el principio
+  onEvento("session", { session_id: SESSION_ID });
+  const eventos = INICIOS[cuerpo.client_id];
+  if (!eventos) {
+    onEvento("warning", { mensaje: "El guion simulado no trae tablero para este cliente." });
+    onEvento("done", { turno: -1, render_ok: false });
+    return;
+  }
+  await reproducir({ disparador: { tipo: "inicio" }, eventos }, onEvento);
+}
+
 export async function reproducirAccionSimulada(
-  cuerpo: { action: { name: string } },
+  cuerpo: { action: { name: string; context?: Record<string, unknown> } },
   onEvento: ManejadorDeEvento,
 ): Promise<void> {
   const nombre = cuerpo.action.name;
+  if (nombre === "follow_recommendation") {
+    // El guion grabado solo recorre una recomendación: invertir el efectivo
+    // de Ana, que arranca con el perfilador (el turno 1 del guion).
+    const herramienta = cuerpo.action.context?.herramienta_id;
+    const turno = herramienta === "perfilador_inversion" ? siguienteTurno() : null;
+    if (!turno) {
+      onEvento("warning", {
+        mensaje:
+          "El guion simulado solo recorre la recomendación de invertir de Ana. " +
+          "Quita `?mock=1` para seguir esta con el agente.",
+      });
+      onEvento("done", { turno: -1, render_ok: false });
+      return;
+    }
+    await reproducir(turno, onEvento);
+    return;
+  }
   const turno = siguienteTurno(nombre);
   if (!turno) {
     onEvento("warning", {

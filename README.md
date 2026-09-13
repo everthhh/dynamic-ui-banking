@@ -14,6 +14,16 @@ convierte en un estado de cuenta con folio real.
 
 Tres superficies distintas de la misma conversación, y una acción con efecto.
 
+Y antes de que escriba nada, ya hay algo en pantalla. El banco leyó sus últimos
+12 meses —movimientos, estados de cuenta de la tarjeta, créditos, saldos,
+posiciones— y calculó su **perfil financiero**: cuánto gana y cómo le llega,
+en qué gasta, cómo paga la tarjeta, cuánto colchón tiene y cuánto dinero tiene
+parado. Encima de ese perfil van las **recomendaciones**, en orden: «tienes 290
+mil pesos sin invertir», «tu tarjeta cobra 47% y pagas el mínimo», cada una con
+la evidencia que la dispara, su impacto en pesos y la herramienta del catálogo
+que la resuelve. Tocar una arranca esa herramienta. Ese tablero no llama al
+modelo.
+
 ---
 
 ## Arrancar
@@ -127,7 +137,7 @@ Antes de tocar el navegador, confirma que el entorno está sano:
 make test
 ```
 
-Esperado: `350 passed` en 10-15 segundos aproximadamente. Un fallo aquí es un
+Esperado: `415 passed` en 10-15 segundos aproximadamente. Un fallo aquí es un
 problema de entorno (dependencias, base sin regenerar), no de diseño —
 resuélvelo antes de continuar.
 
@@ -169,7 +179,8 @@ Abre `http://localhost:5173`.
 
 | # | Acción | Resultado esperado |
 |---|---|---|
-| 7.1 | Escribe: *«tengo 80 mil pesos parados y los podría dejar 5 años, ¿qué hago?»* | Aparece `inv.RiskProfiler`: 4 preguntas, una a la vez, con barra de progreso. **Cero** entradas `blueprint rechazado` en el panel "Qué está pasando". |
+| 7.0 | Abre la app sin escribir nada | Tablero inicial: saludo en el chat, `bank.FinancialProfile` (salud financiera, a dónde se va el ingreso, hábitos de consumo y de tarjeta) y `bank.Recommendations` con 3 recomendaciones visibles. En el panel de traza aparece `tool directa (sin LLM)` y **ninguna** llamada a Anthropic. |
+| 7.1 | En la primera recomendación (*«Tienes … sin invertir»*) clic en **Empezar**, o escribe: *«tengo 80 mil pesos parados y los podría dejar 5 años, ¿qué hago?»* | Aparece `inv.RiskProfiler`: 4 preguntas, una a la vez, con barra de progreso. **Cero** entradas `blueprint rechazado` en el panel "Qué está pasando". |
 | 7.2 | Responde las 4 preguntas | Al contestar la última: perfil calculado (ej. *Crecimiento*), dona de asignación (5-7 instrumentos) y proyección Monte Carlo con escenarios p10/p50/p90. |
 | 7.3 | Clic en **"Ver cómo invertir"** | Aparece `inv.OrderTicket`: folio real (`BN-2026-XXXXXX`), desglose por instrumento con títulos, cuenta de cargo, saldo estimado. |
 | 7.4 | Marca la casilla de confirmación y clic en **"Confirmar $X"** | La pantalla cambia a estado de cuenta: mismo folio, tabla de posiciones, rendimiento en `$0` (recién comprado). |
@@ -177,6 +188,7 @@ Abre `http://localhost:5173`.
 | 7.6 | Clic en **"Ponle un apodo"** en una cuenta, escribe un nombre, `Enter` | El apodo aparece de inmediato. Es una acción determinista: no debe generar una llamada nueva a Anthropic en el panel de traza. |
 | 7.7 | Escribe de nuevo: *«enséñame mis cuentas»* | El apodo del paso 7.6 sigue ahí. Si desaparece, es el bug de la columna `alias` — corre `make seed` y confirma que estás en `origin/main`. |
 | 7.8 | Escribe: *«¿en qué se me va el dinero cada mes?»* | Desglose de gasto por categoría en un componente (nunca una lista en texto plano). |
+| 7.9 | Cambia el cliente a **Diego Alcantara** | La sesión se reinicia y el tablero se rehace: salud *frágil*, rasgo *Paga tarde su tarjeta* y la primera recomendación es liquidar su tarjeta. En **Ver 3 más**, la de domiciliar el pago sale con *Próximamente*. |
 
 ### 8. Modo sin API key (opcional)
 
@@ -184,7 +196,9 @@ Abre `http://localhost:5173`.
 make web
 ```
 
-Abre `http://localhost:5173/?mock=1` — reproduce el guion grabado
+Abre `http://localhost:5173/?mock=1` — trae el tablero inicial grabado de los 8
+clientes (en el de Ana, **Empezar** en la primera recomendación arranca el
+guion) y reproduce el guion grabado
 (`web/src/fixtures/demo.json`) con el mismo ritmo de streaming, sin red ni
 backend.
 
@@ -193,6 +207,7 @@ backend.
 | Síntoma | Causa | Solución |
 |---|---|---|
 | `no such column: alias` (o cualquier columna) | Base local generada con un `schema.sql` viejo | `make seed` de nuevo, ya en la rama actual |
+| `no such table: card_statements`, o el tablero no aparece al entrar | Base generada antes del perfil financiero | `make seed` de nuevo |
 | `400 - Your credit balance is too low` | Sin saldo en la cuenta de Anthropic | Recargar en console.anthropic.com → Billing |
 | La pantalla nunca se actualiza tras enviar un mensaje | Front y back en versiones distintas | `git pull`, reinstalar (paso 2), reiniciar ambos servidores |
 | `python3`: *"not found... Microsoft Store"* | Alias de Windows, no es un intérprete | Usa `py` o antepón `PY=py` a cada `make` |
@@ -208,16 +223,21 @@ dynamic-ui-banking/
 ├─ bank/            simulación de la base del banco + motor financiero
 │  ├─ schema.sql       core bancario e inversiones
 │  ├─ seed.py          generador determinista (semilla 20260912)
+│  ├─ personas.py      hábitos de cada cliente: cómo gana, gasta y paga
+│  ├─ comportamiento.py simulación por eventos: hábitos → movimientos y estados de cuenta
+│  ├─ categorias.py    qué es consumo, qué es esencial y qué no es gasto
 │  ├─ mercado.py       parámetros de mercado CON su procedencia y fecha
 │  ├─ emisoras.py      15 emisoras BMV: fundamentales y riesgo derivado de ellos
 │  ├─ carteras.py      qué empresas hay DENTRO de cada fondo (look-through)
 │  ├─ instrumentos.py  24 instrumentos contratables, correlaciones y bloques
-│  └─ finance/         riesgo, idoneidad, origen de fondos, fiscal, Monte Carlo
-├─ services/        la única superficie que el agente puede tocar (17 servicios)
+│  └─ finance/         perfil financiero, recomendaciones, planes de deuda, riesgo,
+│                      idoneidad, origen de fondos, fiscal, Monte Carlo
+├─ services/        la única superficie que el agente puede tocar (30 tools)
 ├─ mcp_server/      servidor MCP standalone que expone services/ por stdio
 ├─ a2ui/            catalog.json (fuente única de verdad) + validador + contrato
 ├─ agent/           loop propio sobre el SDK nativo de Anthropic + cliente MCP
-├─ gateway/         FastAPI + SSE, sesiones, bitácora y ciclo de vida del MCP
+├─ gateway/         FastAPI + SSE, sesiones, bitácora, tablero inicial sin LLM
+│                   y ciclo de vida del MCP
 ├─ web/             renderer A2UI, registry y componentes inv.*/bank.* (charts con Recharts)
 ├─ scripts/         generadores de artefactos y smoke del ciclo completo
 └─ docs/            arquitectura, trade-offs y guion de la demo
@@ -269,8 +289,8 @@ una probabilidad sola no distingue perder 2% de perder 40%.
 
 ### 2. El catálogo es la fuente única de verdad
 
-`a2ui/catalog.json` define 22 componentes (8 primitivos, 14 de dominio — 10 de
-`inv.*` y 4 de `bank.*`) y las 15 acciones válidas. De ahí se generan, y nunca
+`a2ui/catalog.json` define 24 componentes (8 primitivos, 16 de dominio — 10 de
+`inv.*` y 6 de `bank.*`) y las 16 acciones válidas. De ahí se generan, y nunca
 se escriben a mano:
 
 | Artefacto | Generado por | Consumido por |
@@ -320,6 +340,86 @@ puede saltarse el paso porque no puede inventar el token, y `idempotency_key` es
 `duplicado: true` en lugar de comprar dos veces. El candado existe en las tres
 capas —componente, agente y banco— y `tests/test_agent_loop.py` prueba que un
 token inventado no ejecuta.
+
+---
+
+## El perfil financiero es la base de toda recomendación
+
+Ninguna recomendación sale de la intuición del modelo. Salen de un perfil que el
+banco **calcula** con lo que ya tiene del cliente, y cada una trae los números
+que la sostienen.
+
+```
+movimientos (12 meses) ┐
+estados de cuenta TDC  │     bank/finance/perfil.py        bank/finance/recomendaciones.py
+créditos y saldos      ├──►  perfil financiero        ──►  11 reglas → evidencia, impacto,
+posiciones             │     (flujo, consumo, crédito,     prioridad, herramienta
+perfil de riesgo       ┘      liquidez, inversión)                  │
+                                                                    ▼
+                                                  tablero inicial (sin LLM) · get_recommendations
+```
+
+**Qué mide el perfil**, y de dónde:
+
+| Bloque | Qué dice | Cómo se deduce |
+|---|---|---|
+| Flujo | ingreso (fijo o variable), consumo, pagos de crédito, intereses, cuánto le queda, meses en rojo, carga de deuda | movimientos por mes; la variabilidad del ingreso con MAD/mediana, para que un aguinaldo no vuelva «variable» un sueldo |
+| Consumo | gasto por categoría con tendencia, suscripciones, gasto hormiga, cuánto va a la tarjeta | la tendencia compara **medianas** de 3 meses (un viaje suelto no es un hábito); una suscripción es un comercio que cobra casi lo mismo una vez al mes, detectada por comportamiento y no por nombre |
+| Crédito | hábito de cada tarjeta (totalero, revolvente, paga el mínimo, paga tarde), intereses y comisiones, salud crediticia 0-100 con desglose | estados de cuenta vencidos: cuánto debía al corte, cuál era el mínimo, cuánto pagó y cuándo |
+| Liquidez | colchón en meses contra el objetivo (3 con ingreso fijo, 6 con variable), efectivo sin invertir y lo que deja de ganar | saldos + fondos de liquidez diaria contra gasto esencial y pagos de deuda |
+| Inversión | perfil vigente, mezcla de renta variable contra la que le toca a su perfil | posiciones valuadas + la política de `bank/finance/rules.py` |
+
+Encima de eso: **rasgos** («paga el mínimo de su tarjeta», «gasto hormiga
+alto»), cada uno con el dato que lo sostiene; los **productos** que usa; una
+**salud financiera** 0-100 con desglose por factor; y una frase de resumen
+armada con plantilla, no redactada: *«Luis gana $22,448 al mes y gasta $15,723
+en consumo (70%); a créditos, intereses y comisiones se le van $3,573…»*.
+
+**Cada recomendación** es una regla que lee el perfil y devuelve:
+
+- **evidencia**: las cifras que la disparan;
+- **impacto** en pesos con su supuesto declarado (tasa de CETES, tasa de la
+  tarjeta, recortar a la mitad);
+- **prioridad** 0-100 con una fórmula auditable: urgencia (50/30/15) + 2
+  puntos por cada 1% del ingreso anual que representa el impacto (tope 40) −
+  15 si la herramienta aún no existe;
+- la **herramienta** del catálogo que la resuelve, con sus tools, parámetros
+  sugeridos y un `prompt`.
+
+Las reglas se hablan entre sí: si hay tarjeta cara y el efectivo no alcanza
+para liquidarla e invertir, «invierte tu efectivo» baja a urgencia baja y dice
+«antes, liquida tu tarjeta»; si alcanza para las dos, dice cuánto usar para
+cada una. Sin perfil de inversión vigente, nunca manda a una herramienta que lo
+exige: manda al perfilador.
+
+**El catálogo de herramientas** es un contrato de tres capas, como el catálogo
+A2UI: qué ofrece el banco (`bank/finance/recomendaciones.py`), con qué tools se
+resuelve (`services/profile.py`) y con qué componentes se pinta
+(`agent/prompts.py`). `tests/test_perfil.py` falla si las tres dejan de decir
+lo mismo. Hay herramientas marcadas como no disponibles —domiciliación del
+pago, consolidación de deudas—: las recomendaciones que las necesitan se
+muestran con «Próximamente» y penalización de prioridad, en lugar de
+esconderse.
+
+**Tablero inicial, sin LLM.** `POST /session/start` abre la sesión y el gateway
+arma `bank.FinancialProfile` + `bank.Recommendations` con los mismos servicios
+que usa el agente y el mismo validador A2UI. Al entrar todavía no hay pregunta
+que interpretar, así que no se paga una llamada al modelo. Lo que sí se hace es
+dejarle al agente, en el contexto de sesión, qué recomendaciones tiene el
+cliente enfrente. Tocar una emite `follow_recommendation`, que **sí** pasa por
+el agente: abrir la herramienta correcta con los datos correctos es
+interpretar.
+
+**Datos que valen la pena analizar.** Antes el seed sorteaba cargos con la misma
+probabilidad para todos: un cliente de 18 mil gastaba igual que uno de 240 mil,
+la renta aparecía dos meses de dieciocho y ningún crédito se pagaba nunca. Un
+perfil calculado sobre eso decía «tasa de ahorro 93%». Ahora cada cliente
+tiene una **persona** con hábitos (`bank/personas.py`) y
+`bank/comportamiento.py` los simula por eventos: pagar el mínimo genera
+intereses el mes siguiente, la tarjeta llena rechaza la compra y el cargo se va
+a la cuenta, una cuenta corta paga tarde y cobra comisión. Las personas
+declaran hábitos, nunca conclusiones: que Diego «paga tarde» lo **descubre** el
+perfil leyendo sus estados de cuenta, y hay un test que lo verifica.
 
 ---
 
@@ -377,8 +477,17 @@ corre el ciclo completo de seis turnos contra ese mismo servidor real.
 Todo sintético, generado con semilla fija (`SEED = 20260912`). `make seed` es
 reproducible byte a byte.
 
-**Core bancario:** 8 clientes con cuentas, 18 meses de movimientos con barrido de
-fin de mes, tarjetas de débito y crédito, y créditos con amortización real.
+**Core bancario:** 8 clientes con datos de conocimiento del cliente (edad,
+ocupación, dependientes), cuentas, tarjetas de débito y crédito, y créditos con
+amortización real. Sus 18 meses de movimientos y de estados de cuenta de
+tarjeta no se sortean: se simulan desde los hábitos de cada persona —nómina
+quincenal con aguinaldo o depósitos irregulares de negocio, renta, colegiaturas,
+servicios, suscripciones, compras chicas, cómo paga la tarjeta y si barre su
+excedente—, con una semilla propia por cliente. Compras con tarjeta, intereses y
+comisiones viven en el mismo libro que la cuenta (`card_id`), como los ve el
+cliente en la app. `bank/seed.py --check` falla si alguien queda con saldo
+negativo, si una tarjeta rebasa su límite o si una persona no alcanza a pagar
+sus cargos fijos.
 
 **Inversiones:** 24 instrumentos contratables (CETES, bonos M, UDIBONOs,
 pagarés, fondos y ETFs), repreciados sobre la curva real de septiembre 2026:
@@ -491,31 +600,38 @@ si el catálogo cambia, el guion se rompe y nos enteramos.
 ## Verificación
 
 ```
-350 tests
-  a2ui/tests/test_contract.py        (97) catálogo bien formado (22 componentes, 15
+415 tests
+  a2ui/tests/test_contract.py       (103) catálogo bien formado (24 componentes, 16
                                      acciones), artefactos alineados, casos inválidos
                                      (incl. spec A2UI real: action anidado,
-                                     deleteSurface) y accionables
-  tests/test_services.py             (67) cuadre de cifras, errores con sugerencia,
+                                     deleteSurface), accionables y tablero inicial
+  tests/test_services.py             (70) cuadre de cifras, errores con sugerencia,
                                      los dos pasos de la orden, idempotencia, token
-                                     nunca expuesto
+                                     nunca expuesto, capacidad de ahorro neta de deuda
   tests/test_riesgo_emisoras.py      (60) look-through a empresas dentro de fondos,
                                      idoneidad (perfil/concentración/plazo), origen de
                                      fondos y arbitraje con crédito, fiscal, curva de
                                      tasas
-  tests/test_agent_loop.py           (45) encadenado de tools (vía MCP falso),
+  tests/test_agent_loop.py           (48) encadenado de tools (vía MCP falso),
                                      validación con reintento, fallback, bitácora,
                                      límites
   tests/test_finance.py              (41) monotonía del score, tope por horizonte,
                                      pesos que suman 1, percentiles que no se cruzan,
                                      diversificación que baja la volatilidad,
                                      comisiones que se cobran
+  tests/test_perfil.py               (41) deducciones del perfil con datos armados a
+                                     mano, que cada persona se DESCUBRA en sus
+                                     movimientos, prioridad, planes de deuda y el
+                                     contrato herramientas ↔ tools ↔ prompt
   tests/test_banking.py              (22) ownership de cuenta/tarjeta, límites con
                                      techo y piso, bloqueo idempotente, alias saneado,
                                      presupuestos
   tests/test_gateway_direct_actions.py (14) acciones deterministas (alias, bloqueo de
                                      tarjeta, límite, presupuesto) resueltas sin LLM,
                                      y el ruteo directo-vs-modelo
+  tests/test_tablero.py              (12) tablero inicial válido para los 8 clientes,
+                                     sin instanciar el agente, con contexto para el
+                                     siguiente turno y en bitácora
   tests/test_mcp_server.py            (4) el servidor MCP real por stdio: list_tools,
                                      llamada exitosa, tool desconocida, error de
                                      servicio
