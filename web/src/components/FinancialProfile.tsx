@@ -4,6 +4,7 @@
 // (bank/finance/perfil.py): el componente no suma, no promedia ni decide qué
 // es "gasto hormiga" o "paga el mínimo". Solo acomoda lo que llegó.
 
+import { CategoryIcon } from "./CategoryIcon";
 import { ETIQUETA_CATEGORIA, compacto as cifraCompacta, moneda } from "../format";
 
 type Obj = Record<string, unknown>;
@@ -123,7 +124,10 @@ function Consumo({ consumo }: { consumo: Obj }) {
           return (
             <li key={String(c.categoria)} className="fp-cat">
               <span className="fp-cat-nombre">
-                {ETIQUETA_CATEGORIA[String(c.categoria)] ?? String(c.categoria)}
+                <CategoryIcon categoria={String(c.categoria)} />
+                <span className="fp-cat-texto">
+                  {ETIQUETA_CATEGORIA[String(c.categoria)] ?? String(c.categoria)}
+                </span>
                 {marca}
               </span>
               <span className="fp-cat-barra">
