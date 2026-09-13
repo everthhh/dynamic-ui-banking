@@ -438,7 +438,10 @@ TOOLS_DATOS: list[dict[str, Any]] = [
         "description": (
             "Monte Carlo de 5000 trayectorias, NETO de impuestos y de costo de "
             "financiamiento. Devuelve escenarios p10/p50/p90 mes a mes, TIR, "
-            "volatilidad, peor caída, `indice_riesgo` (0-100) y tres probabilidades de "
+            "volatilidad, peor caída, `indice_riesgo` (0-100, con `banda`; se calcula "
+            "con la probabilidad de perder que aplica a ese dinero, indicada en "
+            "`referencia_perdida`, y nunca sale bajo si esa probabilidad es alta) y "
+            "tres probabilidades de "
             "perder distintas: `prob_perdida_nominal` (no recuperar lo aportado), "
             "`prob_perdida_real` (no ganarle a la inflación) y `prob_perdida_vs_origen` "
             "(no ganarle a la deuda o al rendimiento que ya tenía ese dinero). Cuando "
