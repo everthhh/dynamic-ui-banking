@@ -57,6 +57,165 @@ make check        # tests + smoke + catálogo alineado + invariantes + typecheck
 
 ---
 
+## Guía de prueba paso a paso
+
+Pensada para alguien que clona el repo por primera vez y necesita verificar,
+de punta a punta, que todo funciona — instalación, suite automatizada y un
+recorrido manual guiado por la UI.
+
+### 0. Requisitos
+
+| Herramienta | Mínimo | Verificar con | Notas |
+|---|---|---|---|
+| Python | 3.10+ | `python3 --version` | El código usa `str \| None` (PEP 604); no corre en 3.9 o anterior. |
+| Node.js | 18+ | `node --version` | Lo pide Vite 5. |
+| npm | 9+ | `npm --version` | Viene con Node. |
+| API key de Anthropic con crédito | — | — | [console.anthropic.com](https://console.anthropic.com) → *Billing*. Sin crédito, el paso 4 falla con `400 - Your credit balance is too low`. |
+
+**Windows:** el Makefile usa `PY := python3`. Si tu `python3` responde *"Python was
+not found; run without arguments to install from the Microsoft Store"*, es el
+alias de la tienda, no un intérprete real. Sustitúyelo por `py` (el Python
+Launcher) anteponiendo `PY=py` a cualquier target: `make PY=py install`,
+`make PY=py seed`, etc.
+
+### 1. Sincronizar con el remoto
+
+```bash
+git fetch origin
+git status                       # debe decir "up to date with 'origin/main'"
+git pull --ff-only origin main   # si no lo está
+```
+
+Si `bank/schema.sql` cambió desde tu último pull, tu base local queda
+desalineada con el código — el paso 3 la regenera; no lo saltes.
+
+### 2. Instalar dependencias
+
+```bash
+make install
+# Windows, si `python3` no resuelve:
+make PY=py install
+```
+
+Instala `requirements.txt` (Python, vía pip) y `web/node_modules` (npm). Una
+corrida limpia no debe imprimir errores en rojo de `pip` ni de `npm`.
+
+### 3. Regenerar la base simulada
+
+```bash
+make seed
+# Windows: make PY=py seed
+```
+
+Salida esperada, exacta:
+
+```
+Base simulada escrita en <ruta-absoluta>/data/bank.sqlite
+Series exportadas a <ruta-absoluta>/data/series.parquet
+Invariantes OK.
+```
+
+Si termina en `Invariantes roto:` seguido de una lista, `bank/seed.py` y
+`bank/schema.sql` están desalineados: no sigas hasta que diga
+`Invariantes OK.`.
+
+### 4. Configurar la API key
+
+```bash
+cp .env.example .env
+```
+
+Edita `.env` y reemplaza `ANTHROPIC_API_KEY` por una clave real con crédito
+disponible. `gateway/main.py` la carga con `python-dotenv` al arrancar; nada
+más la necesita.
+
+### 5. Verificación automatizada
+
+Antes de tocar el navegador, confirma que el entorno está sano:
+
+```bash
+make test
+```
+
+Esperado: `415 passed` en 10-15 segundos aproximadamente. Un fallo aquí es un
+problema de entorno (dependencias, base sin regenerar), no de diseño —
+resuélvelo antes de continuar.
+
+```bash
+make smoke
+# Windows, para evitar un UnicodeEncodeError por la codepage cp1252 de la consola:
+PYTHONIOENCODING=utf-8 py -m scripts.smoke
+```
+
+Corre los seis turnos del guion completo contra el **servidor MCP real**
+(subproceso propio) con un cliente de Anthropic **falso** — cero tokens
+gastados. Última línea esperada:
+
+```
+El ciclo cierra: intención → tools (MCP) → UI → acción → UI nueva.
+```
+
+### 6. Arrancar la aplicación
+
+Dos terminales, en este orden:
+
+```bash
+# Terminal 1 — gateway
+make api
+# Windows: make PY=py api
+```
+
+Verifica antes de seguir: `curl http://localhost:8000/health` debe devolver
+`{"ok": true, "db": "...", ...}`. Si `"ok": false`, falta el paso 3.
+
+```bash
+# Terminal 2 — front
+make web
+```
+
+Abre `http://localhost:5173`.
+
+### 7. Recorrido guiado del camino feliz
+
+| # | Acción | Resultado esperado |
+|---|---|---|
+| 7.0 | Abre la app sin escribir nada | Tablero inicial: saludo en el chat, `bank.FinancialProfile` (salud financiera, a dónde se va el ingreso, hábitos de consumo y de tarjeta) y `bank.Recommendations` con 3 recomendaciones visibles. En el panel de traza aparece `tool directa (sin LLM)` y **ninguna** llamada a Anthropic. |
+| 7.1 | En la primera recomendación (*«Tienes … sin invertir»*) clic en **Empezar**, o escribe: *«tengo 80 mil pesos parados y los podría dejar 5 años, ¿qué hago?»* | Aparece `inv.RiskProfiler`: 4 preguntas, una a la vez, con barra de progreso. **Cero** entradas `blueprint rechazado` en el panel "Qué está pasando". |
+| 7.2 | Responde las 4 preguntas | Al contestar la última: perfil calculado (ej. *Crecimiento*), dona de asignación (5-7 instrumentos) y proyección Monte Carlo con escenarios p10/p50/p90. |
+| 7.3 | Clic en **"Ver cómo invertir"** | Aparece `inv.OrderTicket`: folio real (`BN-2026-XXXXXX`), desglose por instrumento con títulos, cuenta de cargo, saldo estimado. |
+| 7.4 | Marca la casilla de confirmación y clic en **"Confirmar $X"** | La pantalla cambia a estado de cuenta: mismo folio, tabla de posiciones, rendimiento en `$0` (recién comprado). |
+| 7.5 | Escribe: *«muéstrame mis cuentas y tarjetas»* | `bank.AccountsOverview`: cuentas con saldo, tarjetas con últimos 4 dígitos. |
+| 7.6 | Clic en **"Ponle un apodo"** en una cuenta, escribe un nombre, `Enter` | El apodo aparece de inmediato. Es una acción determinista: no debe generar una llamada nueva a Anthropic en el panel de traza. |
+| 7.7 | Escribe de nuevo: *«enséñame mis cuentas»* | El apodo del paso 7.6 sigue ahí. Si desaparece, es el bug de la columna `alias` — corre `make seed` y confirma que estás en `origin/main`. |
+| 7.8 | Escribe: *«¿en qué se me va el dinero cada mes?»* | Desglose de gasto por categoría en un componente (nunca una lista en texto plano). |
+| 7.9 | Cambia el cliente a **Diego Alcantara** | La sesión se reinicia y el tablero se rehace: salud *frágil*, rasgo *Paga tarde su tarjeta* y la primera recomendación es liquidar su tarjeta. En **Ver 3 más**, la de domiciliar el pago sale con *Próximamente*. |
+
+### 8. Modo sin API key (opcional)
+
+```bash
+make web
+```
+
+Abre `http://localhost:5173/?mock=1` — trae el tablero inicial grabado de los 8
+clientes (en el de Ana, **Empezar** en la primera recomendación arranca el
+guion) y reproduce el guion grabado
+(`web/src/fixtures/demo.json`) con el mismo ritmo de streaming, sin red ni
+backend.
+
+### 9. Problemas comunes
+
+| Síntoma | Causa | Solución |
+|---|---|---|
+| `no such column: alias` (o cualquier columna) | Base local generada con un `schema.sql` viejo | `make seed` de nuevo, ya en la rama actual |
+| `no such table: card_statements`, o el tablero no aparece al entrar | Base generada antes del perfil financiero | `make seed` de nuevo |
+| `400 - Your credit balance is too low` | Sin saldo en la cuenta de Anthropic | Recargar en console.anthropic.com → Billing |
+| La pantalla nunca se actualiza tras enviar un mensaje | Front y back en versiones distintas | `git pull`, reinstalar (paso 2), reiniciar ambos servidores |
+| `python3`: *"not found... Microsoft Store"* | Alias de Windows, no es un intérprete | Usa `py` o antepón `PY=py` a cada `make` |
+| `blueprint rechazado` se repite en casi todos los turnos | Versión del repo desalineada con el validador | `git pull origin main` |
+| Caracteres corruptos al correr `scripts.smoke` en Windows | La consola usa `cp1252`, no UTF-8 | `PYTHONIOENCODING=utf-8 py -m scripts.smoke` |
+
+---
+
 ## Qué hay aquí
 
 ```
@@ -442,28 +601,40 @@ si el catálogo cambia, el guion se rompe y nos enteramos.
 
 ```
 415 tests
-  a2ui/tests/test_contract.py    catálogo bien formado (24 componentes, 16 acciones),
-                                 artefactos alineados, casos inválidos (incl. spec A2UI
-                                 real: action anidado, deleteSurface) y accionables
-  tests/test_finance.py          monotonía del score, tope por horizonte, pesos que
-                                 suman 1, percentiles que no se cruzan, diversificación
-                                 que baja la volatilidad, comisiones que se cobran
-  tests/test_services.py         cuadre de cifras, errores con sugerencia, los dos
-                                 pasos de la orden, idempotencia, token nunca expuesto
-  tests/test_banking.py          ownership de cuenta/tarjeta, límites con techo y piso,
-                                 bloqueo idempotente, alias saneado, presupuestos
-  tests/test_perfil.py           deducciones del perfil con datos armados a mano, que cada
-                                 persona se DESCUBRA en sus movimientos, prioridad, planes
-                                 de deuda y el contrato herramientas ↔ tools ↔ prompt
-  tests/test_tablero.py          tablero inicial válido para los 8 clientes, sin instanciar
-                                 el agente, con contexto para el siguiente turno y en bitácora
-  tests/test_riesgo_emisoras.py  look-through a empresas dentro de fondos, idoneidad
-                                 (perfil/concentración/plazo), origen de fondos y
-                                 arbitraje con crédito, fiscal, curva de tasas
-  tests/test_agent_loop.py       encadenado de tools (vía MCP falso), validación con
-                                 reintento, fallback, bitácora, límites
-  tests/test_mcp_server.py       el servidor MCP real por stdio: list_tools,
-                                 llamada exitosa, tool desconocida, error de servicio
+  a2ui/tests/test_contract.py       (103) catálogo bien formado (24 componentes, 16
+                                     acciones), artefactos alineados, casos inválidos
+                                     (incl. spec A2UI real: action anidado,
+                                     deleteSurface), accionables y tablero inicial
+  tests/test_services.py             (70) cuadre de cifras, errores con sugerencia,
+                                     los dos pasos de la orden, idempotencia, token
+                                     nunca expuesto, capacidad de ahorro neta de deuda
+  tests/test_riesgo_emisoras.py      (60) look-through a empresas dentro de fondos,
+                                     idoneidad (perfil/concentración/plazo), origen de
+                                     fondos y arbitraje con crédito, fiscal, curva de
+                                     tasas
+  tests/test_agent_loop.py           (48) encadenado de tools (vía MCP falso),
+                                     validación con reintento, fallback, bitácora,
+                                     límites
+  tests/test_finance.py              (41) monotonía del score, tope por horizonte,
+                                     pesos que suman 1, percentiles que no se cruzan,
+                                     diversificación que baja la volatilidad,
+                                     comisiones que se cobran
+  tests/test_perfil.py               (41) deducciones del perfil con datos armados a
+                                     mano, que cada persona se DESCUBRA en sus
+                                     movimientos, prioridad, planes de deuda y el
+                                     contrato herramientas ↔ tools ↔ prompt
+  tests/test_banking.py              (22) ownership de cuenta/tarjeta, límites con
+                                     techo y piso, bloqueo idempotente, alias saneado,
+                                     presupuestos
+  tests/test_gateway_direct_actions.py (14) acciones deterministas (alias, bloqueo de
+                                     tarjeta, límite, presupuesto) resueltas sin LLM,
+                                     y el ruteo directo-vs-modelo
+  tests/test_tablero.py              (12) tablero inicial válido para los 8 clientes,
+                                     sin instanciar el agente, con contexto para el
+                                     siguiente turno y en bitácora
+  tests/test_mcp_server.py            (4) el servidor MCP real por stdio: list_tools,
+                                     llamada exitosa, tool desconocida, error de
+                                     servicio
 
 make smoke   ciclo completo de seis turnos contra el SERVIDOR MCP REAL
              (subproceso propio) y un cliente de Anthropic falso. Sin tokens.
