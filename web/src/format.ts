@@ -102,8 +102,12 @@ export const ETIQUETA_CATEGORIA: Record<string, string> = {
   entretenimiento: "Entretenimiento",
   educacion: "Educación",
   nomina: "Nómina",
+  honorarios: "Honorarios",
   traspaso: "Traspaso",
   inversion: "Inversión",
+  pago_tarjeta: "Pago de tarjeta",
+  credito: "Pago de crédito",
+  costo_financiero: "Intereses y comisiones",
 };
 
 export const ETIQUETA_TIPO_CUENTA: Record<string, string> = {

@@ -40,6 +40,15 @@ Lo que se decidió, contra qué, y qué costó.
 | **Mutaciones de banca personal sin candado de dos pasos** (`block_card`, `set_card_limit`, `set_account_alias`, `set_budget`) | El mismo patrón de `place_order` (token + segunda llamada) | Ninguna mueve dinero real; bloquear una tarjeta es la acción de urgencia y debe costar un toque, no dos. El límite y el presupuesto sí llevan techo/piso de negocio explícito en el servidor | Confiar en la validación server-side (ownership + rangos) en vez de una confirmación en pantalla |
 | **`card_events`: tabla de auditoría propia** | Confiar en los logs del proceso | Cada bloqueo, cambio de límite o alias queda en la base, no solo en un log que se pierde al reiniciar — es lo que permite reconstruir "quién cambió qué" sin la sesión activa | Una tabla e inserts extra en cada mutación |
 | **Mensajes de ownership genéricos** ("no existe o no te pertenece") | Decir explícitamente "esa tarjeta es de otro cliente" | Un mensaje específico confirma que el id existe, solo que es ajeno — información que un cliente no debería poder extraer probando ids | El modelo recibe una pista un poco menos rica para autocorregirse, pero el error ya es inequívoco sobre qué hacer (pedir `get_accounts` de nuevo) |
+| **Personas con hábitos + simulación por eventos** (`bank/personas.py`, `bank/comportamiento.py`) | Sortear cargos de 8 categorías con la misma probabilidad para todos (decisión original) | Con el sorteo, un perfil financiero no tenía nada que descubrir: todos gastaban igual ganaran 18 o 240 mil, la renta aparecía dos meses de dieciocho y nadie pagaba sus créditos. Simular en orden cronológico hace que los hábitos tengan consecuencias (intereses, compras rechazadas, pagos tardíos) | Cambiaron todos los números del seed y hubo que regenerar el guion. Las personas se calibran a mano y el seed falla si una no alcanza a pagar sus cargos fijos |
+| **Las personas declaran hábitos, no conclusiones** | Guardar etiquetas («revolvente», «gasto hormiga») en la base | Si la etiqueta está en la base, el perfil no analiza nada: la lee. Así el perfil tiene que deducirla de los estados de cuenta, y un test verifica que la deduzca | Hay que ajustar umbrales hasta que la deducción coincida con el hábito declarado (Diego necesitó más atrasos para leerse como «paga tarde») |
+| **Perfil y recomendaciones por reglas** | Que el modelo lea los movimientos y recomiende | Mismo principio que el Monte Carlo: toda cifra sale de código determinista y auditable. «¿Por qué me recomiendas esto?» se contesta con la evidencia, no con una paráfrasis | Las reglas solo cubren lo que alguien escribió: 11 hoy. Un patrón que ninguna regla mira no se recomienda |
+| **Prioridad con fórmula** (urgencia + impacto sobre ingreso − penalización) | Que el modelo ordene las recomendaciones | Un orden que cambia entre corridas no se puede defender. La fórmula es discutible, pero es la misma para todos y viene en la respuesta | Los pesos (50/30/15, 2 puntos por 1%, tope 40) son un criterio, no un resultado medido |
+| **Tablero inicial sin LLM** | Que el agente arme la pantalla de bienvenida en el primer turno | Al entrar no hay pregunta que interpretar: pagar tokens y 5-8 segundos para pintar siempre lo mismo es desperdicio. Mismo razonamiento que las acciones directas | El agente no tiene el tablero en su historial; se le pasa en el contexto de sesión y tiene que volver a pedir las cifras con las tools |
+| **Herramientas no disponibles visibles** («Próximamente» y −15 de prioridad) | Esconder las recomendaciones cuya herramienta aún no existe | El hallazgo es real aunque la herramienta no: pagar tarde cuesta comisiones hoy. Esconderlo sería elegir qué ve el cliente según lo que ya construimos | Se ve un botón que no abre una herramienta dedicada; el agente contesta con lo más cercano que sí existe |
+| **Un solo libro de movimientos** (`transactions.card_id`) | Tabla aparte para compras con tarjeta | Es como el cliente ve su dinero en la app, y `search_transactions` y los presupuestos ya contaban las compras con tarjeta sin tocar sus consultas | `saldo_posterior` depende del producto que se movió (cuenta o tarjeta); está documentado en el esquema |
+| **Tendencia por medianas de 3 meses** | Promedios | Con promedios, un solo pago de agencia de viajes salía como «+169% en entretenimiento». La mediana ignora el mes atípico | Tarda un mes más en detectar un cambio de hábito real |
+| **Capacidad de ahorro neta de deuda** | Ingreso menos consumo (decisión original) | Un cliente con un auto financiado se veía con capacidad de ahorro de sobra, y ese número era el tope del slider de aportación | Cambió un test que codificaba la versión anterior |
 
 ## Lo que se decidió NO hacer
 
@@ -85,6 +94,24 @@ Se dice de frente porque todas estas omisiones empujan en la misma dirección:
 - **Solo dos fondos tienen desglose.** Los internacionales y sectoriales globales
   no traen composición porque su subyacente no son emisoras de la BMV, y se
   declara (`cobertura_desglose`) en lugar de inventarles una cartera.
+
+## Lo que el perfil financiero sigue sin capturar
+
+- **Solo lo que pasa por este banco.** No hay buró de crédito ni cuentas en
+  otros bancos: alguien que paga puntual aquí y debe en otro lado sale sano.
+- **Categorías fijas.** Ocho categorías de consumo; «compras en tienda en
+  línea» cae en entretenimiento aunque sea ropa.
+- **Efectivo invisible.** No hay retiros en cajero modelados; en la vida real
+  son gasto que el banco no puede categorizar.
+- **Umbrales declarados, no calibrados.** Ticket hormiga de 250 pesos,
+  colchón de 3 o 6 meses, 25% para «gasto creciente»: son criterios razonables
+  escritos como constantes en `bank/finance/perfil.py`, no resultados de datos
+  reales.
+- **Sin estacionalidad del gasto.** Diciembre gasta más en todos lados; la
+  tendencia compara trimestres contiguos y un diciembre puede leerse como
+  hábito nuevo.
+- **Una foto de 12 meses.** El perfil no guarda historia: no puede decir
+  «llevas tres meses mejorando».
 
 ## El riesgo número uno
 

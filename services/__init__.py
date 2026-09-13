@@ -15,7 +15,7 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from services import accounts, banking, instruments, orders, portfolio
+from services import accounts, banking, credit, instruments, orders, portfolio, profile
 from services.errors import ServiceError
 
 REGISTRO: dict[str, Callable[..., Any]] = {
@@ -25,6 +25,9 @@ REGISTRO: dict[str, Callable[..., Any]] = {
     "get_transactions": accounts.get_transactions,
     "get_spending_summary": accounts.get_spending_summary,
     "get_credit_overview": accounts.get_credit_overview,
+    # lectura: perfil financiero, base de toda recomendacion
+    "get_financial_profile": profile.get_financial_profile,
+    "get_recommendations": profile.get_recommendations,
     # lectura: banca personal (busqueda, presupuestos y alertas)
     "search_transactions": accounts.search_transactions,
     "get_budgets": accounts.get_budgets,
@@ -42,6 +45,7 @@ REGISTRO: dict[str, Callable[..., Any]] = {
     "simulate_portfolio": portfolio.simulate_portfolio,
     "compare_allocations": portfolio.compare_allocations,
     "check_suitability": portfolio.check_suitability,
+    "simulate_debt_payoff": credit.simulate_debt_payoff,
     # efecto: banca personal (no mueven dinero, pero cambian estado)
     "block_card": banking.block_card,
     "unblock_card": banking.unblock_card,
@@ -64,4 +68,4 @@ CON_EFECTO: frozenset[str] = frozenset({
 })
 
 __all__ = ["REGISTRO", "CON_EFECTO", "ServiceError",
-           "accounts", "banking", "instruments", "orders", "portfolio"]
+           "accounts", "banking", "credit", "instruments", "orders", "portfolio", "profile"]

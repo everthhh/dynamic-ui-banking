@@ -21,7 +21,7 @@ import logging
 import os
 import uuid
 from contextlib import asynccontextmanager
-from typing import Any, AsyncIterator
+from typing import Any, AsyncIterator, Iterator
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
@@ -34,7 +34,8 @@ from a2ui.models import CATALOG, CATALOG_PATH, validate_a2ui
 from agent.loop import AgenteUIGenerativa, Sesion
 from agent.mcp_client import ClienteMCP
 from bank import db
-from gateway.direct_actions import DIRECT_HANDLERS
+from gateway.direct_actions import DIRECT_HANDLERS, ResultadoDirecto
+from gateway.tablero import SURFACE_TABLERO, construir_tablero
 from services.errors import ServiceError
 from services.orders import registrar_superficie
 
@@ -102,6 +103,10 @@ class ChatIn(BaseModel):
     client_id: str = "CLI-0001"
 
 
+class InicioIn(BaseModel):
+    client_id: str = "CLI-0001"
+
+
 class AccionEvento(BaseModel):
     """El mensaje `action` real de client_to_server.json (spec A2UI v0.9)."""
     name: str
@@ -152,6 +157,37 @@ async def _stream_directo(
             {"type": "error", "mensaje": f"{type(exc).__name__}: {exc}"}, ensure_ascii=False)}
         return
 
+    for evento in _eventos_de_resultado(ses, nombre, contexto, resultado):
+        yield evento
+
+
+async def _stream_tablero(ses: Sesion) -> AsyncIterator[dict[str, str]]:
+    """Tablero inicial: perfil financiero + recomendaciones, sin llamar al LLM."""
+    yield {"event": "session", "data": json.dumps({"session_id": ses.session_id})}
+    try:
+        resultado = construir_tablero(ses.client_id)
+    except ServiceError as exc:
+        yield {"event": "error", "data": json.dumps(
+            {"type": "error", "mensaje": str(exc)}, ensure_ascii=False)}
+        return
+    except Exception as exc:                       # noqa: BLE001 - nunca tumbar la sesión
+        log.exception("no pude armar el tablero de %s", ses.client_id)
+        yield {"event": "error", "data": json.dumps(
+            {"type": "error", "mensaje": f"{type(exc).__name__}: {exc}"}, ensure_ascii=False)}
+        return
+
+    ses.surface_id = SURFACE_TABLERO
+    ses.contexto_tablero = resultado.contexto_agente
+    for evento in _eventos_de_resultado(
+            ses, "get_recommendations", {"client_id": ses.client_id}, resultado, efecto=False):
+        yield evento
+
+
+def _eventos_de_resultado(
+    ses: Sesion, nombre: str, contexto: dict[str, Any], resultado: ResultadoDirecto,
+    *, efecto: bool = True,
+) -> Iterator[dict[str, str]]:
+    """Valida, emite y deja en bitácora una pantalla armada sin el LLM."""
     for m in resultado.mensajes:
         m.setdefault("version", "v0.9")
 
@@ -165,10 +201,13 @@ async def _stream_directo(
         return
 
     ses.turno += 1
+    if resultado.texto:
+        yield {"event": "text", "data": json.dumps(
+            {"type": "text", "text": resultado.texto}, ensure_ascii=False)}
     for m in resultado.mensajes:
         yield {"event": "a2ui", "data": json.dumps({"type": "a2ui", "message": m}, ensure_ascii=False)}
     yield {"event": "tool_call", "data": json.dumps(
-        {"type": "tool_call", "name": nombre, "input": contexto, "efecto": True, "directo": True},
+        {"type": "tool_call", "name": nombre, "input": contexto, "efecto": efecto, "directo": True},
         ensure_ascii=False)}
     yield {"event": "tool_result", "data": json.dumps(
         {"type": "tool_result", "name": nombre, "ok": True, "resumen": resultado.resumen, "directo": True},
@@ -186,6 +225,19 @@ async def _stream_directo(
     yield {"event": "done", "data": json.dumps(
         {"type": "done", "turno": ses.turno, "render_ok": True, "uso": dict(ses.uso)},
         ensure_ascii=False)}
+
+
+@app.post("/session/start")
+async def iniciar_sesion(cuerpo: InicioIn):
+    """Abre una sesión nueva y pinta el tablero inicial SIN llamar al LLM.
+
+    Al entrar todavía no hay pregunta que interpretar: el perfil financiero y
+    las recomendaciones salen de `services/profile.py` y se validan con el
+    mismo validador A2UI. El agente se entera de lo que el cliente vio por
+    `Sesion.contexto_tablero`.
+    """
+    ses = sesion(None, cuerpo.client_id)
+    return EventSourceResponse(_stream_tablero(ses))
 
 
 @app.post("/chat")

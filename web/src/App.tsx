@@ -3,6 +3,10 @@
 //   · superficie (lo que el agente monta; es la protagonista)
 //   · traza (qué tools se llamaron, qué mensajes A2UI llegaron, qué se rechazó)
 //
+// Al entrar —y al cambiar de cliente o empezar de nuevo— se abre una sesión y
+// el gateway pinta el tablero inicial: perfil financiero y recomendaciones,
+// sin llamar al LLM. La conversación arranca con eso ya en pantalla.
+//
 // La traza está a la vista a propósito: en un jurado técnico, mostrar el
 // encadenado de tools y un blueprint rechazado-y-corregido vale más que
 // cualquier animación.
@@ -11,8 +15,14 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Logo } from "./components/Logo";
 import { copiaAmigable } from "./progressCopy";
 import { Superficie } from "./renderer/Renderer";
-import { manejarEvento, useStore } from "./store";
-import { enviarMensaje, getModo, listarClientes, type ClienteDemo } from "./transport";
+import { SURFACE_TABLERO, manejarEvento, useStore } from "./store";
+import {
+  enviarMensaje,
+  getModo,
+  iniciarSesion,
+  listarClientes,
+  type ClienteDemo,
+} from "./transport";
 import { verificarRegistry } from "./registry.check";
 
 /** Markdown mínimo: solo `**negritas**`.
@@ -31,16 +41,17 @@ function conNegritas(texto: string): ReactNode[] {
 }
 
 const SUGERENCIAS = [
+  "¿cómo están mis finanzas?",
   "tengo 80 mil pesos parados y los podría dejar 5 años, ¿qué hago?",
   "¿en qué se me va el dinero cada mes?",
-  "¿me conviene más pagar mi crédito o invertir?",
-  "muéstrame los instrumentos de riesgo bajo",
+  "¿me conviene más pagar mi tarjeta o invertir?",
 ];
 
 export default function App() {
   const [texto, setTexto] = useState("");
   const [clientes, setClientes] = useState<ClienteDemo[]>([]);
   const [verTraza, setVerTraza] = useState(true);
+  const [aperturas, setAperturas] = useState(0);
 
   const estado = useStore((s) => s.estado);
   const chat = useStore((s) => s.mensajesDeChat);
@@ -49,14 +60,18 @@ export default function App() {
   const ignorados = useStore((s) => s.ignorados);
   const clientId = useStore((s) => s.clientId);
   const sessionId = useStore((s) => s.sessionId);
+  const superficieActiva = useStore((s) => s.superficieActiva);
+  const hayTablero = useStore((s) => SURFACE_TABLERO in s.superficies);
   const setClient = useStore((s) => s.setClient);
   const agregarChat = useStore((s) => s.agregarChat);
   const setEstado = useStore((s) => s.setEstado);
   const setError = useStore((s) => s.setError);
   const reset = useStore((s) => s.reset);
+  const activarSuperficie = useStore((s) => s.activarSuperficie);
 
   const finChat = useRef<HTMLDivElement>(null);
   const finTraza = useRef<HTMLDivElement>(null);
+  const tableroPedido = useRef<string | null>(null);
   const [copiaProgreso, setCopiaProgreso] = useState<string | null>(null);
 
   useEffect(() => {
@@ -70,12 +85,43 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    // StrictMode monta los efectos dos veces en desarrollo: sin esta guarda
+    // se abrirían dos sesiones por cada carga.
+    const clave = `${clientId}#${aperturas}`;
+    if (tableroPedido.current === clave) return;
+    tableroPedido.current = clave;
+    void abrirTablero(clientId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clientId, aperturas]);
+
+  useEffect(() => {
     finChat.current?.scrollIntoView({ behavior: "smooth" });
   }, [chat.length]);
 
   useEffect(() => {
     finTraza.current?.scrollIntoView({ behavior: "smooth" });
   }, [traza.length]);
+
+  async function abrirTablero(cliente: string) {
+    setEstado("pensando");
+    setError(null);
+    try {
+      await iniciarSesion({ client_id: cliente }, manejarEvento);
+      setEstado("inactivo");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  function empezarDeNuevo() {
+    reset();
+    setAperturas((n) => n + 1);
+  }
+
+  function cambiarCliente(id: string) {
+    reset();
+    setClient(id);
+  }
 
   async function enviar(mensaje: string) {
     const limpio = mensaje.trim();
@@ -94,6 +140,7 @@ export default function App() {
   }
 
   const modo = getModo();
+  const yaPregunto = chat.some((m) => m.rol === "usuario");
 
   return (
     <div className="app">
@@ -115,8 +162,8 @@ export default function App() {
             <span>Cliente</span>
             <select
               value={clientId}
-              disabled={estado === "pensando" || !!sessionId}
-              onChange={(e) => setClient(e.target.value)}
+              disabled={estado === "pensando"}
+              onChange={(e) => cambiarCliente(e.target.value)}
             >
               {clientes.length === 0 ? <option value={clientId}>{clientId}</option> : null}
               {clientes.map((c) => (
@@ -127,7 +174,16 @@ export default function App() {
               ))}
             </select>
           </label>
-          <button type="button" className="app-reset" onClick={reset}>
+          {hayTablero && superficieActiva !== SURFACE_TABLERO ? (
+            <button
+              type="button"
+              className="app-reset"
+              onClick={() => activarSuperficie(SURFACE_TABLERO)}
+            >
+              Mi resumen
+            </button>
+          ) : null}
+          <button type="button" className="app-reset" onClick={empezarDeNuevo}>
             Empezar de nuevo
           </button>
         </div>
@@ -149,9 +205,14 @@ export default function App() {
       <main className="app-cuerpo">
         <section className="app-conversacion">
           <div className="conv-mensajes">
-            {chat.length === 0 ? (
+            {chat.map((m, i) => (
+              <p key={i} className={`conv-msg conv-${m.rol}`}>
+                {conNegritas(m.texto)}
+              </p>
+            ))}
+            {!yaPregunto && estado !== "pensando" ? (
               <div className="conv-vacio">
-                <p>Pregúntame algo sobre tu dinero.</p>
+                <p>{chat.length ? "O pregúntame lo que quieras:" : "Pregúntame algo sobre tu dinero."}</p>
                 <ul>
                   {SUGERENCIAS.map((s) => (
                     <li key={s}>
@@ -162,13 +223,7 @@ export default function App() {
                   ))}
                 </ul>
               </div>
-            ) : (
-              chat.map((m, i) => (
-                <p key={i} className={`conv-msg conv-${m.rol}`}>
-                  {conNegritas(m.texto)}
-                </p>
-              ))
-            )}
+            ) : null}
             {estado === "pensando" ? (
               <p className="conv-msg conv-agente conv-pensando">
                 <span className="conv-pensando-puntos">

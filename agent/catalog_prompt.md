@@ -30,6 +30,7 @@ Reglas del catálogo:
 | `set_card_alias` | El usuario le puso o quitó apodo a una tarjeta. | `card_id`, `alias` |
 | `set_budget` | El usuario definió o cambió el presupuesto mensual de una categoría. **(mueve dinero)** | `categoria`, `monto_mensual` |
 | `refine_search` | El usuario ajustó un filtro rápido sobre resultados de búsqueda de movimientos. | `filtro` |
+| `follow_recommendation` | El usuario tocó una recomendación y quiere seguirla. Atiéndela como si hubiera escrito `prompt`, con las tools y los componentes de su herramienta. | `recomendacion_id`, `herramienta_id`, `prompt` |
 
 ### Componentes de dominio
 
@@ -167,6 +168,23 @@ Reglas del catálogo:
 | `filtros` | object | — | sí | `filtros` de search_transactions, para mostrar qué se está filtrando. |
 | `resumen` | object | — | sí | {total_cargos, total_abonos, total} de search_transactions. |
 | `movimientosCompletos` | array | — | sí | Caché completo para filtrar sin volver a llamarte (regla 8c). Escríbelo UNA sola vez, al montar el componente por primera vez, con el mismo arreglo que mandas a `movimientos`. |
+
+#### `bank.FinancialProfile`
+*Cuándo:* Radiografía financiera del cliente: salud financiera con su desglose, ingreso contra gasto, a dónde se va el ingreso, hábitos de consumo y de tarjeta, rasgos y productos. Es la cabecera del tablero inicial; úsalo también para '¿cómo estoy?' o '¿cómo me ve el banco?'. Nunca describas el perfil en texto.
+
+| prop | tipo | obl. | enlazable | nota |
+|---|---|---|---|---|
+| `perfil` | object | sí | sí | Respuesta completa de get_financial_profile. Enlázalo a /perfil_financiero. |
+| `compacto` | boolean | — | — | Si true, solo salud financiera, cifras clave y rasgos. |
+
+#### `bank.Recommendations`
+*Cuándo:* Recomendaciones priorizadas, cada una con su evidencia, su impacto en pesos y la herramienta que la resuelve. Nunca enlistes recomendaciones en texto. Tocar una emite follow_recommendation.
+
+| prop | tipo | obl. | enlazable | nota |
+|---|---|---|---|---|
+| `recomendaciones` | array | sí | sí | `recomendaciones` de get_recommendations, en el orden en que llegan. Enlázalo a /recomendaciones. |
+| `titulo` | string | — | — | Encabezado de la lista. |
+| `max` | number | — | — | Cuántas se muestran antes de 'ver más'. |
 
 
 ### Primitivos

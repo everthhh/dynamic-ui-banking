@@ -59,17 +59,22 @@ def test_el_resumen_de_gasto_no_cuenta_traspasos():
     """Mover dinero a la cuenta de inversión no es gastar."""
     g = REGISTRO["get_spending_summary"]("CLI-0002", meses=6)
     categorias = {c["categoria"] for c in g["por_categoria"]}
-    assert "traspaso" not in categorias
-    assert "inversion" not in categorias
+    # Mover dinero propio, pagar la tarjeta (sus compras ya se contaron) y
+    # pagar créditos no son consumo.
+    assert not categorias & {"traspaso", "inversion", "pago_tarjeta", "credito", "costo_financiero"}
     assert g["gasto_mensual_promedio"] > 0
     assert g["capacidad_ahorro_mensual"] >= 0
     assert 0 <= g["tasa_ahorro"] <= 1
 
 
-def test_la_capacidad_de_ahorro_es_ingreso_menos_gasto():
+def test_la_capacidad_de_ahorro_descuenta_creditos_e_intereses():
+    """Antes era ingreso menos consumo, y un auto al 48% del sueldo no restaba nada."""
     g = REGISTRO["get_spending_summary"]("CLI-0003", meses=6)
-    esperado = max(0.0, g["ingreso_mensual_observado"] - g["gasto_mensual_promedio"])
+    esperado = max(0.0, g["ingreso_mensual_observado"] - g["gasto_mensual_promedio"]
+                   - g["pagos_credito_mensual"] - g["costo_financiero_mensual"])
     assert g["capacidad_ahorro_mensual"] == pytest.approx(esperado, abs=0.01)
+    assert g["pagos_credito_mensual"] > 0          # CLI-0003 paga un crédito de nómina
+    assert g["costo_financiero_mensual"] > 0       # y deja saldo en su tarjeta
 
 
 def test_los_movimientos_vienen_del_mas_nuevo_al_mas_viejo():
@@ -341,6 +346,9 @@ def test_todo_servicio_devuelve_algo_serializable(nombre):
         "get_transactions": {"client_id": "CLI-0002", "limite": 5},
         "get_spending_summary": {"client_id": "CLI-0002"},
         "get_credit_overview": {"client_id": "CLI-0002"},
+        "get_financial_profile": {"client_id": "CLI-0002"},
+        "get_recommendations": {"client_id": "CLI-0002", "limite": 3},
+        "simulate_debt_payoff": {"client_id": "CLI-0002"},
         "search_transactions": {"client_id": "CLI-0002", "categoria": "super", "limite": 5},
         "get_budgets": {"client_id": "CLI-0002"},
         "get_spending_alerts": {"client_id": "CLI-0002"},

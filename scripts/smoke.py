@@ -111,6 +111,9 @@ async def correr() -> int:
     from agent.mcp_client import ClienteMCP
     from tests.fake_anthropic import FakeAnthropic
 
+    from a2ui.models import validate_a2ui
+    from gateway.tablero import construir_tablero
+
     guion = json.loads(GUION_PATH.read_text(encoding="utf-8"))
     sesion = Sesion(session_id="smoke", client_id=guion["client_id"])
     bitacora: list[tuple] = []
@@ -118,6 +121,17 @@ async def correr() -> int:
 
     print(f"{NEGRITA}Ciclo completo, {len(guion['turnos'])} turnos, "
           f"MCP real + sin API{FIN}\n")
+
+    # Turno 0: el tablero inicial se arma sin el modelo, pero pasa por el mismo validador.
+    tablero = construir_tablero(guion["client_id"])
+    validacion = validate_a2ui([{"version": "v0.9", **m} for m in tablero.mensajes])
+    print(f"{NEGRITA}Turno 0{FIN} · tablero inicial (sin LLM)")
+    print(f"  {tablero.resumen}")
+    if not validacion.ok:
+        fallas += 1
+        print(f"  {ROJO}el tablero no valida:{FIN} {validacion.errores[:2]}")
+    sesion.contexto_tablero = tablero.contexto_agente
+    print()
 
     # El servidor MCP corre en su propio subproceso; hereda BANK_DB_PATH para
     # que lea la base desechable que arma `main()`, no data/bank.sqlite.

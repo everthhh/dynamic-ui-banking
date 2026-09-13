@@ -49,6 +49,7 @@ from services.errors import ServiceError
 class ResultadoDirecto:
     mensajes: list[dict[str, Any]]
     resumen: str
+    texto: str | None = None        # frase para el chat; las acciones directas no llevan
 
 
 def _dm(surface_id: str, path: str, value: Any) -> dict[str, Any]:

@@ -20,7 +20,8 @@ export type ActionName =
   | "update_card_limit"
   | "set_card_alias"
   | "set_budget"
-  | "refine_search";
+  | "refine_search"
+  | "follow_recommendation";
 
 // Spec A2UI v0.9 (common_types.json#/$defs/Action): el prop `action` de un
 // componente dispara un evento de servidor. `functionCall` no aplica: este
@@ -237,6 +238,23 @@ export type PropsBankTransactionSearch = {
   movimientosCompletos?: unknown[] | Binding;
 };
 
+/** Radiografía financiera del cliente: salud financiera con su desglose, ingreso contra gasto, a dónde se va el ingreso, hábitos de consumo y de tarjeta, rasgos y productos. Es la cabecera del tablero inicial; úsalo también para '¿cómo estoy?' o '¿cómo me ve el banco?'. Nunca describas el perfil en texto. */
+export type PropsBankFinancialProfile = {
+  id: string;
+  component: "bank.FinancialProfile";
+  perfil: Record<string, unknown> | Binding;
+  compacto?: boolean;
+};
+
+/** Recomendaciones priorizadas, cada una con su evidencia, su impacto en pesos y la herramienta que la resuelve. Nunca enlistes recomendaciones en texto. Tocar una emite follow_recommendation. */
+export type PropsBankRecommendations = {
+  id: string;
+  component: "bank.Recommendations";
+  recomendaciones: unknown[] | Binding;
+  titulo?: string;
+  max?: number;
+};
+
 export type AnyComponent =
   | PropsColumn
   | PropsRow
@@ -259,10 +277,12 @@ export type AnyComponent =
   | PropsBankAccountsOverview
   | PropsBankCardManager
   | PropsBankSpendingBudgets
-  | PropsBankTransactionSearch;
+  | PropsBankTransactionSearch
+  | PropsBankFinancialProfile
+  | PropsBankRecommendations;
 
 export const COMPONENT_NAMES = [
-  "Column", "Row", "Card", "Text", "Divider", "Button", "Badge", "Stat", "inv.RiskProfiler", "inv.AllocationDonut", "inv.ProjectionChart", "inv.InstrumentTable", "inv.ComparePanel", "inv.AmountSlider", "inv.OrderTicket", "inv.FactSheet", "inv.PositionsTable", "inv.SpendingBreakdown", "bank.AccountsOverview", "bank.CardManager", "bank.SpendingBudgets", "bank.TransactionSearch"
+  "Column", "Row", "Card", "Text", "Divider", "Button", "Badge", "Stat", "inv.RiskProfiler", "inv.AllocationDonut", "inv.ProjectionChart", "inv.InstrumentTable", "inv.ComparePanel", "inv.AmountSlider", "inv.OrderTicket", "inv.FactSheet", "inv.PositionsTable", "inv.SpendingBreakdown", "bank.AccountsOverview", "bank.CardManager", "bank.SpendingBudgets", "bank.TransactionSearch", "bank.FinancialProfile", "bank.Recommendations"
 ] as const;
 
 export type ComponentName = (typeof COMPONENT_NAMES)[number];

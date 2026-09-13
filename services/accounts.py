@@ -6,19 +6,17 @@ from datetime import date, timedelta
 from typing import Any
 
 from bank import db
+from bank.categorias import (
+    CATEGORIAS_ESENCIALES,
+    CATEGORIAS_GASTO,
+    CATEGORIAS_NO_GASTO,
+    COSTO_FINANCIERO,
+    PAGO_CREDITO,
+)
 from bank.finance.risk import perfil_de_score
 from services.errors import NotFound, ServiceError
 
-CATEGORIAS_ESENCIALES = {"renta", "super", "servicios", "salud", "transporte", "educacion"}
-# Movimientos de dinero propio: no son consumo y no deben contar como gasto.
-CATEGORIAS_NO_GASTO = {"traspaso", "inversion"}
-# Las 8 categorias de gasto que existen en la base (ver bank/seed.py
-# CATEGORIAS_CARGO). Es la lista contra la que se valida `set_budget`: un
-# presupuesto en una categoria que no existe no tiene con qué compararse.
-CATEGORIAS_GASTO = frozenset({
-    "super", "restaurantes", "transporte", "servicios",
-    "renta", "salud", "entretenimiento", "educacion",
-})
+__all__ = ["CATEGORIAS_ESENCIALES", "CATEGORIAS_GASTO", "CATEGORIAS_NO_GASTO"]
 
 
 def _fecha_valuacion(conn) -> date:
@@ -232,7 +230,14 @@ def get_spending_summary(client_id: str, meses: int = 6) -> dict[str, Any]:
     """Gasto por categoria y capacidad de ahorro estimada.
 
     `capacidad_ahorro_mensual` es lo que alimenta la sugerencia de aportacion
-    mensual en el simulador: ingreso menos gasto promedio, con piso en cero.
+    mensual en el simulador: ingreso menos consumo, menos mensualidades de
+    credito, menos intereses y comisiones, con piso en cero. Antes restaba solo
+    el consumo, y un cliente con un auto financiado al 48% de su sueldo salia
+    con capacidad de ahorro de sobra.
+
+    Las compras con tarjeta de credito cuentan como consumo (viven en el mismo
+    libro con `card_id`); el pago de la tarjeta no, porque paga compras que ya
+    se contaron.
     """
     if not 1 <= meses <= 18:
         raise ServiceError("`meses` debe estar entre 1 y 18.")
@@ -249,10 +254,16 @@ def get_spending_summary(client_id: str, meses: int = 6) -> dict[str, Any]:
 
     gasto: dict[str, dict[str, Any]] = {}
     ingreso_observado = 0.0
+    pagos_credito = 0.0
+    costo_financiero = 0.0
     for f in filas:
         if f["tipo"] == "abono":
             ingreso_observado += f["total"]
             continue
+        if f["categoria"] == PAGO_CREDITO:
+            pagos_credito += f["total"]
+        elif f["categoria"] == COSTO_FINANCIERO:
+            costo_financiero += f["total"]
         if f["categoria"] in CATEGORIAS_NO_GASTO:
             continue
         gasto[f["categoria"]] = {
@@ -271,7 +282,9 @@ def get_spending_summary(client_id: str, meses: int = 6) -> dict[str, Any]:
     # aportacion: tiene que ser la resta de lo que el usuario esta viendo.
     prom_gasto = round(gasto_total / meses, 2)
     prom_ingreso = round(ingreso_observado / meses, 2)
-    capacidad = round(max(0.0, prom_ingreso - prom_gasto), 2)
+    prom_credito = round(pagos_credito / meses, 2)
+    prom_costo = round(costo_financiero / meses, 2)
+    capacidad = round(max(0.0, prom_ingreso - prom_gasto - prom_credito - prom_costo), 2)
 
     return {
         "client_id": client_id,
@@ -280,6 +293,8 @@ def get_spending_summary(client_id: str, meses: int = 6) -> dict[str, Any]:
         "ingreso_mensual_declarado": cliente["ingreso_mensual"],
         "ingreso_mensual_observado": prom_ingreso,
         "gasto_mensual_promedio": prom_gasto,
+        "pagos_credito_mensual": prom_credito,
+        "costo_financiero_mensual": prom_costo,
         "capacidad_ahorro_mensual": capacidad,
         "tasa_ahorro": round(capacidad / prom_ingreso, 4) if prom_ingreso else 0.0,
         "por_categoria": sorted(gasto.values(), key=lambda g: -g["total"]),

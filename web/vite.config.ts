@@ -27,6 +27,7 @@ export default defineConfig({
     proxy: {
       "/chat": SSE,
       "/action": SSE,
+      "/session": SSE,
       "/api": "http://localhost:8000",
       "/a2ui": "http://localhost:8000",
       "/health": "http://localhost:8000",
