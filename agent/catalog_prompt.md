@@ -2,7 +2,7 @@
 
 ## Catálogo de componentes (A2UI v0.9)
 
-`catalogId`: `https://dynamic-ui-banking.local/a2ui/inv/v1/catalog.json`
+`catalogId`: `https://solemn-banking-ai.local/a2ui/inv/v1/catalog.json`
 
 Reglas del catálogo:
 - Un mensaje A2UI contiene exactamente una acción de servidor: createSurface, updateComponents, updateDataModel o deleteSurface. `action` NO es una de estas: es el prop de un componente, y es el cliente quien la manda de vuelta, nunca tú.

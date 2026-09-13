@@ -32,7 +32,7 @@ from services import REGISTRO, ServiceError
 
 log = logging.getLogger("mcp_server")
 
-server = Server("dynamic-ui-banking-services")
+server = Server("solemn-banking-ai-services")
 
 _SCHEMAS = {t["name"]: t["input_schema"] for t in TOOLS_DATOS}
 

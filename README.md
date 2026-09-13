@@ -1,4 +1,4 @@
-# dynamic-ui-banking
+# Solemn Banking AI
 
 **Interfaz bancaria generativa: el agente no escribe la respuesta, la construye.**
 
@@ -253,7 +253,7 @@ backend.
 ## Qué hay aquí
 
 ```
-dynamic-ui-banking/
+solemn-banking-ai/
 ├─ bank/            simulación de la base del banco + motor financiero
 │  ├─ schema.sql       core bancario, inversiones y pagos
 │  ├─ seed.py          generador determinista (semilla 20260912)
