@@ -29,6 +29,7 @@ REGISTRO: dict[str, Callable[..., Any]] = {
     # lectura: perfil financiero, base de toda recomendacion
     "get_financial_profile": profile.get_financial_profile,
     "get_recommendations": profile.get_recommendations,
+    "get_service_catalog": profile.get_service_catalog,
     # lectura: banca personal (busqueda, presupuestos y alertas)
     "search_transactions": accounts.search_transactions,
     "get_budgets": accounts.get_budgets,

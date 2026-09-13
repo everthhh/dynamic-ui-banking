@@ -263,6 +263,49 @@ def test_get_recommendations_valida_el_limite():
 
 
 # ===========================================================================
+# 2b. catálogo completo: get_service_catalog (botón "ver todas las funcionalidades")
+# ===========================================================================
+@pytest.mark.parametrize("client_id", CLIENTES)
+def test_catalogo_completo_trae_todas_las_herramientas(client_id):
+    catalogo = REGISTRO["get_service_catalog"](client_id)
+    json.dumps(catalogo)
+    ids = {x["herramienta"]["herramienta_id"] for x in catalogo["recomendaciones"]}
+    assert ids == set(recs.POR_ID)
+    assert catalogo["total"] == len(catalogo["recomendaciones"]) >= len(recs.HERRAMIENTAS)
+    for x in catalogo["recomendaciones"]:
+        h = x["herramienta"]
+        assert h["tools"] == list(TOOLS_POR_HERRAMIENTA[h["herramienta_id"]])
+        assert x["prompt"]
+
+
+def test_catalogo_completo_marca_recomendada_y_conserva_sus_cifras():
+    """Una herramienta puede disparar varias recomendaciones (una tarjeta cada
+    una, una categoría cada una): TODAS deben sobrevivir al catálogo completo,
+    no solo la última."""
+    perfil, personalizadas = profile.perfil_y_recomendaciones("CLI-0001", limite=20)
+    catalogo = REGISTRO["get_service_catalog"]("CLI-0001")
+    por_id = {x["recomendacion_id"]: x for x in catalogo["recomendaciones"]}
+    assert len(por_id) == len(catalogo["recomendaciones"])
+    for r in personalizadas["recomendaciones"]:
+        entrada = por_id[r["recomendacion_id"]]
+        assert entrada["recomendada"] is True
+        assert entrada["evidencia"] == r["evidencia"]
+        assert entrada["impacto"]["valor"] == r["impacto"]["valor"]
+
+
+def test_catalogo_completo_las_no_recomendadas_no_inventan_cifras():
+    catalogo = REGISTRO["get_service_catalog"]("CLI-0001")
+    recomendadas = {r["herramienta"]["herramienta_id"]
+                    for r in profile.get_recommendations("CLI-0001", limite=20)["recomendaciones"]}
+    for x in catalogo["recomendaciones"]:
+        if x["herramienta"]["herramienta_id"] in recomendadas:
+            continue
+        assert x["recomendada"] is False
+        assert x["evidencia"] == []
+        assert x["impacto"]["valor"] == 0
+
+
+# ===========================================================================
 # 3. contrato: catalogo de herramientas <-> servicios <-> prompt
 # ===========================================================================
 def test_herramientas_servicios_y_prompt_dicen_lo_mismo():

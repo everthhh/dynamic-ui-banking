@@ -396,6 +396,7 @@ def test_todo_servicio_devuelve_algo_serializable(nombre):
         "get_credit_overview": {"client_id": "CLI-0002"},
         "get_financial_profile": {"client_id": "CLI-0002"},
         "get_recommendations": {"client_id": "CLI-0002", "limite": 3},
+        "get_service_catalog": {"client_id": "CLI-0002"},
         "simulate_debt_payoff": {"client_id": "CLI-0002"},
         "search_transactions": {"client_id": "CLI-0002", "categoria": "super", "limite": 5},
         "get_budgets": {"client_id": "CLI-0002"},

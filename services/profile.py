@@ -141,3 +141,58 @@ def perfil_y_recomendaciones(client_id: str, limite: int = 5) -> tuple[dict[str,
 def get_recommendations(client_id: str, limite: int = 5) -> dict[str, Any]:
     """Recomendaciones priorizadas, cada una con evidencia, impacto y herramienta."""
     return perfil_y_recomendaciones(client_id, limite)[1]
+
+
+def _entrada_de_vitrina(h: recomendaciones_mod.Herramienta) -> dict[str, Any]:
+    """Una herramienta del catálogo que hoy NO le fue recomendada a este
+    cliente: se muestra igual, sin evidencia ni impacto inventados, para que
+    pueda explorarla por su cuenta."""
+    return {
+        "recomendacion_id": f"catalogo_{h.herramienta_id}",
+        "titulo": h.nombre,
+        "descripcion": h.descripcion,
+        "evidencia": [],
+        "impacto": {"valor": 0, "etiqueta": "Disponible para ti", "periodo": None, "supuesto": None},
+        "urgencia": "disponible",
+        "prioridad": 0,
+        "herramienta": _herramienta_con_tools(h._asdict()),
+        "parametros": {},
+        "prompt": f"Quiero usar «{h.nombre}»",
+        "recomendada": False,
+        "orden": 0,
+    }
+
+
+def get_service_catalog(client_id: str) -> dict[str, Any]:
+    """TODO lo que el banco ofrece (`bank/finance/recomendaciones.py::HERRAMIENTAS`),
+    no solo lo que el perfil de este cliente disparó. Las que sí aplican hoy
+    conservan su evidencia, impacto y prioridad reales —una herramienta puede
+    disparar varias (una tarjeta cada una, una categoría cada una), y se
+    conservan todas—; el resto se muestra como vitrina, sin cifras
+    inventadas. Para el botón «ver todas las funcionalidades» del tablero y
+    de `bank.Recommendations`.
+    """
+    perfil = perfil_mod.construir_perfil(**_datos_del_cliente(client_id))
+    por_herramienta: dict[str, list[dict[str, Any]]] = {}
+    for r in recomendaciones_mod.recomendar(perfil):
+        por_herramienta.setdefault(r["herramienta"]["herramienta_id"], []).append(r)
+    catalogo: list[dict[str, Any]] = []
+    for h in recomendaciones_mod.HERRAMIENTAS:
+        instancias = por_herramienta.get(h.herramienta_id)
+        if instancias:
+            for r in instancias:
+                catalogo.append({**r, "herramienta": _herramienta_con_tools(r["herramienta"]),
+                                  "recomendada": True})
+        else:
+            catalogo.append(_entrada_de_vitrina(h))
+    catalogo.sort(key=lambda r: (not r["recomendada"], -r["prioridad"], r["recomendacion_id"]))
+    for orden, r in enumerate(catalogo, 1):
+        r["orden"] = orden
+    return {
+        "client_id": client_id,
+        "fecha_valuacion": perfil["fecha_valuacion"],
+        "total": len(catalogo),
+        "recomendaciones": catalogo,
+        "criterio_prioridad": recomendaciones_mod.CRITERIO_PRIORIDAD,
+        "disclaimer": DISCLAIMER,
+    }

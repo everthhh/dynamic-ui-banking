@@ -44,7 +44,7 @@ def construir_tablero(client_id: str) -> ResultadoTablero:
         {"updateDataModel": {"surfaceId": s, "path": "/recomendaciones", "value": lista}},
         {"updateComponents": {"surfaceId": s, "components": [
             {"id": "root", "component": "Column", "gap": 20,
-             "children": ["saludo", "perfil", "recomendaciones", "aviso"]},
+             "children": ["saludo", "perfil", "recomendaciones", "ver_catalogo", "aviso"]},
             {"id": "saludo", "component": "Text", "variant": "h2",
              "text": f"Hola {nombre}, así se ven tus finanzas"},
             {"id": "perfil", "component": "bank.FinancialProfile",
@@ -52,6 +52,11 @@ def construir_tablero(client_id: str) -> ResultadoTablero:
             {"id": "recomendaciones", "component": "bank.Recommendations",
              "recomendaciones": {"path": "/recomendaciones"},
              "titulo": "Lo que te recomendamos hoy", "max": RECOMENDACIONES_VISIBLES},
+            {"id": "ver_catalogo", "component": "Button", "variant": "ghost",
+             "label": "Ver todas las funcionalidades del banco",
+             "action": {"event": {"name": "ask", "context": {
+                 "prompt": "Muéstrame todas las funcionalidades que ofrece el banco, "
+                           "no solo las recomendadas para mí."}}}},
             {"id": "aviso", "component": "Text", "variant": "caption", "tone": "muted",
              "text": perfil["disclaimer"]},
         ]}},

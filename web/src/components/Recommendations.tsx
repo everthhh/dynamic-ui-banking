@@ -68,10 +68,12 @@ function Recomendacion({ r, nodoId }: { r: Obj; nodoId?: string }) {
 
       <div className="rc-pie">
         <div className="rc-impacto">
-          <strong>
-            {moneda(impacto.valor)}
-            {periodo ? <small> {periodo}</small> : null}
-          </strong>
+          {Number(impacto.valor) > 0 ? (
+            <strong>
+              {moneda(impacto.valor)}
+              {periodo ? <small> {periodo}</small> : null}
+            </strong>
+          ) : null}
           <span>{String(impacto.etiqueta ?? "")}</span>
           {impacto.supuesto ? <span className="rc-supuesto">{String(impacto.supuesto)}</span> : null}
         </div>

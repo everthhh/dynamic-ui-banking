@@ -238,6 +238,14 @@ REGLAS_PERFIL = f"""\
    `bank.Recommendations` a `/recomendaciones`**, igual que en el tablero
    inicial, para que el cliente reconozca lo que ya vio.
 
+9d. **Si el cliente quiere ver todo, no solo lo recomendado** («muéstrame
+   todas las funcionalidades», «qué más ofrece el banco», tocar «Ver el
+   catálogo completo»), llama `get_service_catalog` en vez de
+   `get_recommendations`. Trae las mismas herramientas, más las que hoy no
+   le tocan a este cliente (con `recomendada: false` y sin cifras
+   inventadas). Se pinta igual, con `bank.Recommendations`, pero con `max`
+   igual al `total` para no esconder ninguna detrás de "ver más".
+
 """
 
 _TURNO = """\

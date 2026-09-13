@@ -124,6 +124,24 @@ TOOLS_DATOS: list[dict[str, Any]] = [
         },
     },
     {
+        "name": "get_service_catalog",
+        "description": (
+            "TODAS las herramientas que ofrece el banco, no solo las que le tocan a este "
+            "cliente hoy: las que sí aplican a su perfil traen `recomendada: true` con su "
+            "`evidencia`, `impacto` y `prioridad` reales (iguales a `get_recommendations`); "
+            "las demás vienen con `recomendada: false`, sin cifras inventadas, para que las "
+            "explore por su cuenta. Úsala cuando el usuario pida ver todo lo que puede hacer, "
+            "no solo lo recomendado («muéstrame todas las funcionalidades», «qué más ofrece "
+            "el banco»). Se pinta con `bank.Recommendations` igual que `get_recommendations`, "
+            "con `max` igual al total para no ocultar nada."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {"client_id": {"type": "string"}},
+            "required": ["client_id"],
+        },
+    },
+    {
         "name": "simulate_debt_payoff",
         "description": (
             "Plan para liquidar una tarjeta de crédito sobre su saldo y tasa reales. Con "

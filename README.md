@@ -182,7 +182,7 @@ Abre `http://localhost:5173`.
 
 | # | Acción | Resultado esperado |
 |---|---|---|
-| 7.0 | Abre la app sin escribir nada | Tablero inicial: saludo en el chat, `bank.FinancialProfile` (salud financiera, a dónde se va el ingreso, hábitos de consumo y de tarjeta) y `bank.Recommendations` con 3 recomendaciones visibles. En el panel de traza aparece `tool directa (sin LLM)` y **ninguna** llamada a Anthropic. |
+| 7.0 | Abre la app sin escribir nada | Tablero inicial: saludo en el chat, `bank.FinancialProfile` (salud financiera, a dónde se va el ingreso, hábitos de consumo y de tarjeta), `bank.Recommendations` con 3 recomendaciones visibles y el botón **"Ver todas las funcionalidades del banco"**. En el panel de traza aparece `tool directa (sin LLM)` y **ninguna** llamada a Anthropic. |
 | 7.1 | En la primera recomendación (*«Tienes … sin invertir»*) clic en **Empezar**, o escribe: *«tengo 80 mil pesos parados y los podría dejar 5 años, ¿qué hago?»* | Aparece `inv.RiskProfiler`: 4 preguntas, una a la vez, con barra de progreso. **Cero** entradas `blueprint rechazado` en el panel "Qué está pasando". |
 | 7.2 | Responde las 4 preguntas | Al contestar la última: perfil calculado (ej. *Crecimiento*), dona de asignación (5-7 instrumentos) y proyección Monte Carlo con escenarios p10/p50/p90. |
 | 7.3 | Clic en **"Ver cómo invertir"** | Aparece `inv.OrderTicket`: folio real (`BN-2026-XXXXXX`), desglose por instrumento con títulos, cuenta de cargo, saldo estimado. |
@@ -192,6 +192,8 @@ Abre `http://localhost:5173`.
 | 7.7 | Escribe de nuevo: *«enséñame mis cuentas»* | El apodo del paso 7.6 sigue ahí. Si desaparece, es el bug de la columna `alias` — corre `make seed` y confirma que estás en `origin/main`. |
 | 7.8 | Escribe: *«¿en qué se me va el dinero cada mes?»* | Desglose de gasto por categoría en un componente (nunca una lista en texto plano). |
 | 7.9 | Cambia el cliente a **Diego Alcantara** | La sesión se reinicia y el tablero se rehace: salud *frágil*, rasgo *Paga tarde su tarjeta* y la primera recomendación es liquidar su tarjeta. En **Ver 3 más**, la de domiciliar el pago sale con *Próximamente*. |
+| 7.10 | Clic en **"Ver todas las funcionalidades del banco"** | Nueva superficie con las 11+ herramientas del catálogo: las que ya aplican a este cliente conservan su evidencia e impacto reales (marcadas primero); el resto aparece como *"Disponible para ti"*, sin cifras inventadas, y las aún no construidas (domiciliación, consolidación de deudas) con *Próximamente*. Tocar **Empezar** en cualquiera —recomendada o no— abre esa herramienta igual que `follow_recommendation`. |
+| 7.11 | Pide por chat: *«qué recibos tengo por pagar»* → **Pagar** en uno → marca la casilla → **Confirmar** | `pay.BillsPanel` → `pay.PaymentTicket` con folio `PG-2026-XXXXXX` → ticket en verde *"Pagado"*. Dos pasos reales: `pay_service` registra, `confirm_payment` con el token ejecuta. |
 
 ### 8. Modo sin API key (opcional)
 
@@ -236,7 +238,7 @@ dynamic-ui-banking/
 │  ├─ pagos.py         bancos SPEI, CLABE, convenios de servicios y canales de efectivo
 │  └─ finance/         perfil financiero, recomendaciones, planes de deuda, riesgo,
 │                      idoneidad, origen de fondos, fiscal, Monte Carlo
-├─ services/        la única superficie que el agente puede tocar (44 tools)
+├─ services/        la única superficie que el agente puede tocar (45 tools)
 ├─ mcp_server/      servidor MCP standalone que expone services/ por stdio
 ├─ a2ui/            catalog.json (fuente única de verdad) + validador + contrato
 ├─ agent/           loop propio sobre el SDK nativo de Anthropic + cliente MCP
@@ -418,6 +420,20 @@ dejarle al agente, en el contexto de sesión, qué recomendaciones tiene el
 cliente enfrente. Tocar una emite `follow_recommendation`, que **sí** pasa por
 el agente: abrir la herramienta correcta con los datos correctos es
 interpretar.
+
+**Ver todas las funcionalidades, no solo lo recomendado.** El tablero trae un
+botón — *"Ver todas las funcionalidades del banco"* — que manda la pregunta al
+agente y este llama `get_service_catalog` (`services/profile.py`) en vez de
+`get_recommendations`. Trae las mismas 11 herramientas del catálogo de
+`bank/finance/recomendaciones.py`, pero completas: las que ya le aplican a
+este cliente conservan su `evidencia`, `impacto` y `prioridad` reales
+(`recomendada: true`, primero en la lista); las que no, se muestran igual
+—`recomendada: false`, sin cifras inventadas, con la etiqueta *"Disponible
+para ti"* — para que el cliente explore lo que el banco ofrece más allá de lo
+que el perfil disparó hoy. Las aún no disponibles (domiciliación,
+consolidación de deudas) se ven con *Próximamente*, igual que en
+recomendaciones. Se pinta con el mismo `bank.Recommendations`: cero
+componentes nuevos, cero acciones nuevas en el catálogo A2UI.
 
 **Datos que valen la pena analizar.** Antes el seed sorteaba cargos con la misma
 probabilidad para todos: un cliente de 18 mil gastaba igual que uno de 240 mil,
@@ -676,19 +692,19 @@ si el catálogo cambia, el guion se rompe y nos enteramos.
 ## Verificación
 
 ```
-527 tests
+539 tests
   a2ui/tests/test_contract.py       (122) catálogo bien formado (31 componentes, 26
                                      acciones), artefactos alineados, casos inválidos
                                      (incl. spec A2UI real: action anidado,
                                      deleteSurface), accionables y tablero inicial
-  tests/test_services.py             (84) cuadre de cifras, errores con sugerencia,
+  tests/test_services.py             (85) cuadre de cifras, errores con sugerencia,
                                      los dos pasos de la orden, idempotencia, token
                                      nunca expuesto, capacidad de ahorro neta de deuda
   tests/test_riesgo_emisoras.py      (68) look-through a empresas dentro de fondos,
                                      idoneidad (perfil/concentración/plazo), origen de
                                      fondos y arbitraje con crédito, fiscal, curva de
                                      tasas
-  tests/test_agent_loop.py           (63) encadenado de tools (vía MCP falso),
+  tests/test_agent_loop.py           (64) encadenado de tools (vía MCP falso),
                                      validación con reintento, fallback, bitácora,
                                      límites, token inventado en place_order y en
                                      confirm_payment
@@ -700,10 +716,11 @@ si el catálogo cambia, el guion se rompe y nos enteramos.
                                      pesos que suman 1, percentiles que no se cruzan,
                                      diversificación que baja la volatilidad,
                                      comisiones que se cobran
-  tests/test_perfil.py               (41) deducciones del perfil con datos armados a
+  tests/test_perfil.py               (51) deducciones del perfil con datos armados a
                                      mano, que cada persona se DESCUBRA en sus
-                                     movimientos, prioridad, planes de deuda y el
-                                     contrato herramientas ↔ tools ↔ prompt
+                                     movimientos, prioridad, planes de deuda, el
+                                     contrato herramientas ↔ tools ↔ prompt y el
+                                     catálogo completo (`get_service_catalog`)
   tests/test_banking.py              (22) ownership de cuenta/tarjeta, límites con
                                      techo y piso, bloqueo idempotente, alias saneado,
                                      presupuestos
