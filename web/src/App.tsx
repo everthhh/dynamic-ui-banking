@@ -13,6 +13,7 @@
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Logo } from "./components/Logo";
+import { Watermark } from "./components/Watermark";
 import { copiaAmigable } from "./progressCopy";
 import { Superficie } from "./renderer/Renderer";
 import { SURFACE_TABLERO, manejarEvento, useStore } from "./store";
@@ -228,16 +229,16 @@ export default function App() {
             ) : null}
             {estado === "pensando" ? (
               <p className="conv-msg conv-agente conv-pensando">
-                <span className="conv-pensando-puntos">
-                  <span />
-                  <span />
-                  <span />
-                </span>
                 {copiaProgreso ? (
                   <span key={copiaProgreso} className="conv-pensando-texto">
                     {copiaProgreso}
                   </span>
                 ) : null}
+                <span className="conv-pensando-puntos">
+                  <span />
+                  <span />
+                  <span />
+                </span>
               </p>
             ) : null}
             <div ref={finChat} />
@@ -263,8 +264,11 @@ export default function App() {
           </form>
         </section>
 
-        <section className="app-superficie">
-          <Superficie />
+        <section className="app-superficie-panel">
+          <div className="app-superficie">
+            <Superficie />
+          </div>
+          <Watermark />
         </section>
       </main>
 

@@ -5,6 +5,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
+import { CategoryIcon } from "./CategoryIcon";
 import { ETIQUETA_CATEGORIA, compacto, moneda, porcentaje } from "../format";
 import { useStore } from "../store";
 
@@ -50,7 +51,10 @@ function FilaPresupuesto({ alerta }: { alerta: Alerta }) {
   return (
     <li className={"sb2-fila" + (alerta.excedido ? " excedida" : "")}>
       <div className="sb2-fila-cabeza">
-        <span className="sb2-cat">{ETIQUETA_CATEGORIA[alerta.categoria ?? ""] ?? alerta.categoria}</span>
+        <span className="sb2-cat">
+          <CategoryIcon categoria={alerta.categoria} />
+          {ETIQUETA_CATEGORIA[alerta.categoria ?? ""] ?? alerta.categoria}
+        </span>
         {alerta.excedido ? <span className="ao-estado bloqueada">Excedido</span> : null}
       </div>
       <div className="sb2-barra">

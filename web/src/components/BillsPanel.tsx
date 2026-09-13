@@ -4,6 +4,7 @@
 // el agente llama el paso 1 (`pay_service`), que regresa un pay.PaymentTicket
 // por confirmar. El dinero solo se mueve desde el ticket.
 
+import { CategoryIcon } from "./CategoryIcon";
 import { ETIQUETA_SERVICIO, fechaCorta, moneda } from "../format";
 import { useStore } from "../store";
 
@@ -78,6 +79,7 @@ export function BillsPanel({ nodoId, servicios, resumen }: BillsPanelProps) {
             return (
               <li key={s.service_id ?? i} className={"pg-item" + (rec?.vencido ? " vencido" : "")}>
                 <span className={`pg-cat pg-cat-${s.categoria ?? "otro"}`}>
+                  <CategoryIcon categoria={s.categoria} />
                   {ETIQUETA_SERVICIO[s.categoria ?? ""] ?? s.categoria}
                 </span>
                 <div className="pg-item-info">

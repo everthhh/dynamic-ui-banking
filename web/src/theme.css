@@ -40,19 +40,14 @@ button, input, select { font: inherit; color: inherit; }
 .app-header {
   display: flex; align-items: center; justify-content: space-between;
   gap: 16px; padding: 12px 20px;
-  background: var(--superficie); border-bottom: 1px solid var(--linea);
+  background: linear-gradient(120deg, var(--superficie) 0%, var(--superficie) 55%, #fff5f5 100%);
+  border-bottom: 1px solid var(--linea);
 }
 .app-marca { display: flex; align-items: center; gap: 12px; }
 .app-sub { font-size: 12.5px; color: var(--apagado); }
 
 /* --------------------------------------------------------------------- logo */
-.logo { display: inline-flex; align-items: center; gap: 8px; }
-.logo-icono { flex: 0 0 auto; }
-.logo-texto {
-  font-weight: 800; letter-spacing: .03em; font-stretch: condensed;
-  font-size: 17px; line-height: 1;
-}
-.logo-sm .logo-texto { font-size: 10px; }
+.logo { display: block; }
 
 .app-controles { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; min-width: 0; }
 .app-modo {
@@ -112,7 +107,7 @@ button, input, select { font: inherit; color: inherit; }
   background: var(--fondo); border: 1px solid var(--linea);
   border-bottom-left-radius: 4px;
 }
-.conv-pensando { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.conv-pensando { display: flex; flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; }
 .conv-pensando-puntos { display: inline-flex; gap: 5px; align-items: center; }
 .conv-pensando-puntos span {
   width: 6px; height: 6px; border-radius: 50%; background: var(--apagado);
@@ -140,7 +135,11 @@ button, input, select { font: inherit; color: inherit; }
 .conv-entrada button:disabled { background: var(--linea); color: var(--apagado); cursor: default; }
 
 /* ----------------------------------------------------------------- renderer */
-.app-superficie { overflow-y: auto; padding: 24px; min-height: 0; }
+.app-superficie-panel {
+  position: relative; z-index: 0; min-height: 0; overflow: hidden;
+  background: radial-gradient(circle at 100% 100%, rgb(235 0 44 / 5%), transparent 55%) var(--fondo);
+}
+.app-superficie { height: 100%; overflow-y: auto; padding: 24px; }
 .rndr-superficie { max-width: 760px; margin: 0 auto; animation: entrada .25s ease-out; }
 @keyframes entrada {
   from { opacity: 0; transform: translateY(6px); }
@@ -155,6 +154,22 @@ button, input, select { font: inherit; color: inherit; }
   color: var(--apagado); font-size: 13.5px; background: var(--superficie);
 }
 .rndr-hueco code { font-family: var(--mono); font-size: 12.5px; }
+
+/* -------------------------------------------------------------- marca de agua */
+/* z-index negativo + .app-superficie-panel como contexto de apilamiento propio:
+   la marca de agua siempre queda detrás de .app-superficie (flujo normal, sin
+   position), así que cualquier tarjeta/panel con fondo opaco la tapa — nunca
+   se dibuja por encima de la UI que arma el agente. */
+.marca-agua {
+  position: absolute;
+  right: 14px; bottom: 10px;
+  width: clamp(32px, 5vw, 60px);
+  opacity: .07;
+  pointer-events: none;
+  z-index: -1;
+}
+.marca-agua svg { display: block; width: 100%; height: auto; }
+.marca-agua path { fill: var(--rojo); }
 
 /* --------------------------------------------------------------- primitivos */
 .c-column { display: flex; flex-direction: column; }
@@ -615,7 +630,8 @@ a.cv, .cv[role="button"] { cursor: pointer; }
 }
 .sb2-fila.excedida { border-color: rgb(180 35 24 / 35%); background: rgb(180 35 24 / 4%); }
 .sb2-fila-cabeza { display: flex; align-items: center; justify-content: space-between; }
-.sb2-cat { font-size: 13.5px; font-weight: 600; }
+.sb2-cat { display: flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 600; }
+.sb2-cat .cat-icono { width: 15px; height: 15px; color: var(--apagado); }
 .sb2-barra {
   height: 8px;
   border-radius: 999px;
@@ -708,8 +724,13 @@ a.cv, .cv[role="button"] { cursor: pointer; }
 .fp-alerta { margin: 0; font-size: 12.5px; color: var(--negativo); font-weight: 600; }
 .fp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
 .fp-cats { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-.fp-cat { display: grid; grid-template-columns: 150px 1fr 44px; gap: 10px; align-items: center; font-size: 13px; }
-.fp-cat-nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fp-cat { display: grid; grid-template-columns: minmax(96px, 160px) 1fr 44px; gap: 10px; align-items: center; font-size: 13px; }
+.fp-cat-nombre { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.fp-cat-nombre .cat-icono { flex: 0 0 auto; width: 15px; height: 15px; color: var(--apagado); }
+/* nada de ellipsis: una categoría larga ("Entretenimiento") pasa a dos
+   líneas en vez de cortarse a la mitad — la fila crece, el diseño no se
+   rompe. */
+.fp-cat-texto { overflow-wrap: break-word; line-height: 1.25; }
 .fp-cat-barra { height: 8px; background: var(--fondo); border-radius: 4px; overflow: hidden; }
 .fp-cat-barra span { display: block; height: 100%; background: var(--rojo); opacity: .75; }
 .fp-cat-monto { font-variant-numeric: tabular-nums; text-align: right; color: var(--tinta-2); }
@@ -796,10 +817,12 @@ a.cv, .cv[role="button"] { cursor: pointer; }
 .pg-vence-neutral { color: var(--apagado); }
 .pg-al-corriente { font-size: 12.5px; color: var(--positivo); font-weight: 600; }
 .pg-cat {
+  display: inline-flex; align-items: center; gap: 4px;
   flex: 0 0 auto; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em;
   padding: 3px 8px; border-radius: 999px; border: 1px solid var(--linea);
   background: var(--fondo); color: var(--tinta-2);
 }
+.cat-icono { flex: 0 0 auto; width: 13px; height: 13px; }
 .pg-cat-luz { background: #fffaeb; border-color: #fedf89; color: #b54708; }
 .pg-cat-agua { background: #eff8ff; border-color: #b2ddff; color: #175cd3; }
 .pg-cat-internet, .pg-cat-telefonia, .pg-cat-television { background: #f4f3ff; border-color: #d9d6fe; color: #5925dc; }
@@ -897,7 +920,7 @@ a.cv, .cv[role="button"] { cursor: pointer; }
 }
 
 @media (max-width: 480px) {
-  .logo-texto { font-size: 14px; }
+  .logo-md { height: 20px; width: auto; }
   .app-sub { display: none; }
   .ao-cards-grid { grid-template-columns: 1fr; }
   .cv { max-width: none; }
@@ -908,9 +931,10 @@ a.cv, .cv[role="button"] { cursor: pointer; }
   .fp-cabeza { gap: 14px; }
   .fp-anillo { width: 88px; height: 88px; }
   .fp-anillo-centro strong { font-size: 22px; }
-  .fp-cat { grid-template-columns: 110px 1fr 40px; }
+  .fp-cat { grid-template-columns: minmax(84px, 128px) 1fr 40px; }
   .fp-lista li { flex-direction: column; gap: 2px; }
   .fp-lista li > span:last-child { text-align: left; }
   .rc-item { padding: 14px; }
   .rc-accion { justify-content: flex-start; }
+  .marca-agua { width: clamp(24px, 9vw, 36px); right: 8px; bottom: 6px; }
 }

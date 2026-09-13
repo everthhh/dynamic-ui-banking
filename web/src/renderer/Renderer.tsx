@@ -95,7 +95,12 @@ export function Superficie(): ReactNode {
 
   return (
     <Fragment>
-      <div className="rndr-superficie" style={estilo} data-surface={superficie.surfaceId}>
+      <div
+        key={superficie.surfaceId}
+        className="rndr-superficie"
+        style={estilo}
+        data-surface={superficie.surfaceId}
+      >
         <Nodo id={superficie.rootId} />
       </div>
     </Fragment>
