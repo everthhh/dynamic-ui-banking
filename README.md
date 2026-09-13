@@ -1,7 +1,15 @@
 # dynamic-ui-banking
 
-Interfaz bancaria generativa: el agente no escribe la respuesta, la **construye**.
+**Interfaz bancaria generativa: el agente no escribe la respuesta, la construye.**
+
 Reto UI Generativa (Banorte × Tec de Monterrey, HackMTY 2026).
+
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-React%20%2B%20Vite-3178C6?logo=typescript&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-SSE-009688?logo=fastapi&logoColor=white)
+![Claude](https://img.shields.io/badge/Claude-Sonnet-D97757)
+![A2UI](https://img.shields.io/badge/A2UI-v0.9-6C4FE0)
+![Tests](https://img.shields.io/badge/tests-539%20passing-brightgreen)
 
 El usuario escribe «tengo 80 mil pesos parados y los podría dejar 5 años». El
 agente descubre que no hay perfil de riesgo vigente, así que en lugar de
@@ -13,6 +21,27 @@ comparativo que nadie programó como pantalla. Confirma, y la superficie se
 convierte en un estado de cuenta con folio real.
 
 Tres superficies distintas de la misma conversación, y una acción con efecto.
+
+<details>
+<summary><strong>Contenido</strong></summary>
+
+- [Arrancar](#arrancar)
+- [Guía de prueba paso a paso](#guía-de-prueba-paso-a-paso)
+- [Qué hay aquí](#qué-hay-aquí)
+- [Las cuatro decisiones que sostienen el proyecto](#las-cuatro-decisiones-que-sostienen-el-proyecto)
+- [El perfil financiero es la base de toda recomendación](#el-perfil-financiero-es-la-base-de-toda-recomendación)
+- [El SDK nativo de Anthropic](#el-sdk-nativo-de-anthropic)
+- [Las tools de datos viven en un MCP separado](#las-tools-de-datos-viven-en-un-mcp-separado)
+- [La simulación del banco](#la-simulación-del-banco)
+- [Segundo dominio: banca personal](#segundo-dominio-banca-personal)
+- [Tercer dominio: pagos](#tercer-dominio-pagos)
+- [La simulación del sistema de componentes](#la-simulación-del-sistema-de-componentes)
+- [Verificación](#verificación)
+- [Roadmap](#roadmap)
+- [Documentación](#documentación)
+- [Aviso](#aviso)
+
+</details>
 
 Y antes de que escriba nada, ya hay algo en pantalla. El banco leyó sus últimos
 12 meses —movimientos, estados de cuenta de la tarjeta, créditos, saldos,
@@ -140,7 +169,7 @@ Antes de tocar el navegador, confirma que el entorno está sano:
 make test
 ```
 
-Esperado: `527 passed` en 20-25 segundos aproximadamente. Un fallo aquí es un
+Esperado: `539 passed` en 15-25 segundos aproximadamente. Un fallo aquí es un
 problema de entorno (dependencias, base sin regenerar), no de diseño —
 resuélvelo antes de continuar.
 
@@ -743,11 +772,29 @@ consola limpia, y sin desbordamiento horizontal a 400 px.
 
 ---
 
+## Roadmap
+
+Inversiones, banca personal y pagos son los tres dominios cerrados y
+ensayados hoy. Lo que sigue, en orden:
+
+| # | Fase | Qué agrega |
+|---|---|---|
+| 1 | **Cerrar pagos de servicios** | Domiciliación de recibos, pagos programados/recurrentes, DiMo/CoDi/QR — lo que hoy queda fuera de alcance del pago puntual ya construido |
+| 2 | **Créditos bancarios** | Recalificación y amortización, consolidación de deudas (`refinanciamiento`), domiciliación del pago de tarjeta — el core bancario ya tiene los créditos, falta el dominio `credito.*` completo |
+| 3 | **Seguros** | Catálogo de pólizas, cobertura recomendada según el perfil financiero, contratación con el mismo candado de dos pasos |
+| 4 | **Integración de voz** | Accesibilidad (lector de pantalla, confirmación por voz en operaciones que mueven dinero) y entrada/salida por voz sobre el mismo agente, sin cambiar el ciclo intención → tools → UI → acción |
+
+Detalle de alcance, dependencias y por qué ese orden en
+[`docs/roadmap.md`](docs/roadmap.md).
+
+---
+
 ## Documentación
 
 - [`docs/arquitectura.md`](docs/arquitectura.md) — las capas, qué hace y qué no hace cada una
 - [`docs/trade-offs.md`](docs/trade-offs.md) — qué se descartó y qué costó
 - [`docs/demo.md`](docs/demo.md) — guion de tres minutos y plan B
+- [`docs/roadmap.md`](docs/roadmap.md) — qué sigue y en qué orden
 
 ---
 

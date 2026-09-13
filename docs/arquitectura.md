@@ -222,4 +222,4 @@ de fuera no es algo que el agente pueda pedir.
 **Criterio de corte:** un dominio nuevo se abre cuando el anterior está completo
 y ensayado; Pagos se abrió a pedido explícito del equipo. Faltan Crédito
 (recalificación, amortización, refinanciamiento), Seguros y Educación
-financiera.
+financiera — alcance y orden en [`docs/roadmap.md`](roadmap.md).

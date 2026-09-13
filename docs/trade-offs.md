@@ -76,7 +76,7 @@ encadenado de tools, no el render.
 Seguros, Educación financiera). El criterio de corte se respeta a propósito:
 Inversiones se cerró y se ensayó, luego Banca personal, y Pagos se abrió como
 tercero a pedido del equipo. Media demo de cinco dominios es peor que tres
-completos.
+completos. Orden y alcance propuestos en [`docs/roadmap.md`](roadmap.md).
 
 **En pagos: DiMo, CoDi y cobros con QR.** Transferir a un número de celular o
 cobrar con un código QR necesita un directorio de celulares y un flujo de
