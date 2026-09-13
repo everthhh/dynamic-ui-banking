@@ -169,10 +169,19 @@ class AgenteUIGenerativa:
         self._registrar = registrar_superficie
 
     async def _preparar(self) -> None:
-        """Pide los schemas de datos al servidor MCP una sola vez por instancia."""
+        """Pide los schemas de datos al servidor MCP una sola vez por instancia.
+
+        El breakpoint de cache va en el ÚLTIMO tool (`render_surface`), no en el
+        system prompt: en la API de Anthropic el prefijo cacheable es
+        tools -> system -> messages, así que este breakpoint cachea también los
+        schemas de datos que vienen antes. Con tres dominios (inv/bank/pay) esa
+        lista ya pesa varios KB; sin esto, cada una de las 4-5 llamadas
+        encadenadas de un turno la vuelve a procesar como texto nuevo.
+        """
         if self.tools is None:
             datos = await self.mcp.tools_para_el_modelo()
-            self.tools = [*datos, RENDER_SURFACE]
+            render_cacheado = {**RENDER_SURFACE, "cache_control": {"type": "ephemeral"}}
+            self.tools = [*datos, render_cacheado]
 
     # ------------------------------------------------------------------ publico
     async def run_turn(
